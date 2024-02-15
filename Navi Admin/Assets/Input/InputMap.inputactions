@@ -1,0 +1,94 @@
+{
+    "name": "InputMap",
+    "maps": [
+        {
+            "name": "MapEditor",
+            "id": "ff6e5b7b-7c9f-4aa6-9939-6d929fa31a19",
+            "actions": [
+                {
+                    "name": "Zoom",
+                    "type": "PassThrough",
+                    "id": "4391d657-4655-46d2-8698-921f37206760",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "MoveCamera",
+                    "type": "Button",
+                    "id": "9cc77432-eabd-49d3-851b-74dd54446ad3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Draw",
+                    "type": "Button",
+                    "id": "1edc27b6-fbb6-44f0-a7f5-627876b305f4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "EndDraw",
+                    "type": "Button",
+                    "id": "26a4a3e9-e5e3-4f3c-8b5f-894d15244f76",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "347b2298-4201-4111-9869-e0320efe7ffc",
+                    "path": "<Mouse>/scroll/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a94c076a-a09f-4c0b-a983-9974ad3e6937",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveCamera",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "76b61535-af8f-400b-963d-4d7d4015cd08",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Draw",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0a954739-fe40-4227-8321-f6b315b92a70",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "EndDraw",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
