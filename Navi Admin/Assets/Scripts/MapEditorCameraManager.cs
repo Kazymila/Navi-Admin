@@ -35,7 +35,7 @@ public class MapEditorCameraManager : MonoBehaviour
     {
         Zoom();
         if (!_isDragging) return;
-        _PositionDiff = GetMousePosition - transform.position;
+        _PositionDiff = GetCursorPosition - transform.position;
         transform.position = _PositionOrigin - _PositionDiff;
     }
 
@@ -47,11 +47,11 @@ public class MapEditorCameraManager : MonoBehaviour
         _camera.orthographicSize = Mathf.Clamp(_camera.orthographicSize, _zoomMin, _zoomMax);
     }
 
-    private Vector3 GetMousePosition => _camera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+    private Vector3 GetCursorPosition => _camera.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
 
     private void OnDrag(InputAction.CallbackContext ctx)
     {
-        if (ctx.started) _PositionOrigin = GetMousePosition;
+        if (ctx.started) _PositionOrigin = GetCursorPosition;
         _isDragging = ctx.started || ctx.performed;
     }
 }

@@ -7,6 +7,8 @@ public class WallLineController : MonoBehaviour
     public WallDotController startDot;
     public WallDotController endDot;
 
+    public float length;
+
     void Start()
     {
 

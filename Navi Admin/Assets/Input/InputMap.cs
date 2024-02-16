@@ -46,13 +46,22 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Draw"",
+                    ""name"": ""Click"",
                     ""type"": ""Button"",
-                    ""id"": ""1edc27b6-fbb6-44f0-a7f5-627876b305f4"",
+                    ""id"": ""18b9c35b-bdfe-465a-b066-b5d3a0d1d503"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Position"",
+                    ""type"": ""Value"",
+                    ""id"": ""1edc27b6-fbb6-44f0-a7f5-627876b305f4"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""EndDraw"",
@@ -90,11 +99,11 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""76b61535-af8f-400b-963d-4d7d4015cd08"",
-                    ""path"": ""<Mouse>/leftButton"",
+                    ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Draw"",
+                    ""action"": ""Position"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -108,6 +117,17 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""action"": ""EndDraw"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""310cc194-16ad-4104-b05a-f04bdb56a898"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -118,7 +138,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         m_MapEditor = asset.FindActionMap("MapEditor", throwIfNotFound: true);
         m_MapEditor_Zoom = m_MapEditor.FindAction("Zoom", throwIfNotFound: true);
         m_MapEditor_MoveCamera = m_MapEditor.FindAction("MoveCamera", throwIfNotFound: true);
-        m_MapEditor_Draw = m_MapEditor.FindAction("Draw", throwIfNotFound: true);
+        m_MapEditor_Click = m_MapEditor.FindAction("Click", throwIfNotFound: true);
+        m_MapEditor_Position = m_MapEditor.FindAction("Position", throwIfNotFound: true);
         m_MapEditor_EndDraw = m_MapEditor.FindAction("EndDraw", throwIfNotFound: true);
     }
 
@@ -183,7 +204,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
     private List<IMapEditorActions> m_MapEditorActionsCallbackInterfaces = new List<IMapEditorActions>();
     private readonly InputAction m_MapEditor_Zoom;
     private readonly InputAction m_MapEditor_MoveCamera;
-    private readonly InputAction m_MapEditor_Draw;
+    private readonly InputAction m_MapEditor_Click;
+    private readonly InputAction m_MapEditor_Position;
     private readonly InputAction m_MapEditor_EndDraw;
     public struct MapEditorActions
     {
@@ -191,7 +213,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         public MapEditorActions(@InputMap wrapper) { m_Wrapper = wrapper; }
         public InputAction @Zoom => m_Wrapper.m_MapEditor_Zoom;
         public InputAction @MoveCamera => m_Wrapper.m_MapEditor_MoveCamera;
-        public InputAction @Draw => m_Wrapper.m_MapEditor_Draw;
+        public InputAction @Click => m_Wrapper.m_MapEditor_Click;
+        public InputAction @Position => m_Wrapper.m_MapEditor_Position;
         public InputAction @EndDraw => m_Wrapper.m_MapEditor_EndDraw;
         public InputActionMap Get() { return m_Wrapper.m_MapEditor; }
         public void Enable() { Get().Enable(); }
@@ -208,9 +231,12 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @MoveCamera.started += instance.OnMoveCamera;
             @MoveCamera.performed += instance.OnMoveCamera;
             @MoveCamera.canceled += instance.OnMoveCamera;
-            @Draw.started += instance.OnDraw;
-            @Draw.performed += instance.OnDraw;
-            @Draw.canceled += instance.OnDraw;
+            @Click.started += instance.OnClick;
+            @Click.performed += instance.OnClick;
+            @Click.canceled += instance.OnClick;
+            @Position.started += instance.OnPosition;
+            @Position.performed += instance.OnPosition;
+            @Position.canceled += instance.OnPosition;
             @EndDraw.started += instance.OnEndDraw;
             @EndDraw.performed += instance.OnEndDraw;
             @EndDraw.canceled += instance.OnEndDraw;
@@ -224,9 +250,12 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @MoveCamera.started -= instance.OnMoveCamera;
             @MoveCamera.performed -= instance.OnMoveCamera;
             @MoveCamera.canceled -= instance.OnMoveCamera;
-            @Draw.started -= instance.OnDraw;
-            @Draw.performed -= instance.OnDraw;
-            @Draw.canceled -= instance.OnDraw;
+            @Click.started -= instance.OnClick;
+            @Click.performed -= instance.OnClick;
+            @Click.canceled -= instance.OnClick;
+            @Position.started -= instance.OnPosition;
+            @Position.performed -= instance.OnPosition;
+            @Position.canceled -= instance.OnPosition;
             @EndDraw.started -= instance.OnEndDraw;
             @EndDraw.performed -= instance.OnEndDraw;
             @EndDraw.canceled -= instance.OnEndDraw;
@@ -251,7 +280,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
     {
         void OnZoom(InputAction.CallbackContext context);
         void OnMoveCamera(InputAction.CallbackContext context);
-        void OnDraw(InputAction.CallbackContext context);
+        void OnClick(InputAction.CallbackContext context);
+        void OnPosition(InputAction.CallbackContext context);
         void OnEndDraw(InputAction.CallbackContext context);
     }
 }

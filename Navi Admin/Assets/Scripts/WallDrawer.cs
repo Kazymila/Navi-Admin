@@ -35,9 +35,7 @@ public class WallDrawer : MonoBehaviour
     {
         _input = new InputMap();
         _input.MapEditor.Enable();
-        _input.MapEditor.Draw.started += ctx => NewWall();
-        //_input.MapEditor.Draw.performed += ctx => _drawingWall = true;
-        //_input.MapEditor.Draw.canceled += ctx => SetWall();
+        _input.MapEditor.Click.started += ctx => NewWall();
         _input.MapEditor.EndDraw.started += ctx => CancelDraw();
     }
     private void OnDisable() => _input.MapEditor.Disable();
@@ -50,17 +48,17 @@ public class WallDrawer : MonoBehaviour
             _UIRects[i] = _UILayout.GetChild(i).GetComponent<RectTransform>();
     }
 
-    private Vector3 GetMousePosition()
+    private Vector3 GetCursorPosition()
     {
-        Vector3 _mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        _mousePosition.y = 0;
+        Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
+        _cursorPosition.y = 0;
 
         if (_gridManager.snapToGrid)
         {
-            _mousePosition.x = Mathf.Round(_mousePosition.x / _gridManager.gridSize);
-            _mousePosition.z = Mathf.Round(_mousePosition.z / _gridManager.gridSize);
+            _cursorPosition.x = Mathf.Round(_cursorPosition.x / _gridManager.gridSize);
+            _cursorPosition.z = Mathf.Round(_cursorPosition.z / _gridManager.gridSize);
         }
-        return _mousePosition;
+        return _cursorPosition;
     }
 
     private WallDotController InstantiateWallDot(Vector3 _position, int _type = 0)
@@ -90,7 +88,7 @@ public class WallDrawer : MonoBehaviour
         }
         else if (_drawingWall && _lineObject != null)
         {   // Drag the line updating the end dot position
-            _endWallDot.SetPosition(GetMousePosition());
+            _endWallDot.SetPosition(GetCursorPosition());
             WallSizeOnGUI();
         }
         else _wallSizeLabel.SetActive(false);
@@ -99,7 +97,7 @@ public class WallDrawer : MonoBehaviour
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
         if (!IsDrawingInsideCanvas()) return;
-        Vector3 _mousePosition = GetMousePosition();
+        Vector3 _mousePosition = GetCursorPosition();
 
         if (_lineObject == null && !_drawingWall)
         {   // Create the first dot and line
@@ -110,7 +108,7 @@ public class WallDrawer : MonoBehaviour
         }
         else if (_lineObject != null && _drawingWall)
         {   // Set dot and add line from this last dot
-            _endWallDot.SetPosition(GetMousePosition());
+            _endWallDot.SetPosition(GetCursorPosition());
 
             _startWallDot = _endWallDot;
             _endWallDot = InstantiateWallDot(_mousePosition, 1);
@@ -154,6 +152,7 @@ public class WallDrawer : MonoBehaviour
             _wallSizeLabel.SetActive(false);
         else
         {
+            _lineObject.GetComponent<WallLineController>().length = _wallSize;
             Vector3 _labelPosition = _line.GetPosition(1) + new Vector3(0, 0, 0.5f);
             _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
             _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
@@ -166,12 +165,8 @@ public class WallDrawer : MonoBehaviour
         {   // Check if the mouse is not in the UI
             if (RectTransformUtility.RectangleContainsScreenPoint(
                 _rect, Mouse.current.position.ReadValue(), null))
-            {
-                print("OUTSIDE DRAW CANVAS");
-                return false;
-            }
+            { return false; }
         }
-        print("INSIDE DRAW CANVAS");
         return true;
     }
 }
