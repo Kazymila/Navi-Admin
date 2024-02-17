@@ -10,14 +10,21 @@ public class WallDotController : MonoBehaviour
     public int linesCount = 0;
     public Vector3 position;
 
-    private void Update()
+    private Animator _dotAnimator;
+
+    private void Start()
     {
+        _dotAnimator = GetComponent<Animator>();
+    }
+
+    private void Update()
+    {   // Delete the dot if it has no lines
         if (lines.Count == 0) DeleteDot();
         position = this.transform.position;
     }
 
     public void SetPosition(Vector3 _position)
-    {
+    {   // Set the position of the dot and update the lines
         for (int i = 0; i < linesCount; i++)
         {
             lines[i].GetComponent<LineRenderer>().SetPosition(linesType[i], _position);
@@ -27,7 +34,7 @@ public class WallDotController : MonoBehaviour
     }
 
     public void AddLine(GameObject _line, int _type, WallDotController _neighborDot)
-    {
+    {   // Add a line to the dot
         lines.Add(_line);
         linesType.Add(_type);
         neighborsDots.Add(_neighborDot);
@@ -35,7 +42,7 @@ public class WallDotController : MonoBehaviour
     }
 
     public void DeleteLine(int _index)
-    {
+    {   // Delete a line from the dot
         lines.RemoveAt(_index);
         linesType.RemoveAt(_index);
         neighborsDots.RemoveAt(_index);
@@ -43,7 +50,7 @@ public class WallDotController : MonoBehaviour
     }
 
     public void DeleteDot(bool _deleteLines = true)
-    {
+    {   // Delete the dot and its lines
         if (_deleteLines)
         {
             for (int i = 0; i < linesCount; i++)
@@ -53,5 +60,10 @@ public class WallDotController : MonoBehaviour
             }
         }
         Destroy(gameObject);
+    }
+
+    public void PlayHoverAnimation()
+    {   // Play the hover dot animation
+        _dotAnimator.Play("Hovered", 0, 0);
     }
 }

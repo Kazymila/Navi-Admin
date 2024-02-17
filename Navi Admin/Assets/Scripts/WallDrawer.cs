@@ -102,6 +102,7 @@ public class WallDrawer : MonoBehaviour
 
         if (raycast_dot && !_drawingWall)
         {   // If press when the cursor is over a dot, create a line from this dot
+            raycast_dot.PlayHoverAnimation();
             Vector3 _noSnapPosition = GetCursorPosition(false);
             _startWallDot = raycast_dot;
             _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
@@ -109,13 +110,16 @@ public class WallDrawer : MonoBehaviour
             _drawingWall = true;
         }
         else if (raycast_dot && _drawingWall && raycast_dot != _endWallDot)
-        {   // But if was already drawing, end the line in this dot
+        {   // But if was already drawing, end the line and add a new line from this dot
+            raycast_dot.PlayHoverAnimation();
             _endWallDot.SetPosition(raycast_dot.position);
             SetLineDots(_lineObject, _startWallDot, raycast_dot);
             _endWallDot.DeleteDot(false);
             _endWallDot = raycast_dot;
-            _drawingWall = false;
-            _lineObject = null;
+
+            _startWallDot = _endWallDot;
+            _endWallDot = InstantiateWallDot(_cursorPosition, 1);
+            _lineObject = CreateLine(_cursorPosition);
         }
         else if (_lineObject == null && !_drawingWall)
         {   // Create the first dot and line
