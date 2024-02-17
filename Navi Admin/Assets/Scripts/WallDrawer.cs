@@ -48,12 +48,12 @@ public class WallDrawer : MonoBehaviour
             _UIRects[i] = _UILayout.GetChild(i).GetComponent<RectTransform>();
     }
 
-    private Vector3 GetCursorPosition()
-    {
+    private Vector3 GetCursorPosition(bool _considerSnap = true)
+    {   // Get the cursor position in the world
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
         _cursorPosition.y = 0;
 
-        if (_gridManager.snapToGrid)
+        if (_gridManager.snapToGrid && _considerSnap)
         {
             _cursorPosition.x = Mathf.Round(_cursorPosition.x / _gridManager.gridSize);
             _cursorPosition.z = Mathf.Round(_cursorPosition.z / _gridManager.gridSize);
@@ -97,13 +97,31 @@ public class WallDrawer : MonoBehaviour
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
         if (!IsDrawingInsideCanvas()) return;
-        Vector3 _mousePosition = GetCursorPosition();
+        Vector3 _cursorPosition = GetCursorPosition(true);
+        WallDotController raycast_dot = RaycastToDot();
 
-        if (_lineObject == null && !_drawingWall)
+        if (raycast_dot && !_drawingWall)
+        {   // If press when the cursor is over a dot, create a line from this dot
+            Vector3 _noSnapPosition = GetCursorPosition(false);
+            _startWallDot = raycast_dot;
+            _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
+            _lineObject = CreateLine(_noSnapPosition);
+            _drawingWall = true;
+        }
+        else if (raycast_dot && _drawingWall && raycast_dot != _endWallDot)
+        {   // But if was already drawing, end the line in this dot
+            _endWallDot.SetPosition(raycast_dot.position);
+            SetLineDots(_lineObject, _startWallDot, raycast_dot);
+            _endWallDot.DeleteDot(false);
+            _endWallDot = raycast_dot;
+            _drawingWall = false;
+            _lineObject = null;
+        }
+        else if (_lineObject == null && !_drawingWall)
         {   // Create the first dot and line
-            _startWallDot = InstantiateWallDot(_mousePosition, 0);
-            _endWallDot = InstantiateWallDot(_mousePosition, 1);
-            _lineObject = CreateLine(_mousePosition);
+            _startWallDot = InstantiateWallDot(_cursorPosition, 0);
+            _endWallDot = InstantiateWallDot(_cursorPosition, 1);
+            _lineObject = CreateLine(_cursorPosition);
             _drawingWall = true;
         }
         else if (_lineObject != null && _drawingWall)
@@ -111,13 +129,29 @@ public class WallDrawer : MonoBehaviour
             _endWallDot.SetPosition(GetCursorPosition());
 
             _startWallDot = _endWallDot;
-            _endWallDot = InstantiateWallDot(_mousePosition, 1);
-            _lineObject = CreateLine(_mousePosition);
+            _endWallDot = InstantiateWallDot(_cursorPosition, 1);
+            _lineObject = CreateLine(_cursorPosition);
         }
     }
 
+    private WallDotController RaycastToDot()
+    {   // Raycast to the dots to check if the mouse is over one of them
+        RaycastHit _hit;
+        Ray _ray = Camera.main.ScreenPointToRay(_input.MapEditor.Position.ReadValue<Vector2>());
+        if (Physics.Raycast(_ray, out _hit, Mathf.Infinity))
+        {
+            if (_hit.collider.CompareTag("WallDot"))
+            {
+                WallDotController _dot = _hit.collider.GetComponent<WallDotController>();
+                return _dot;
+            }
+            else return null;
+        }
+        else return null;
+    }
+
     private GameObject CreateLine(Vector3 _position)
-    {   // Create a new line renderer
+    {   // Create a new line renderer and set the start and end dots
         GameObject _newLine = Instantiate(_linePrefab, _position, Quaternion.identity, _linesParent);
         _newLine.name = "Wall_" + _linesCount;
 
@@ -132,7 +166,7 @@ public class WallDrawer : MonoBehaviour
     }
 
     private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
-    {   // Set the dots of a line
+    {   // Set the dots of a line and add the line to the dots
         WallLineController _lineController = _line.GetComponent<WallLineController>();
         _lineController.startDot = _startWallDot;
         _lineController.endDot = _endWallDot;
@@ -153,16 +187,16 @@ public class WallDrawer : MonoBehaviour
         else
         {
             _lineObject.GetComponent<WallLineController>().length = _wallSize;
-            Vector3 _labelPosition = _line.GetPosition(1) + new Vector3(0, 0, 0.5f);
+            Vector3 _labelPosition = _line.GetPosition(1) + new Vector3(0, 0, 0.75f);
             _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
             _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
             _wallSizeLabel.SetActive(true);
         }
     }
     private bool IsDrawingInsideCanvas()
-    {
+    {   // Check if the mouse is not in the UI, to avoid drawing over the UI
         foreach (RectTransform _rect in _UIRects)
-        {   // Check if the mouse is not in the UI
+        {
             if (RectTransformUtility.RectangleContainsScreenPoint(
                 _rect, Mouse.current.position.ReadValue(), null))
             { return false; }

@@ -13,6 +13,14 @@ public class MapEditorGridManager : MonoBehaviour
     [SerializeField] private TMP_InputField _gridHeightInput;
     [SerializeField] private Slider _gridSizeSlider;
 
+    [Header("Button Icons")]
+    [SerializeField] private Image _gridViewButtonIcon;
+    [SerializeField] private Sprite _gridViewSprite;
+    [SerializeField] private Sprite _gridHideSprite;
+    [SerializeField] private Image _snapButtonIcon;
+    [SerializeField] private Sprite _gridSnapSprite;
+    [SerializeField] private Sprite _gridNoSnapSprite;
+
     [Header("Grid Settings")]
     public float gridSize = 1f;
     public bool gridActive = true;
@@ -32,12 +40,14 @@ public class MapEditorGridManager : MonoBehaviour
         gridActive = !gridActive;
         _grid.SetActive(gridActive);
         _gridSizeSlider.gameObject.SetActive(false);
+        _gridViewButtonIcon.sprite = gridActive ? _gridViewSprite : _gridHideSprite;
     }
 
     public void SnapToGrid()
     {
         snapToGrid = !snapToGrid;
         _gridSizeSlider.gameObject.SetActive(false);
+        _snapButtonIcon.sprite = snapToGrid ? _gridSnapSprite : _gridNoSnapSprite;
     }
 
     public void ChangeGridSize()
