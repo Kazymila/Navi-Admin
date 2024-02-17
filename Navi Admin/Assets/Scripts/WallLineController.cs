@@ -9,9 +9,9 @@ public class WallLineController : MonoBehaviour
 
     public float length;
 
-    void Start()
+    public float CalculateLength()
     {
-
+        length = Vector3.Distance(startDot.position, endDot.position);
+        return length;
     }
-
 }

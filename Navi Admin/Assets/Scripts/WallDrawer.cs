@@ -180,18 +180,15 @@ public class WallDrawer : MonoBehaviour
 
     private void WallSizeOnGUI()
     {   // Display a label of wall size (on meters)
-        LineRenderer _line = _lineObject.GetComponent<LineRenderer>();
+        float _wallSize = _lineObject.GetComponent<WallLineController>().CalculateLength();
 
-        float _wallSize = Math.Max(
-            Math.Abs(_line.GetPosition(1).x - _line.GetPosition(0).x),
-            Math.Abs(_line.GetPosition(1).z - _line.GetPosition(0).z)
-            );
-        if (_wallSize == 0.0f)
+        if (_wallSize < 0.0001f)
             _wallSizeLabel.SetActive(false);
         else
         {
-            _lineObject.GetComponent<WallLineController>().length = _wallSize;
-            Vector3 _labelPosition = _line.GetPosition(1) + new Vector3(0, 0, 0.75f);
+            Vector3 _labelPosition = (_endWallDot.position + _startWallDot.position) / 2;
+            _labelPosition = _labelPosition + new Vector3(0, 0, 0.5f);
+
             _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
             _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
             _wallSizeLabel.SetActive(true);
