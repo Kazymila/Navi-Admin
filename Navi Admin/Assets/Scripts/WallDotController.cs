@@ -23,6 +23,9 @@ public class WallDotController : MonoBehaviour
         position = this.transform.position;
     }
 
+    public void PlayHoverAnimation() => _dotAnimator.Play("Hovered", 0, 0);
+    public void PlayDeniedAnimation() => _dotAnimator.Play("Denied", 0, 0);
+
     public void SetPosition(Vector3 _position)
     {   // Set the position of the dot and update the lines
         for (int i = 0; i < linesCount; i++)
@@ -49,21 +52,22 @@ public class WallDotController : MonoBehaviour
         linesCount--;
     }
 
-    public void DeleteDot(bool _deleteLines = true)
+    public void DeleteDot(bool _destroyLines = true)
     {   // Delete the dot and its lines
-        if (_deleteLines)
+        for (int i = 0; i < linesCount; i++)
         {
-            for (int i = 0; i < linesCount; i++)
+            if (_destroyLines) Destroy(lines[i]);
+            else
             {
                 neighborsDots[i].DeleteLine(neighborsDots[i].neighborsDots.IndexOf(this));
-                Destroy(lines[i]);
             }
         }
         Destroy(gameObject);
     }
 
-    public void PlayHoverAnimation()
-    {   // Play the hover dot animation
-        _dotAnimator.Play("Hovered", 0, 0);
+    public bool FindNeighbor(WallDotController _neighborDot)
+    {   // Find a neighbor dot in the list
+        if (neighborsDots.Contains(_neighborDot)) return true;
+        else return false;
     }
 }

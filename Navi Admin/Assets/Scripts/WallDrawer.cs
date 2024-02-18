@@ -72,7 +72,11 @@ public class WallDrawer : MonoBehaviour
 
     private void CancelDraw()
     {   // Cancel the current line drawing
-        if (_endWallDot != null) _endWallDot.DeleteDot();
+        if (_endWallDot != null)
+        {
+            _startWallDot.DeleteLine(_startWallDot.lines.IndexOf(_lineObject));
+            _endWallDot.DeleteDot(true);
+        }
         _drawingWall = false;
         _endWallDot = null;
         _lineObject = null;
@@ -98,28 +102,33 @@ public class WallDrawer : MonoBehaviour
     {   // Create a new wall with the line and the start and end dots
         if (!IsDrawingInsideCanvas()) return;
         Vector3 _cursorPosition = GetCursorPosition(true);
-        WallDotController raycast_dot = RaycastToDot();
+        WallDotController _raycast_dot = RaycastToDot();
 
-        if (raycast_dot && !_drawingWall)
+        if (_raycast_dot && !_drawingWall)
         {   // If press when the cursor is over a dot, create a line from this dot
-            raycast_dot.PlayHoverAnimation();
+            _raycast_dot.PlayHoverAnimation();
             Vector3 _noSnapPosition = GetCursorPosition(false);
-            _startWallDot = raycast_dot;
+            _startWallDot = _raycast_dot;
             _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
             _lineObject = CreateLine(_noSnapPosition);
             _drawingWall = true;
         }
-        else if (raycast_dot && _drawingWall && raycast_dot != _endWallDot)
-        {   // But if was already drawing, end the line and add a new line from this dot
-            raycast_dot.PlayHoverAnimation();
-            _endWallDot.SetPosition(raycast_dot.position);
-            SetLineDots(_lineObject, _startWallDot, raycast_dot);
-            _endWallDot.DeleteDot(false);
-            _endWallDot = raycast_dot;
+        else if (_raycast_dot && _drawingWall && _raycast_dot != _endWallDot)
+        {   // If press when the cursor is over a dot and was already drawing
+            if (_raycast_dot.FindNeighbor(_startWallDot)) // If the dots are already connected
+                _raycast_dot.PlayDeniedAnimation();     // Cannot set the dot here
+            else
+            {   // End the line and add a new line from this dot
+                _raycast_dot.PlayHoverAnimation();
+                _endWallDot.SetPosition(_raycast_dot.position);
+                SetLineDots(_lineObject, _startWallDot, _raycast_dot);
+                _endWallDot.DeleteDot(false);
+                _endWallDot = _raycast_dot;
 
-            _startWallDot = _endWallDot;
-            _endWallDot = InstantiateWallDot(_cursorPosition, 1);
-            _lineObject = CreateLine(_cursorPosition);
+                _startWallDot = _endWallDot;
+                _endWallDot = InstantiateWallDot(_cursorPosition, 1);
+                _lineObject = CreateLine(_cursorPosition);
+            }
         }
         else if (_lineObject == null && !_drawingWall)
         {   // Create the first dot and line
@@ -172,8 +181,8 @@ public class WallDrawer : MonoBehaviour
     private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
     {   // Set the dots of a line and add the line to the dots
         WallLineController _lineController = _line.GetComponent<WallLineController>();
-        _lineController.startDot = _startWallDot;
-        _lineController.endDot = _endWallDot;
+        _lineController.startDot = _startDot;
+        _lineController.endDot = _endDot;
         _startDot.AddLine(_line, 0, _endDot);
         _endDot.AddLine(_line, 1, _startDot);
     }

@@ -57,9 +57,9 @@ public class SelectTool : MonoBehaviour
         }
         else
         {
-            RemoveWallsSizeLabel();
             RaycastToObject();
         }
+        RemoveWallsSizeLabel();
     }
 
     private void RaycastToObject()
@@ -84,6 +84,7 @@ public class SelectTool : MonoBehaviour
             if (_wallLabels.Count < _selectedDot.linesCount)
             {
                 GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
+                _label.name = "WallLabel_" + i.ToString();
                 _wallLabels.Add(_label);
             }
             WallLineController _line = _selectedDot.lines[i].GetComponent<WallLineController>();
