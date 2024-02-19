@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CircleCollider2D))]
 public class WallDotController : MonoBehaviour
 {
     public List<WallDotController> neighborsDots = new List<WallDotController>();
@@ -10,11 +11,13 @@ public class WallDotController : MonoBehaviour
     public int linesCount = 0;
     public Vector3 position;
 
+    public CircleCollider2D DotCollider;
     private Animator _dotAnimator;
 
     private void Start()
     {
         _dotAnimator = GetComponent<Animator>();
+        DotCollider = GetComponent<CircleCollider2D>();
     }
 
     private void Update()
@@ -31,8 +34,9 @@ public class WallDotController : MonoBehaviour
         for (int i = 0; i < linesCount; i++)
         {
             lines[i].GetComponent<LineRenderer>().SetPosition(linesType[i], _position);
+            lines[i].GetComponent<WallLineController>().SetLineCollider();
         }
-        position = _position;
+        position = _position + new Vector3(0, 0, -0.5f);
         this.transform.position = position;
     }
 
@@ -46,10 +50,13 @@ public class WallDotController : MonoBehaviour
 
     public void DeleteLine(int _index)
     {   // Delete a line from the dot
-        lines.RemoveAt(_index);
-        linesType.RemoveAt(_index);
-        neighborsDots.RemoveAt(_index);
-        linesCount--;
+        if (_index != -1)
+        {
+            lines.RemoveAt(_index);
+            linesType.RemoveAt(_index);
+            neighborsDots.RemoveAt(_index);
+            linesCount--;
+        }
     }
 
     public void DeleteDot(bool _destroyLines = true)
@@ -57,10 +64,8 @@ public class WallDotController : MonoBehaviour
         for (int i = 0; i < linesCount; i++)
         {
             if (_destroyLines) Destroy(lines[i]);
-            else
-            {
-                neighborsDots[i].DeleteLine(neighborsDots[i].neighborsDots.IndexOf(this));
-            }
+            neighborsDots[i].DeleteLine(neighborsDots[i].neighborsDots.IndexOf(this));
+            if (neighborsDots[i].linesCount == 0) neighborsDots[i].DeleteDot();
         }
         Destroy(gameObject);
     }

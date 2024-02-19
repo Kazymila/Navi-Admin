@@ -9,9 +9,11 @@ public class SelectTool : MonoBehaviour
     [Header("Required Stuff")]
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
+    [SerializeField] private GameObject _wallSizeLabel;
     [SerializeField] private Transform _UIItems;
 
     private List<GameObject> _wallLabels = new List<GameObject>();
+    private WallLineController _selectedLine;
     private WallDotController _selectedDot;
     private bool _movingDot;
 
@@ -25,6 +27,20 @@ public class SelectTool : MonoBehaviour
     }
     private void OnDisable() => _input.MapEditor.Disable();
 
+    private Vector3 GetCursorPosition()
+    {   // Get the cursor position in the world
+        Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
+        _cursorPosition.z = 0;
+
+        if (_gridManager.snapToGrid)
+        {
+            _cursorPosition.x = Mathf.Round(_cursorPosition.x / _gridManager.gridSize);
+            _cursorPosition.y = Mathf.Round(_cursorPosition.y / _gridManager.gridSize);
+        }
+
+        return _cursorPosition;
+    }
+
     private void Update()
     {
         if (_movingDot)
@@ -34,51 +50,51 @@ public class SelectTool : MonoBehaviour
         }
     }
 
-    private Vector3 GetCursorPosition()
-    {   // Get the cursor position in the world
-        Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
-        _cursorPosition.y = 0;
-
-        if (_gridManager.snapToGrid)
-        {
-            _cursorPosition.x = Mathf.Round(_cursorPosition.x / _gridManager.gridSize);
-            _cursorPosition.z = Mathf.Round(_cursorPosition.z / _gridManager.gridSize);
-        }
-
-        return _cursorPosition;
-    }
-
     private void OnSelectClick()
     {   // Select the object under the cursor to do something with it
         if (_movingDot)
-        {   // Set the dot position and stop moving it 
+        {   // Set the dot position and stop moving it
             _selectedDot.PlayHoverAnimation();
             _movingDot = false;
         }
         else
         {
+            _wallSizeLabel.SetActive(false);
             RaycastToObject();
         }
         RemoveWallsSizeLabel();
     }
 
     private void RaycastToObject()
-    {   // Raycast to the object under the cursor and do something with it
-        RaycastHit _hit;
-        Ray _ray = Camera.main.ScreenPointToRay(_input.MapEditor.Position.ReadValue<Vector2>());
-        if (Physics.Raycast(_ray, out _hit, Mathf.Infinity))
+    {   // Raycast to the object under the cursor to select it
+        RaycastHit2D _hit = Physics2D.Raycast(GetCursorPosition(), Vector2.zero);
+
+        if (_hit.collider != null)
         {
-            if (_hit.collider.CompareTag("WallDot")) // Select wall dot to move it
-            {
+            if (_hit.collider.CompareTag("WallDot"))
+            {   // Select the dot and start moving it
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
                 _selectedDot.PlayHoverAnimation();
                 _movingDot = true;
+            }
+            else if (_hit.collider.CompareTag("Wall"))
+            {   // Select the wall and show its size
+                _selectedLine = _hit.collider.GetComponent<WallLineController>();
+                _selectedLine.startDot.PlayHoverAnimation();
+                _selectedLine.endDot.PlayHoverAnimation();
+
+                // Show the wall size label
+                float _wallSize = _selectedLine.CalculateLength();
+                Vector3 _labelPosition = (_selectedLine.endDot.position + _selectedLine.startDot.position) / 2;
+                _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+                _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
+                _wallSizeLabel.SetActive(true);
             }
         }
     }
 
     private void ShowWallsSizeLabel()
-    {   // Show the wall size label
+    {   // Show the walls labels connected to the selected dot
         for (int i = 0; i < _selectedDot.linesCount; i++)
         {
             if (_wallLabels.Count < _selectedDot.linesCount)

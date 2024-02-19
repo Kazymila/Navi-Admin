@@ -24,6 +24,7 @@ public class WallDrawer : MonoBehaviour
 
     private RectTransform[] _UIRects;
     private GameObject _lineObject;
+    private WallLineController _lineController;
     private WallDotController _startWallDot;
     private WallDotController _endWallDot;
     private int _linesCount = 0;
@@ -51,12 +52,12 @@ public class WallDrawer : MonoBehaviour
     private Vector3 GetCursorPosition(bool _considerSnap = true)
     {   // Get the cursor position in the world
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
-        _cursorPosition.y = 0;
+        _cursorPosition.z = 0;
 
         if (_gridManager.snapToGrid && _considerSnap)
         {
             _cursorPosition.x = Mathf.Round(_cursorPosition.x / _gridManager.gridSize);
-            _cursorPosition.z = Mathf.Round(_cursorPosition.z / _gridManager.gridSize);
+            _cursorPosition.y = Mathf.Round(_cursorPosition.y / _gridManager.gridSize);
         }
         return _cursorPosition;
     }
@@ -66,7 +67,7 @@ public class WallDrawer : MonoBehaviour
         GameObject _wallDot = Instantiate(_dotPrefab, _position, Quaternion.identity, _dotsParent);
         _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
         WallDotController _wallDotController = _wallDot.GetComponent<WallDotController>();
-        _wallDot.transform.localRotation = Quaternion.Euler(0, 0, 0);
+        _wallDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         return _wallDotController;
     }
 
@@ -86,13 +87,14 @@ public class WallDrawer : MonoBehaviour
     private void Update()
     {
         if (_drawingWall && !IsDrawingInsideCanvas())
-        {   // Cancel the drawing if the mouse is outside the canvas
+        {   // Cancel the drawing if the cursor is outside the canvas
             CancelDraw();
             return;
         }
         else if (_drawingWall && _lineObject != null)
         {   // Drag the line updating the end dot position
             _endWallDot.SetPosition(GetCursorPosition());
+            _endWallDot.DotCollider.enabled = false;
             WallSizeOnGUI();
         }
         else _wallSizeLabel.SetActive(false);
@@ -101,35 +103,13 @@ public class WallDrawer : MonoBehaviour
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
         if (!IsDrawingInsideCanvas()) return;
+        WallDotController _raycastDot = RaycastToDot();
         Vector3 _cursorPosition = GetCursorPosition(true);
-        WallDotController _raycast_dot = RaycastToDot();
+        if (_endWallDot) _endWallDot.DotCollider.enabled = true;
 
-        if (_raycast_dot && !_drawingWall)
-        {   // If press when the cursor is over a dot, create a line from this dot
-            _raycast_dot.PlayHoverAnimation();
-            Vector3 _noSnapPosition = GetCursorPosition(false);
-            _startWallDot = _raycast_dot;
-            _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
-            _lineObject = CreateLine(_noSnapPosition);
-            _drawingWall = true;
-        }
-        else if (_raycast_dot && _drawingWall && _raycast_dot != _endWallDot)
-        {   // If press when the cursor is over a dot and was already drawing
-            if (_raycast_dot.FindNeighbor(_startWallDot)) // If the dots are already connected
-                _raycast_dot.PlayDeniedAnimation();     // Cannot set the dot here
-            else
-            {   // End the line and add a new line from this dot
-                _raycast_dot.PlayHoverAnimation();
-                _endWallDot.SetPosition(_raycast_dot.position);
-                SetLineDots(_lineObject, _startWallDot, _raycast_dot);
-                _endWallDot.DeleteDot(false);
-                _endWallDot = _raycast_dot;
+        // If the cursor is over a dot, wall is created or finished here
+        if (_raycastDot) OnSelectDot(_raycastDot);
 
-                _startWallDot = _endWallDot;
-                _endWallDot = InstantiateWallDot(_cursorPosition, 1);
-                _lineObject = CreateLine(_cursorPosition);
-            }
-        }
         else if (_lineObject == null && !_drawingWall)
         {   // Create the first dot and line
             _startWallDot = InstantiateWallDot(_cursorPosition, 0);
@@ -147,8 +127,54 @@ public class WallDrawer : MonoBehaviour
         }
     }
 
+    private void OnSelectDot(WallDotController _raycastDot)
+    {
+        if (!_drawingWall)
+        {   // Create a line from the selected dot
+            _raycastDot.PlayHoverAnimation();
+            Vector3 _noSnapPosition = GetCursorPosition(false);
+
+            _startWallDot = _raycastDot;
+            _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
+            _lineObject = CreateLine(_noSnapPosition);
+            _drawingWall = true;
+        }
+        else
+        {   // If was already drawing, the selected dot is setted as the end dot
+            // But, if the dots are already connected, cannot set the dot here
+            if (_raycastDot.FindNeighbor(_startWallDot))
+                _raycastDot.PlayDeniedAnimation();
+            else
+            {   // End the line and add a new line from this dot
+                _raycastDot.PlayHoverAnimation();
+                Vector3 _cursorPosition = GetCursorPosition(true);
+
+                _endWallDot.SetPosition(_raycastDot.position);
+                SetLineDots(_lineObject, _startWallDot, _raycastDot);
+                _endWallDot.DeleteDot(false);
+                _endWallDot = _raycastDot;
+
+                _startWallDot = _endWallDot;
+                _endWallDot = InstantiateWallDot(_cursorPosition, 1);
+                _lineObject = CreateLine(_cursorPosition);
+            }
+        }
+    }
+
     private WallDotController RaycastToDot()
     {   // Raycast to the dots to check if the mouse is over one of them
+        RaycastHit2D _hit = Physics2D.Raycast(GetCursorPosition(), Vector2.zero);
+
+        if (_hit.collider != null && _hit.collider.CompareTag("WallDot"))
+        {
+            WallDotController _dot = _hit.collider.GetComponent<WallDotController>();
+            return _dot;
+        }
+        else return null;
+    }
+
+    private WallDotController RaycastToDotsZAxis()
+    {   // Raycast to the dots on z as y axis, to check if the mouse is over one of them
         RaycastHit _hit;
         Ray _ray = Camera.main.ScreenPointToRay(_input.MapEditor.Position.ReadValue<Vector2>());
         if (Physics.Raycast(_ray, out _hit, Mathf.Infinity))
@@ -172,6 +198,7 @@ public class WallDrawer : MonoBehaviour
         _line.SetPosition(0, _position);
         _line.SetPosition(1, _position);
 
+        _lineController = _newLine.GetComponent<WallLineController>();
         SetLineDots(_newLine, _startWallDot, _endWallDot);
         _linesCount++;
 
@@ -180,7 +207,6 @@ public class WallDrawer : MonoBehaviour
 
     private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
     {   // Set the dots of a line and add the line to the dots
-        WallLineController _lineController = _line.GetComponent<WallLineController>();
         _lineController.startDot = _startDot;
         _lineController.endDot = _endDot;
         _startDot.AddLine(_line, 0, _endDot);
@@ -189,26 +215,27 @@ public class WallDrawer : MonoBehaviour
 
     private void WallSizeOnGUI()
     {   // Display a label of wall size (on meters)
-        float _wallSize = _lineObject.GetComponent<WallLineController>().CalculateLength();
+        float _wallSize = _lineController.CalculateLength();
 
         if (_wallSize < 0.0001f)
             _wallSizeLabel.SetActive(false);
         else
         {
             Vector3 _labelPosition = (_endWallDot.position + _startWallDot.position) / 2;
-            _labelPosition = _labelPosition + new Vector3(0, 0, 0.5f);
+            _labelPosition = _labelPosition + new Vector3(0, 0.5f, 0);
 
             _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
             _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
             _wallSizeLabel.SetActive(true);
         }
     }
+
     private bool IsDrawingInsideCanvas()
     {   // Check if the mouse is not in the UI, to avoid drawing over the UI
         foreach (RectTransform _rect in _UIRects)
         {
             if (RectTransformUtility.RectangleContainsScreenPoint(
-                _rect, Mouse.current.position.ReadValue(), null))
+                _rect, _input.MapEditor.Position.ReadValue<Vector2>(), null))
             { return false; }
         }
         return true;
