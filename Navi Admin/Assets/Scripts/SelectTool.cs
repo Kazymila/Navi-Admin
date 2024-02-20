@@ -89,6 +89,8 @@ public class SelectTool : MonoBehaviour
                 _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
                 _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
                 _wallSizeLabel.SetActive(true);
+
+                _selectedLine.GenerateWallMesh();
             }
         }
     }

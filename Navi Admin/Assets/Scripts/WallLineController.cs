@@ -8,8 +8,15 @@ public class WallLineController : MonoBehaviour
     public WallDotController startDot;
     public WallDotController endDot;
 
+    [Header("Required Components")]
     [SerializeField] private LineRenderer _lineRenderer;
     [SerializeField] private PolygonCollider2D _polygonCollider;
+    //[SerializeField] private MeshFilter _meshFilter;
+
+    [Header("3D Render")]
+    [SerializeField] private GameObject _renderPrefab;
+
+    private GameObject _renderWall;
     private MeshFilter _meshFilter;
     private Mesh _mesh;
 
@@ -20,9 +27,13 @@ public class WallLineController : MonoBehaviour
         _lineRenderer = GetComponent<LineRenderer>();
         _polygonCollider = GetComponent<PolygonCollider2D>();
 
-        //_meshFilter = GetComponent<MeshFilter>();
-        //_mesh = new Mesh();
-        //_mesh.name = "Mesh_" + this.gameObject.name;
+        Transform _renderParent = GameObject.Find("3DRender/Walls").transform;
+        GameObject _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
+        _renderWall.name = "Render_" + this.gameObject.name;
+        _meshFilter = _renderWall.GetComponent<MeshFilter>();
+
+        _mesh = new Mesh();
+        _mesh.name = "Mesh_" + this.gameObject.name;
     }
 
     public float CalculateLength()
@@ -71,13 +82,78 @@ public class WallLineController : MonoBehaviour
         return _colliderPoints;
     }
 
-    /*
-    public void GeneratePlane()
-    {   // Generate the plane mesh
-        _mesh.vertices = CalculateColliderPoints();
-        _mesh.triangles = new int[] { 0, 1, 2, 2, 1, 3 };
+    public void GenerateWallMesh()
+    {   // Generate the 3D wall mesh
+        Vector2[] _points = CalculateColliderPoints().ToArray();
+
+        _mesh.vertices = new Vector3[] {
+            // Bottom vertices
+            new Vector3(_points[0].x, _points[0].y, 0),
+            new Vector3(_points[1].x, _points[1].y, 0),
+            new Vector3(_points[2].x, _points[2].y, 0),
+            new Vector3(_points[3].x, _points[3].y, 0),
+
+            // Top vertices
+            new Vector3(_points[0].x, _points[0].y, 2),
+            new Vector3(_points[1].x, _points[1].y, 2),
+            new Vector3(_points[2].x, _points[2].y, 2),
+            new Vector3(_points[3].x, _points[3].y, 2),
+
+            // Front vertices
+            new Vector3(_points[0].x, _points[0].y, 0),
+            new Vector3(_points[1].x, _points[1].y, 0),
+            new Vector3(_points[1].x, _points[1].y, 2),
+            new Vector3(_points[0].x, _points[0].y, 2),
+
+            // Back vertices
+            new Vector3(_points[3].x, _points[3].y, 0),
+            new Vector3(_points[2].x, _points[2].y, 0),
+            new Vector3(_points[2].x, _points[2].y, 2),
+            new Vector3(_points[3].x, _points[3].y, 2),
+
+            // Left vertices
+            new Vector3(_points[0].x, _points[0].y, 0),
+            new Vector3(_points[3].x, _points[3].y, 0),
+            new Vector3(_points[3].x, _points[3].y, 2),
+            new Vector3(_points[0].x, _points[0].y, 2),
+
+            // Right vertices
+            new Vector3(_points[1].x, _points[1].y, 0),
+            new Vector3(_points[2].x, _points[2].y, 0),
+            new Vector3(_points[2].x, _points[2].y, 2),
+            new Vector3(_points[1].x, _points[1].y, 2),
+            };
+
+        _mesh.triangles = new int[] {
+            // Bottom face
+            0, 1, 2,
+            0, 2, 3,
+
+            // Top face
+            5, 4, 6,
+            6, 4, 7,
+
+            // Front face
+            9, 8, 10,
+            10, 8, 11,
+
+            // Back face
+            12, 13, 14,
+            12, 14, 15,
+
+            // Left face
+            16, 17, 18,
+            16, 18, 19,
+
+            // Right face
+            21, 20, 22,
+            22, 20, 23,
+        };
+
         _mesh.RecalculateNormals();
         _mesh.RecalculateBounds();
         _meshFilter.mesh = _mesh;
-    }*/
+
+
+    }
 }
