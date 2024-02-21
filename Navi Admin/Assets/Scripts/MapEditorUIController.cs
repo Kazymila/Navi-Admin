@@ -12,11 +12,17 @@ public class MapEditorUIController : MonoBehaviour
     [SerializeField] private Color _selectedColor;
     [SerializeField] private Color _disabledColor;
 
+    [Header("Required Stuff")]
+    [SerializeField] private GameObject[] _toolManagers;
+
     private Button[] _buttons;
+    private Animator _animator;
+    private Button _selectedButton;
 
     void Start()
     {
         _buttons = GetComponentsInChildren<Button>();
+        _animator = GetComponent<Animator>();
     }
 
     private void ChangeButtonsColors()
@@ -35,6 +41,27 @@ public class MapEditorUIController : MonoBehaviour
         }
     }
 
+    public void HideEditorInterface()
+    {
+        _animator.SetBool("Hide", true);
+        Invoke("DisableLayout", 0.2f);
+    }
+
+    private void DisableLayout()
+    {
+        if (_selectedButton)
+        {
+            _selectedButton.interactable = true;
+            _selectedButton = null;
+        }
+
+        for (int i = 0; i < _toolManagers.Length; i++)
+            _toolManagers[i].SetActive(false);
+
+        _animator.SetBool("Hide", false);
+        this.gameObject.SetActive(false);
+    }
+
     public void SetAllButtonsInteractable(string _selectedButtonName)
     {
         foreach (Button _button in _buttons)
@@ -48,13 +75,14 @@ public class MapEditorUIController : MonoBehaviour
         }
     }
 
-    public void OnButtonSelected(Button _selectedButton)
+    public void OnButtonSelected(Button _button)
     {
         /* Keep the button as selected after clicking on it
 
         - To keep the selected color of a button, 
           we use the disable color as the selected color.
         */
+        _selectedButton = _button;
         int _buttonIndex = System.Array.IndexOf(_buttons, _selectedButton);
 
         if (_buttonIndex == -1) return;

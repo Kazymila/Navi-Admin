@@ -90,7 +90,7 @@ public class SelectTool : MonoBehaviour
                 _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
                 _wallSizeLabel.SetActive(true);
 
-                _selectedLine.GenerateWallMesh();
+                //_selectedLine.GenerateWallMesh();
             }
         }
     }

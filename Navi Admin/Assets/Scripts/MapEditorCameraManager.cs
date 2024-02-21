@@ -25,10 +25,12 @@ public class MapEditorCameraManager : MonoBehaviour
     private void Start()
     {
         _camera = Camera.main;
+
         _input = new InputMap();
         _input.MapEditor.Enable();
         _input.MapEditor.MoveCamera.started += ctx => OnDrag(ctx);
         _input.MapEditor.MoveCamera.canceled += ctx => _isDragging = false;
+
         _sliderLabel = _zoomSlider.gameObject.transform.GetChild(1).GetComponent<TMP_Text>();
     }
 
@@ -38,6 +40,22 @@ public class MapEditorCameraManager : MonoBehaviour
         if (!_isDragging) return;
         _PositionDiff = GetCursorPosition - transform.position;
         transform.position = _PositionOrigin - _PositionDiff;
+    }
+
+    public void SetOrthographicView()
+    {   // Set the camera to orthographic view
+        _camera.orthographic = true;
+        _camera.orthographicSize = 10;
+
+        _camera.transform.position = new Vector3(0, 0, -10);
+        _camera.transform.rotation = Quaternion.Euler(0, 0, 0);
+    }
+
+    public void SetPerspectiveView()
+    {   // Set the camera to perspective view
+        _camera.orthographic = false;
+        _camera.transform.position = new Vector3(0, 10, -10);
+        _camera.transform.rotation = Quaternion.Euler(45, 0, 0);
     }
 
     public void ShowZoomSlider()

@@ -11,7 +11,6 @@ public class WallLineController : MonoBehaviour
     [Header("Required Components")]
     [SerializeField] private LineRenderer _lineRenderer;
     [SerializeField] private PolygonCollider2D _polygonCollider;
-    //[SerializeField] private MeshFilter _meshFilter;
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
@@ -27,8 +26,8 @@ public class WallLineController : MonoBehaviour
         _lineRenderer = GetComponent<LineRenderer>();
         _polygonCollider = GetComponent<PolygonCollider2D>();
 
-        Transform _renderParent = GameObject.Find("3DRender/Walls").transform;
-        GameObject _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
+        Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
+        _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
         _renderWall.name = "Render_" + this.gameObject.name;
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
 
@@ -46,6 +45,7 @@ public class WallLineController : MonoBehaviour
     {   // Delete the line and its references
         startDot.DeleteLine(startDot.lines.IndexOf(this.gameObject));
         endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
+        Destroy(_renderWall);
         Destroy(this.gameObject);
     }
 
@@ -62,10 +62,16 @@ public class WallLineController : MonoBehaviour
         Vector3[] _positions = { startDot.position, endDot.position };
         float _width = _lineRenderer.startWidth;
 
-        //Calculate the gradient of the line
+        //Calculate the gradient (m) of the line
         float _m = (_positions[1].y - _positions[0].y) / (_positions[1].x - _positions[0].x);
-        float _deltaX = (_width / 2f) * (_m / Mathf.Pow(_m * _m + 1, 0.5f));
-        float _deltaY = (_width / 2f) * (1 / Mathf.Pow(_m * _m + 1, 0.5f));
+        float _deltaX = _width / 2; // Offset when the line is parallel to the y-axis
+        float _deltaY = 0;
+
+        if (!float.IsInfinity(_m)) // If the line is not parallel to the y-axis
+        {
+            _deltaX = (_width / 2f) * (_m / Mathf.Pow(_m * _m + 1, 0.5f));
+            _deltaY = (_width / 2f) * (1 / Mathf.Pow(_m * _m + 1, 0.5f));
+        }
 
         // Calculate offset from each point to mesh
         Vector3[] _offsets = new Vector3[2];
@@ -79,6 +85,7 @@ public class WallLineController : MonoBehaviour
             _positions[1] + _offsets[1],
             _positions[0] + _offsets[1],
         };
+
         return _colliderPoints;
     }
 
@@ -86,7 +93,7 @@ public class WallLineController : MonoBehaviour
     {   // Generate the 3D wall mesh
         Vector2[] _points = CalculateColliderPoints().ToArray();
 
-        _mesh.vertices = new Vector3[] {
+        Vector3[] _vertices = new Vector3[] {
             // Bottom vertices
             new Vector3(_points[0].x, _points[0].y, 0),
             new Vector3(_points[1].x, _points[1].y, 0),
@@ -124,9 +131,9 @@ public class WallLineController : MonoBehaviour
             new Vector3(_points[1].x, _points[1].y, 2),
             };
 
-        _mesh.triangles = new int[] {
-            // Bottom face
-            0, 1, 2,
+        int[] _triangles = new int[] {
+        // Bottom face
+        0, 1, 2,
             0, 2, 3,
 
             // Top face
@@ -150,10 +157,13 @@ public class WallLineController : MonoBehaviour
             22, 20, 23,
         };
 
+        _mesh.vertices = _vertices;
+        _mesh.triangles = _triangles;
         _mesh.RecalculateNormals();
         _mesh.RecalculateBounds();
+
         _meshFilter.mesh = _mesh;
-
-
+        _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
+        _renderWall.transform.localPosition = new Vector3(0, 2f, 0);
     }
 }
