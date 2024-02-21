@@ -41,10 +41,13 @@ public class WallLineController : MonoBehaviour
         return _length;
     }
 
-    public void DeleteLine()
+    public void DestroyLine(bool _fromDots = true)
     {   // Delete the line and its references
-        startDot.DeleteLine(startDot.lines.IndexOf(this.gameObject));
-        endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
+        if (_fromDots)
+        {
+            startDot.DeleteLine(startDot.lines.IndexOf(this.gameObject));
+            endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
+        }
         Destroy(_renderWall);
         Destroy(this.gameObject);
     }
@@ -132,8 +135,8 @@ public class WallLineController : MonoBehaviour
             };
 
         int[] _triangles = new int[] {
-        // Bottom face
-        0, 1, 2,
+            // Bottom face
+            0, 1, 2,
             0, 2, 3,
 
             // Top face

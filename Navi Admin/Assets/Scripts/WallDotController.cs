@@ -63,7 +63,7 @@ public class WallDotController : MonoBehaviour
     {   // Delete the dot and its lines
         for (int i = 0; i < linesCount; i++)
         {
-            if (_destroyLines) Destroy(lines[i]);
+            if (_destroyLines) lines[i].GetComponent<WallLineController>().DestroyLine(false);
             neighborsDots[i].DeleteLine(neighborsDots[i].neighborsDots.IndexOf(this));
             if (neighborsDots[i].linesCount == 0) neighborsDots[i].DeleteDot();
         }

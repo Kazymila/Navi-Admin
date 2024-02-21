@@ -29,7 +29,7 @@ public class EraserTool : MonoBehaviour
             else if (_hit.collider.CompareTag("Wall"))
             {   // Delete the selected line
                 WallLineController _selectedLine = _hit.collider.GetComponent<WallLineController>();
-                _selectedLine.DeleteLine();
+                _selectedLine.DestroyLine();
             }
         }
     }

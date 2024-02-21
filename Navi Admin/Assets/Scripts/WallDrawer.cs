@@ -64,9 +64,10 @@ public class WallDrawer : MonoBehaviour
 
     private WallDotController InstantiateWallDot(Vector3 _position, int _type = 0)
     {   // Instantiate a wall dot and atach it to a line
-        GameObject _wallDot = Instantiate(_dotPrefab, _position, Quaternion.identity, _dotsParent);
-        _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
+        Vector3 _dotPosition = _position + new Vector3(0, 0, -0.5f);
+        GameObject _wallDot = Instantiate(_dotPrefab, _dotPosition, Quaternion.identity, _dotsParent);
         WallDotController _wallDotController = _wallDot.GetComponent<WallDotController>();
+        _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
         _wallDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         return _wallDotController;
     }
