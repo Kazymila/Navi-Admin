@@ -37,9 +37,18 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MoveCamera"",
+                    ""name"": ""Move"",
                     ""type"": ""Button"",
                     ""id"": ""9cc77432-eabd-49d3-851b-74dd54446ad3"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hand"",
+                    ""type"": ""Button"",
+                    ""id"": ""a2bcc8e4-647b-4803-a209-a75d69f82a1a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -92,7 +101,7 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MoveCamera"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -128,6 +137,145 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""action"": ""Click"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2de1f4f2-6bf6-4373-ab3e-294bafe91ece"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hand"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""RenderView"",
+            ""id"": ""7df759c4-8e07-4819-9081-a02919bc8cfc"",
+            ""actions"": [
+                {
+                    ""name"": ""Look"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""ecd107d4-4caf-4930-9c2f-e16f13225043"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""4dbe533d-68fa-4e1d-b692-2a5c3c2780f0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Move"",
+                    ""type"": ""Button"",
+                    ""id"": ""b8274b6f-8194-4e9d-859c-021685c9b62c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hand"",
+                    ""type"": ""Button"",
+                    ""id"": ""d3d20e5b-cfc5-4d86-9fbf-12066511b6f5"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Rotate"",
+                    ""type"": ""Button"",
+                    ""id"": ""6463bbad-69a3-4933-8600-6b04f7ebb87e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Position"",
+                    ""type"": ""Value"",
+                    ""id"": ""36feec16-5b7b-461d-98b1-425a8e91ea4a"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""66c974bf-5eb2-4fc6-93af-9659a1174a4b"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cf43390f-112f-46bc-9e1e-ead451129192"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""167d4118-830c-4297-a46f-a6091a6d703b"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""06e6f946-5d60-4cf0-a118-a7a454dcf6fa"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Position"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f63177d4-2a33-4b3f-bb97-48f48f5b16e1"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hand"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6695e7f6-8a3d-4cfb-a8b6-5b73c77bc72f"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -137,10 +285,19 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         // MapEditor
         m_MapEditor = asset.FindActionMap("MapEditor", throwIfNotFound: true);
         m_MapEditor_Zoom = m_MapEditor.FindAction("Zoom", throwIfNotFound: true);
-        m_MapEditor_MoveCamera = m_MapEditor.FindAction("MoveCamera", throwIfNotFound: true);
+        m_MapEditor_Move = m_MapEditor.FindAction("Move", throwIfNotFound: true);
+        m_MapEditor_Hand = m_MapEditor.FindAction("Hand", throwIfNotFound: true);
         m_MapEditor_Click = m_MapEditor.FindAction("Click", throwIfNotFound: true);
         m_MapEditor_Position = m_MapEditor.FindAction("Position", throwIfNotFound: true);
         m_MapEditor_EndDraw = m_MapEditor.FindAction("EndDraw", throwIfNotFound: true);
+        // RenderView
+        m_RenderView = asset.FindActionMap("RenderView", throwIfNotFound: true);
+        m_RenderView_Look = m_RenderView.FindAction("Look", throwIfNotFound: true);
+        m_RenderView_Zoom = m_RenderView.FindAction("Zoom", throwIfNotFound: true);
+        m_RenderView_Move = m_RenderView.FindAction("Move", throwIfNotFound: true);
+        m_RenderView_Hand = m_RenderView.FindAction("Hand", throwIfNotFound: true);
+        m_RenderView_Rotate = m_RenderView.FindAction("Rotate", throwIfNotFound: true);
+        m_RenderView_Position = m_RenderView.FindAction("Position", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -203,7 +360,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_MapEditor;
     private List<IMapEditorActions> m_MapEditorActionsCallbackInterfaces = new List<IMapEditorActions>();
     private readonly InputAction m_MapEditor_Zoom;
-    private readonly InputAction m_MapEditor_MoveCamera;
+    private readonly InputAction m_MapEditor_Move;
+    private readonly InputAction m_MapEditor_Hand;
     private readonly InputAction m_MapEditor_Click;
     private readonly InputAction m_MapEditor_Position;
     private readonly InputAction m_MapEditor_EndDraw;
@@ -212,7 +370,8 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         private @InputMap m_Wrapper;
         public MapEditorActions(@InputMap wrapper) { m_Wrapper = wrapper; }
         public InputAction @Zoom => m_Wrapper.m_MapEditor_Zoom;
-        public InputAction @MoveCamera => m_Wrapper.m_MapEditor_MoveCamera;
+        public InputAction @Move => m_Wrapper.m_MapEditor_Move;
+        public InputAction @Hand => m_Wrapper.m_MapEditor_Hand;
         public InputAction @Click => m_Wrapper.m_MapEditor_Click;
         public InputAction @Position => m_Wrapper.m_MapEditor_Position;
         public InputAction @EndDraw => m_Wrapper.m_MapEditor_EndDraw;
@@ -228,9 +387,12 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @Zoom.started += instance.OnZoom;
             @Zoom.performed += instance.OnZoom;
             @Zoom.canceled += instance.OnZoom;
-            @MoveCamera.started += instance.OnMoveCamera;
-            @MoveCamera.performed += instance.OnMoveCamera;
-            @MoveCamera.canceled += instance.OnMoveCamera;
+            @Move.started += instance.OnMove;
+            @Move.performed += instance.OnMove;
+            @Move.canceled += instance.OnMove;
+            @Hand.started += instance.OnHand;
+            @Hand.performed += instance.OnHand;
+            @Hand.canceled += instance.OnHand;
             @Click.started += instance.OnClick;
             @Click.performed += instance.OnClick;
             @Click.canceled += instance.OnClick;
@@ -247,9 +409,12 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @Zoom.started -= instance.OnZoom;
             @Zoom.performed -= instance.OnZoom;
             @Zoom.canceled -= instance.OnZoom;
-            @MoveCamera.started -= instance.OnMoveCamera;
-            @MoveCamera.performed -= instance.OnMoveCamera;
-            @MoveCamera.canceled -= instance.OnMoveCamera;
+            @Move.started -= instance.OnMove;
+            @Move.performed -= instance.OnMove;
+            @Move.canceled -= instance.OnMove;
+            @Hand.started -= instance.OnHand;
+            @Hand.performed -= instance.OnHand;
+            @Hand.canceled -= instance.OnHand;
             @Click.started -= instance.OnClick;
             @Click.performed -= instance.OnClick;
             @Click.canceled -= instance.OnClick;
@@ -276,12 +441,108 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         }
     }
     public MapEditorActions @MapEditor => new MapEditorActions(this);
+
+    // RenderView
+    private readonly InputActionMap m_RenderView;
+    private List<IRenderViewActions> m_RenderViewActionsCallbackInterfaces = new List<IRenderViewActions>();
+    private readonly InputAction m_RenderView_Look;
+    private readonly InputAction m_RenderView_Zoom;
+    private readonly InputAction m_RenderView_Move;
+    private readonly InputAction m_RenderView_Hand;
+    private readonly InputAction m_RenderView_Rotate;
+    private readonly InputAction m_RenderView_Position;
+    public struct RenderViewActions
+    {
+        private @InputMap m_Wrapper;
+        public RenderViewActions(@InputMap wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Look => m_Wrapper.m_RenderView_Look;
+        public InputAction @Zoom => m_Wrapper.m_RenderView_Zoom;
+        public InputAction @Move => m_Wrapper.m_RenderView_Move;
+        public InputAction @Hand => m_Wrapper.m_RenderView_Hand;
+        public InputAction @Rotate => m_Wrapper.m_RenderView_Rotate;
+        public InputAction @Position => m_Wrapper.m_RenderView_Position;
+        public InputActionMap Get() { return m_Wrapper.m_RenderView; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(RenderViewActions set) { return set.Get(); }
+        public void AddCallbacks(IRenderViewActions instance)
+        {
+            if (instance == null || m_Wrapper.m_RenderViewActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_RenderViewActionsCallbackInterfaces.Add(instance);
+            @Look.started += instance.OnLook;
+            @Look.performed += instance.OnLook;
+            @Look.canceled += instance.OnLook;
+            @Zoom.started += instance.OnZoom;
+            @Zoom.performed += instance.OnZoom;
+            @Zoom.canceled += instance.OnZoom;
+            @Move.started += instance.OnMove;
+            @Move.performed += instance.OnMove;
+            @Move.canceled += instance.OnMove;
+            @Hand.started += instance.OnHand;
+            @Hand.performed += instance.OnHand;
+            @Hand.canceled += instance.OnHand;
+            @Rotate.started += instance.OnRotate;
+            @Rotate.performed += instance.OnRotate;
+            @Rotate.canceled += instance.OnRotate;
+            @Position.started += instance.OnPosition;
+            @Position.performed += instance.OnPosition;
+            @Position.canceled += instance.OnPosition;
+        }
+
+        private void UnregisterCallbacks(IRenderViewActions instance)
+        {
+            @Look.started -= instance.OnLook;
+            @Look.performed -= instance.OnLook;
+            @Look.canceled -= instance.OnLook;
+            @Zoom.started -= instance.OnZoom;
+            @Zoom.performed -= instance.OnZoom;
+            @Zoom.canceled -= instance.OnZoom;
+            @Move.started -= instance.OnMove;
+            @Move.performed -= instance.OnMove;
+            @Move.canceled -= instance.OnMove;
+            @Hand.started -= instance.OnHand;
+            @Hand.performed -= instance.OnHand;
+            @Hand.canceled -= instance.OnHand;
+            @Rotate.started -= instance.OnRotate;
+            @Rotate.performed -= instance.OnRotate;
+            @Rotate.canceled -= instance.OnRotate;
+            @Position.started -= instance.OnPosition;
+            @Position.performed -= instance.OnPosition;
+            @Position.canceled -= instance.OnPosition;
+        }
+
+        public void RemoveCallbacks(IRenderViewActions instance)
+        {
+            if (m_Wrapper.m_RenderViewActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IRenderViewActions instance)
+        {
+            foreach (var item in m_Wrapper.m_RenderViewActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_RenderViewActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public RenderViewActions @RenderView => new RenderViewActions(this);
     public interface IMapEditorActions
     {
         void OnZoom(InputAction.CallbackContext context);
-        void OnMoveCamera(InputAction.CallbackContext context);
+        void OnMove(InputAction.CallbackContext context);
+        void OnHand(InputAction.CallbackContext context);
         void OnClick(InputAction.CallbackContext context);
         void OnPosition(InputAction.CallbackContext context);
         void OnEndDraw(InputAction.CallbackContext context);
+    }
+    public interface IRenderViewActions
+    {
+        void OnLook(InputAction.CallbackContext context);
+        void OnZoom(InputAction.CallbackContext context);
+        void OnMove(InputAction.CallbackContext context);
+        void OnHand(InputAction.CallbackContext context);
+        void OnRotate(InputAction.CallbackContext context);
+        void OnPosition(InputAction.CallbackContext context);
     }
 }

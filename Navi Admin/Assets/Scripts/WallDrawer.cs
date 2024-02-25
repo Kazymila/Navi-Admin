@@ -9,6 +9,7 @@ using TMPro;
 
 public class WallDrawer : MonoBehaviour
 {
+    #region --- External Variables ---
     [Header("Required Stuff")]
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallSizeLabel;
@@ -21,6 +22,7 @@ public class WallDrawer : MonoBehaviour
     [Header("Line settings")]
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
+    #endregion
 
     private RectTransform[] _UIRects;
     private GameObject _lineObject;
@@ -62,29 +64,6 @@ public class WallDrawer : MonoBehaviour
         return _cursorPosition;
     }
 
-    private WallDotController InstantiateWallDot(Vector3 _position, int _type = 0)
-    {   // Instantiate a wall dot and atach it to a line
-        Vector3 _dotPosition = _position + new Vector3(0, 0, -0.5f);
-        GameObject _wallDot = Instantiate(_dotPrefab, _dotPosition, Quaternion.identity, _dotsParent);
-        WallDotController _wallDotController = _wallDot.GetComponent<WallDotController>();
-        _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
-        _wallDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
-        return _wallDotController;
-    }
-
-    private void CancelDraw()
-    {   // Cancel the current line drawing
-        if (_endWallDot != null)
-        {
-            _startWallDot.DeleteLine(_startWallDot.lines.IndexOf(_lineObject));
-            _endWallDot.DeleteDot(true);
-        }
-        _drawingWall = false;
-        _endWallDot = null;
-        _lineObject = null;
-        _linesCount--;
-    }
-
     private void Update()
     {
         if (_drawingWall && !IsDrawingInsideCanvas())
@@ -101,6 +80,7 @@ public class WallDrawer : MonoBehaviour
         else _wallSizeLabel.SetActive(false);
     }
 
+    #region --- Wall Creation ---
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
         if (!IsDrawingInsideCanvas()) return;
@@ -128,6 +108,54 @@ public class WallDrawer : MonoBehaviour
         }
     }
 
+    private GameObject CreateLine(Vector3 _position)
+    {   // Create a new line renderer and set the start and end dots
+        GameObject _newLine = Instantiate(_linePrefab, _position, Quaternion.identity, _linesParent);
+        _newLine.name = "Wall_" + _linesCount;
+
+        LineRenderer _line = _newLine.GetComponent<LineRenderer>();
+        _line.SetPosition(0, _position);
+        _line.SetPosition(1, _position);
+
+        _lineController = _newLine.GetComponent<WallLineController>();
+        SetLineDots(_newLine, _startWallDot, _endWallDot);
+        _linesCount++;
+
+        return _newLine;
+    }
+
+    private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
+    {   // Set the dots of a line and add the line to the dots
+        _lineController.startDot = _startDot;
+        _lineController.endDot = _endDot;
+        _startDot.AddLine(_line, 0, _endDot);
+        _endDot.AddLine(_line, 1, _startDot);
+    }
+    private WallDotController InstantiateWallDot(Vector3 _position, int _type = 0)
+    {   // Instantiate a wall dot and atach it to a line
+        Vector3 _dotPosition = _position + new Vector3(0, 0, -0.5f);
+        GameObject _wallDot = Instantiate(_dotPrefab, _dotPosition, Quaternion.identity, _dotsParent);
+        WallDotController _wallDotController = _wallDot.GetComponent<WallDotController>();
+        _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
+        _wallDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        return _wallDotController;
+    }
+
+    private void CancelDraw()
+    {   // Cancel the current line drawing
+        if (_endWallDot != null)
+        {
+            _startWallDot.DeleteLine(_startWallDot.lines.IndexOf(_lineObject));
+            _endWallDot.DeleteDot(true);
+        }
+        _drawingWall = false;
+        _endWallDot = null;
+        _lineObject = null;
+        _linesCount--;
+    }
+    #endregion
+
+    #region --- Dots Raycasting ---
     private void OnSelectDot(WallDotController _raycastDot)
     {
         if (!_drawingWall)
@@ -173,47 +201,9 @@ public class WallDrawer : MonoBehaviour
         }
         else return null;
     }
+    #endregion
 
-    private WallDotController RaycastToDotsZAxis()
-    {   // Raycast to the dots on z as y axis, to check if the mouse is over one of them
-        RaycastHit _hit;
-        Ray _ray = Camera.main.ScreenPointToRay(_input.MapEditor.Position.ReadValue<Vector2>());
-        if (Physics.Raycast(_ray, out _hit, Mathf.Infinity))
-        {
-            if (_hit.collider.CompareTag("WallDot"))
-            {
-                WallDotController _dot = _hit.collider.GetComponent<WallDotController>();
-                return _dot;
-            }
-            else return null;
-        }
-        else return null;
-    }
-
-    private GameObject CreateLine(Vector3 _position)
-    {   // Create a new line renderer and set the start and end dots
-        GameObject _newLine = Instantiate(_linePrefab, _position, Quaternion.identity, _linesParent);
-        _newLine.name = "Wall_" + _linesCount;
-
-        LineRenderer _line = _newLine.GetComponent<LineRenderer>();
-        _line.SetPosition(0, _position);
-        _line.SetPosition(1, _position);
-
-        _lineController = _newLine.GetComponent<WallLineController>();
-        SetLineDots(_newLine, _startWallDot, _endWallDot);
-        _linesCount++;
-
-        return _newLine;
-    }
-
-    private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
-    {   // Set the dots of a line and add the line to the dots
-        _lineController.startDot = _startDot;
-        _lineController.endDot = _endDot;
-        _startDot.AddLine(_line, 0, _endDot);
-        _endDot.AddLine(_line, 1, _startDot);
-    }
-
+    #region --- Utils ---
     private void WallSizeOnGUI()
     {   // Display a label of wall size (on meters)
         float _wallSize = _lineController.CalculateLength();
@@ -241,4 +231,5 @@ public class WallDrawer : MonoBehaviour
         }
         return true;
     }
+    #endregion
 }

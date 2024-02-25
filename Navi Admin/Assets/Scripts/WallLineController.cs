@@ -60,6 +60,7 @@ public class WallLineController : MonoBehaviour
                 p => (Vector2)transform.InverseTransformPoint(p)));
     }
 
+    #region --- 3D Render ---
     public List<Vector2> CalculateColliderPoints()
     {   // Calculate the points of the line collider
         Vector3[] _positions = { startDot.position, endDot.position };
@@ -169,4 +170,5 @@ public class WallLineController : MonoBehaviour
         _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
         _renderWall.transform.localPosition = new Vector3(0, 2f, 0);
     }
+    #endregion
 }

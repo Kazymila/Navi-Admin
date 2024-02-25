@@ -89,5 +89,8 @@ public class MapEditorUIController : MonoBehaviour
 
         SetAllButtonsInteractable(_selectedButton.name);
         _selectedButton.interactable = false;
+
+        if (_button.name != "Hand") // Disable the hand tool when select other tool
+            Camera.main.GetComponent<MapEditorCameraManager>().DisableHandTool();
     }
 }
