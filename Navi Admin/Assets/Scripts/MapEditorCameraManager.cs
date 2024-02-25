@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using TMPro;
 
 public class MapEditorCameraManager : MonoBehaviour
 {
+    [SerializeField] private GameObject _gridPlane;
+
     #region --- Zoom Variables ---
     [Header("Zoom Settings")]
-    [SerializeField] private float _zoomChange = 15f;
-    [SerializeField] private float _zoomSmooth = 5f;
+    [SerializeField] private float _zoomChange = 10f;
+    [SerializeField] private float _zoomSmooth = 3f;
 
-    private float _zoom2DMin = 5f;
-    private float _zoom2DMax = 20f;
+    private float _zoom2DMin = 3f;
+    private float _zoom2DMax = 15f;
     private float _zoom3DMin = 30f;
     private float _zoom3DMax = 100f;
+
+    private float _hideGridThreshold = 10f;
     #endregion
 
     #region --- Movement Variables ---
@@ -94,12 +97,12 @@ public class MapEditorCameraManager : MonoBehaviour
         if (_cam.orthographic)
         {
             _zoomSlider.value = _cam.orthographicSize;
-            SetSliderText(_zoomSlider, _zoom2DMin, _zoom2DMax);
+            _zoomSlider.GetComponent<SliderController>().ShowPercentage(_zoom2DMin, _zoom2DMax);
         }
         else
         {
             _zoomSlider.value = _cam.fieldOfView;
-            SetSliderText(_zoomSlider, _zoom3DMin, _zoom3DMax);
+            _zoomSlider.GetComponent<SliderController>().ShowPercentage(_zoom3DMin, _zoom3DMax);
         }
         _zoomSlider.gameObject.SetActive(!_zoomSlider.gameObject.activeSelf);
     }
@@ -110,6 +113,10 @@ public class MapEditorCameraManager : MonoBehaviour
         if (_scroll > 0) _cam.orthographicSize -= _zoomChange * Time.deltaTime * _zoomSmooth;
         if (_scroll < 0) _cam.orthographicSize += _zoomChange * Time.deltaTime * _zoomSmooth;
         _cam.orthographicSize = Mathf.Clamp(_cam.orthographicSize, _zoom2DMin, _zoom2DMax);
+
+        // Hide the grid when zoom out
+        if (_cam.orthographicSize > _hideGridThreshold) _gridPlane.SetActive(false);
+        else _gridPlane.SetActive(true);
     }
     private void Zoom3D()
     {   // Zoom the camera for 3D view
@@ -127,7 +134,11 @@ public class MapEditorCameraManager : MonoBehaviour
             _cam.orthographicSize += _zoomChange * Time.deltaTime * _zoomSmooth;
 
         _cam.orthographicSize = Mathf.Clamp(_cam.orthographicSize, _zoom2DMin, _zoom2DMax);
-        SetSliderText(_zoomSlider, _zoom2DMin, _zoom2DMax);
+        _zoomSlider.GetComponent<SliderController>().ShowPercentage(_zoom2DMin, _zoom2DMax);
+
+        // Hide the grid when zoom out
+        if (_cam.orthographicSize > _hideGridThreshold) _gridPlane.SetActive(false);
+        else _gridPlane.SetActive(true);
     }
     public void Zoom3DSlider(Slider _zoomSlider)
     {   // Zoom the camera using the slider for 3D view
@@ -137,13 +148,7 @@ public class MapEditorCameraManager : MonoBehaviour
             _cam.fieldOfView += _zoomChange * Time.deltaTime * _zoomSmooth + 5;
 
         _cam.fieldOfView = Mathf.Clamp(_cam.fieldOfView, _zoom3DMin, _zoom3DMax);
-        SetSliderText(_zoomSlider, _zoom3DMin, _zoom3DMax);
-    }
-
-    private void SetSliderText(Slider _zoomSlider, float _min, float _max)
-    {   // Set the text of the zoom slider
-        TMP_Text _sliderLabel = _zoomSlider.gameObject.transform.GetChild(1).GetComponent<TMP_Text>();
-        _sliderLabel.text = Mathf.Round(((_zoomSlider.value - _min) / (_max - _min)) * 100).ToString() + "%";
+        _zoomSlider.GetComponent<SliderController>().ShowPercentage(_zoom3DMin, _zoom3DMax);
     }
     #endregion
 

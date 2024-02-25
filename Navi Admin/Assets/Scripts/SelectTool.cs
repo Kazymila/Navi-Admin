@@ -7,6 +7,7 @@ using TMPro;
 public class SelectTool : MonoBehaviour
 {
     [Header("Required Stuff")]
+    [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
     [SerializeField] private GameObject _wallSizeLabel;
@@ -43,7 +44,7 @@ public class SelectTool : MonoBehaviour
 
     private void Update()
     {
-        if (_movingDot)
+        if (_movingDot && !_UIEditorController.IsCursorOverEditorUI())
         {
             _selectedDot.SetPosition(GetCursorPosition());
             ShowWallsSizeLabel();
@@ -52,6 +53,8 @@ public class SelectTool : MonoBehaviour
 
     private void OnSelectClick()
     {   // Select the object under the cursor to do something with it
+        if (_UIEditorController.IsCursorOverEditorUI()) return;
+
         if (_movingDot)
         {   // Set the dot position and stop moving it
             _selectedDot.PlayHoverAnimation();

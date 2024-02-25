@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class EraserTool : MonoBehaviour
 {
+    [SerializeField] private EditorLayoutController _UIEditorController;
     private InputMap _input;
 
     private void OnEnable()
@@ -19,7 +20,7 @@ public class EraserTool : MonoBehaviour
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
         RaycastHit2D _hit = Physics2D.Raycast(_cursorPosition, Vector2.zero);
 
-        if (_hit.collider != null)
+        if (_hit.collider != null && !_UIEditorController.IsCursorOverEditorUI())
         {
             if (_hit.collider.CompareTag("WallDot"))
             {  // Delete the selected dot

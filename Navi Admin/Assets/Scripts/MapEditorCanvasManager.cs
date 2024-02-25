@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
-public class MapEditorUIController : MonoBehaviour
+public class MapEditorCanvasManager : MonoBehaviour
 {
     [Header("Button Colors")]
     [SerializeField] private Color _normalColor;
@@ -12,22 +13,23 @@ public class MapEditorUIController : MonoBehaviour
     [SerializeField] private Color _selectedColor;
     [SerializeField] private Color _disabledColor;
 
-    [Header("Required Stuff")]
-    [SerializeField] private GameObject[] _toolManagers;
-
-    private Button[] _buttons;
-    private Animator _animator;
-    private Button _selectedButton;
+    private InputMap _input;
 
     void Start()
     {
-        _buttons = GetComponentsInChildren<Button>();
-        _animator = GetComponent<Animator>();
+        _input = new InputMap();
+        _input.MapEditor.Enable();
     }
 
-    private void ChangeButtonsColors()
-    {
+    public Vector2 GetCursorPosition()
+    {   // Get the cursor position in the canvas
+        if (Camera.main.orthographic) return _input.MapEditor.Position.ReadValue<Vector2>();
+        else return _input.RenderView.Position.ReadValue<Vector2>();
+    }
 
+    #region --- Button Managment ---
+    private void ChangeButtonsColors(Button[] _buttons)
+    {   // Change the colors of the buttons
         ColorBlock _buttonColors = _buttons[0].colors;
         _buttonColors.normalColor = _normalColor;
         _buttonColors.highlightedColor = _highlightedColor;
@@ -41,29 +43,8 @@ public class MapEditorUIController : MonoBehaviour
         }
     }
 
-    public void HideEditorInterface()
-    {
-        _animator.SetBool("Hide", true);
-        Invoke("DisableLayout", 0.2f);
-    }
-
-    private void DisableLayout()
-    {
-        if (_selectedButton)
-        {
-            _selectedButton.interactable = true;
-            _selectedButton = null;
-        }
-
-        for (int i = 0; i < _toolManagers.Length; i++)
-            _toolManagers[i].SetActive(false);
-
-        _animator.SetBool("Hide", false);
-        this.gameObject.SetActive(false);
-    }
-
-    public void SetAllButtonsInteractable(string _selectedButtonName)
-    {
+    public void SetAllButtonsInteractable(string _selectedButtonName, Button[] _buttons)
+    {   // Set all buttons interactable and hide child widgets (reset buttons status)
         foreach (Button _button in _buttons)
         {
             _button.interactable = true;
@@ -75,22 +56,32 @@ public class MapEditorUIController : MonoBehaviour
         }
     }
 
-    public void OnButtonSelected(Button _button)
+    public void KeepButtonSelected(Button _selectedButton, Button[] _buttons)
     {
         /* Keep the button as selected after clicking on it
 
         - To keep the selected color of a button, 
-          we use the disable color as the selected color.
+          we use the DISABLE COLOR as the selected color.
         */
-        _selectedButton = _button;
         int _buttonIndex = System.Array.IndexOf(_buttons, _selectedButton);
-
         if (_buttonIndex == -1) return;
 
-        SetAllButtonsInteractable(_selectedButton.name);
+        SetAllButtonsInteractable(_selectedButton.name, _buttons);
         _selectedButton.interactable = false;
-
-        if (_button.name != "Hand") // Disable the hand tool when select other tool
-            Camera.main.GetComponent<MapEditorCameraManager>().DisableHandTool();
     }
+    #endregion
+
+    #region --- UI Managment ---
+    public bool IsCursorOverUICanvas(RectTransform[] _rects)
+    {   // Check if the cursor is over the UI, to avoid conflicts with the drawing canvas
+        foreach (RectTransform _rect in _rects)
+        {
+            bool _isOverUI = RectTransformUtility.RectangleContainsScreenPoint(
+                _rect, _input.MapEditor.Position.ReadValue<Vector2>(), null);
+
+            if (_isOverUI && _rect.gameObject.activeSelf) return true;
+        }
+        return false;
+    }
+    #endregion
 }

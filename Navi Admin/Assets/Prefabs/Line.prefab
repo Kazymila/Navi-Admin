@@ -52,7 +52,6 @@ MonoBehaviour:
   endDot: {fileID: 0}
   _lineRenderer: {fileID: 2168909941902409299}
   _polygonCollider: {fileID: 605030445936951089}
-  _meshFilter: {fileID: 4590802304240321426}
   _renderPrefab: {fileID: 1181623390597465360, guid: 6e599d3fb571c0e428bc68b21f1a07a6, type: 3}
 --- !u!33 &4590802304240321426
 MeshFilter:
@@ -201,13 +200,13 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.5
+    widthMultiplier: 0.3
     widthCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.009117126
-        value: 0.42360497
+        time: 0
+        value: 0.50000066
         inSlope: 0
         outSlope: 0
         tangentMode: 0

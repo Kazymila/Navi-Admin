@@ -11,9 +11,9 @@ public class WallDrawer : MonoBehaviour
 {
     #region --- External Variables ---
     [Header("Required Stuff")]
+    [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallSizeLabel;
-    [SerializeField] private Transform _UILayout;
 
     [Header("Dots settings")]
     [SerializeField] private GameObject _dotPrefab;
@@ -43,14 +43,6 @@ public class WallDrawer : MonoBehaviour
     }
     private void OnDisable() => _input.MapEditor.Disable();
 
-    private void Start()
-    {
-        _UIRects = new RectTransform[_UILayout.childCount];
-
-        for (int i = 0; i < _UILayout.childCount; i++)
-            _UIRects[i] = _UILayout.GetChild(i).GetComponent<RectTransform>();
-    }
-
     private Vector3 GetCursorPosition(bool _considerSnap = true)
     {   // Get the cursor position in the world
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
@@ -66,7 +58,7 @@ public class WallDrawer : MonoBehaviour
 
     private void Update()
     {
-        if (_drawingWall && !IsDrawingInsideCanvas())
+        if (_drawingWall && _UIEditorController.IsCursorOverEditorUI())
         {   // Cancel the drawing if the cursor is outside the canvas
             CancelDraw();
             return;
@@ -83,7 +75,7 @@ public class WallDrawer : MonoBehaviour
     #region --- Wall Creation ---
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
-        if (!IsDrawingInsideCanvas()) return;
+        if (_UIEditorController.IsCursorOverEditorUI()) return;
         WallDotController _raycastDot = RaycastToDot();
         Vector3 _cursorPosition = GetCursorPosition(true);
         if (_endWallDot) _endWallDot.DotCollider.enabled = true;
@@ -219,17 +211,6 @@ public class WallDrawer : MonoBehaviour
             _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
             _wallSizeLabel.SetActive(true);
         }
-    }
-
-    private bool IsDrawingInsideCanvas()
-    {   // Check if the mouse is not in the UI, to avoid drawing over the UI
-        foreach (RectTransform _rect in _UIRects)
-        {
-            if (RectTransformUtility.RectangleContainsScreenPoint(
-                _rect, _input.MapEditor.Position.ReadValue<Vector2>(), null))
-            { return false; }
-        }
-        return true;
     }
     #endregion
 }

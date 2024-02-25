@@ -5,7 +5,7 @@ using UnityEngine;
 public class RenderViewManager : MonoBehaviour
 {
     [Header("Required Stuff")]
-    [SerializeField] private MapEditorUIController _editorUILayout;
+    [SerializeField] private EditorLayoutController _editorUILayout;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _3DViewLayout;
     [SerializeField] private GameObject _mapDrawLayout;
