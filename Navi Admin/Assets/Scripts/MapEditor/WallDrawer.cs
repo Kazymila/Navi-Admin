@@ -12,6 +12,7 @@ public class WallDrawer : MonoBehaviour
     #region --- External Variables ---
     [Header("Required Stuff")]
     [SerializeField] private EditorLayoutController _UIEditorController;
+    [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallSizeLabel;
 
@@ -108,6 +109,8 @@ public class WallDrawer : MonoBehaviour
         LineRenderer _line = _newLine.GetComponent<LineRenderer>();
         _line.SetPosition(0, _position);
         _line.SetPosition(1, _position);
+        _line.startWidth = 0.15f;
+        _line.endWidth = 0.15f;
 
         _lineController = _newLine.GetComponent<WallLineController>();
         SetLineDots(_newLine, _startWallDot, _endWallDot);
@@ -152,22 +155,24 @@ public class WallDrawer : MonoBehaviour
     {
         if (!_drawingWall)
         {   // Create a line from the selected dot
-            _raycastDot.PlayHoverAnimation();
+            _raycastDot.PlaySelectAnimation();
             Vector3 _noSnapPosition = GetCursorPosition(false);
 
             _startWallDot = _raycastDot;
-            _endWallDot = InstantiateWallDot(_noSnapPosition, 1);
-            _lineObject = CreateLine(_noSnapPosition);
+            _endWallDot = InstantiateWallDot(_raycastDot.position, 1);
+            _lineObject = CreateLine(_raycastDot.position);
             _drawingWall = true;
         }
         else
         {   // If was already drawing, the selected dot is setted as the end dot
-            // But, if the dots are already connected, cannot set the dot here
             if (_raycastDot.FindNeighbor(_startWallDot))
+            {   // Iif the dots are already connected, cannot set the dot here
+                _errorMessageBox.ShowTimedMessage("Dots are already connected", 1);
                 _raycastDot.PlayDeniedAnimation();
+            }
             else
             {   // End the line and add a new line from this dot
-                _raycastDot.PlayHoverAnimation();
+                _raycastDot.PlaySelectAnimation();
                 Vector3 _cursorPosition = GetCursorPosition(true);
 
                 _endWallDot.SetPosition(_raycastDot.position);
@@ -178,6 +183,7 @@ public class WallDrawer : MonoBehaviour
                 _startWallDot = _endWallDot;
                 _endWallDot = InstantiateWallDot(_cursorPosition, 1);
                 _lineObject = CreateLine(_cursorPosition);
+                _startWallDot.SetPosition(_raycastDot.position);
             }
         }
     }

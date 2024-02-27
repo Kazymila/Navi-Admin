@@ -6,8 +6,10 @@ using TMPro;
 
 public class SelectTool : MonoBehaviour
 {
+    #region --- External Variables ---
     [Header("UI Components")]
     [SerializeField] private EditorLayoutController _UIEditorController;
+    [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private GameObject _wallSizePanel;
     [SerializeField] private Transform _UIItems;
 
@@ -15,6 +17,7 @@ public class SelectTool : MonoBehaviour
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
     [SerializeField] private GameObject _wallSizeLabel;
+    #endregion
 
     private List<GameObject> _wallLabels = new List<GameObject>();
     private WallLineController _selectedLine;
@@ -68,7 +71,7 @@ public class SelectTool : MonoBehaviour
 
         if (_movingDot)
         {   // Set the dot position and stop moving it
-            _selectedDot.PlayHoverAnimation();
+            _selectedDot.PlaySelectAnimation();
             _movingDot = false;
         }
         else
@@ -87,19 +90,16 @@ public class SelectTool : MonoBehaviour
         {
             if (_hit.collider.CompareTag("WallDot"))
             {   // Select the dot and start moving it
+                if (_changingLineSize) CancelLineSizeChange();
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
-                _selectedDot.PlayHoverAnimation();
+                _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
-
-                // Hide the wall size label and panel, if click on a dot
-                _wallSizeLabel.SetActive(false);
-                _wallSizePanel.SetActive(false);
             }
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select the wall and show its size
                 _selectedLine = _hit.collider.GetComponent<WallLineController>();
-                _selectedLine.startDot.PlayHoverAnimation();
-                _selectedLine.endDot.PlayHoverAnimation();
+                _selectedLine.startDot.PlaySelectAnimation();
+                _selectedLine.endDot.PlaySelectAnimation();
 
                 _wallSizeInput.text = _selectedLine.CalculateLength().ToString("F2");
                 _oldWallSize = _selectedLine.CalculateLength();
@@ -108,17 +108,14 @@ public class SelectTool : MonoBehaviour
                 ShowWallSize();
             }
         }
-        else
-        {   // Hide the wall size label and panel, if click on empty space
-            //_wallSizeLabel.SetActive(false);
-            //_wallSizePanel.SetActive(false);
-            //TODO: Check that is not on the wall size panel
-        }
+        else CancelLineSizeChange();
     }
+
     #region --- Change Wall Line Size ---
     public void ChangeLineSize()
     {   // Change the selected line size with the input field value
         string _inputText = _wallSizeInput.text;
+        _errorMessageBox.HideMessage();
 
         if (_inputText == "") return;
         else if (float.Parse("0" + _inputText) == 0) return;
@@ -132,7 +129,26 @@ public class SelectTool : MonoBehaviour
     public void SetLineSize()
     {   // Set the new line size on confirmation
         if (_wallSizeInput.text == "")
-            _selectedLine.ChangeSize(_oldWallSize);
+            _errorMessageBox.ShowMessage("Please enter a value");
+        else
+        {
+            _wallSizePanel.SetActive(false);
+            _wallSizeLabel.SetActive(false);
+            _changingLineSize = false;
+        }
+    }
+
+    public void CancelLineSizeChange(bool _fromButton = false)
+    {   // Cancel the line size change and reset the line
+        if (!_fromButton)
+        {   // If not canceled by the button, check if the cursor is over the panel
+            bool _isOverPanel = RectTransformUtility.RectangleContainsScreenPoint(
+                _wallSizePanel.GetComponent<RectTransform>(),
+                _input.MapEditor.Position.ReadValue<Vector2>(), null);
+            if (_isOverPanel) return;
+        }
+        _wallSizeInput.text = _oldWallSize.ToString("F2");
+        _selectedLine.ChangeSize(_oldWallSize);
         _wallSizePanel.SetActive(false);
         _wallSizeLabel.SetActive(false);
         _changingLineSize = false;

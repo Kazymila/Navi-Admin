@@ -6,10 +6,12 @@ using UnityEngine.UI;
 
 public class MapEditorCameraManager : MonoBehaviour
 {
+    #region --- External Variables ---
     [Header("Required Stuff")]
     [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private RenderLayoutController _UIRenderController;
     [SerializeField] private GameObject _gridPlane;
+    #endregion
 
     #region --- Zoom Variables ---
     [Header("Zoom Settings")]
@@ -79,7 +81,7 @@ public class MapEditorCameraManager : MonoBehaviour
         EnableEditorInput();
         DisableRenderInput();
         _cam.orthographic = true;
-        _cam.orthographicSize = 10;
+        _cam.orthographicSize = 6;
 
         _cam.transform.position = new Vector3(0, 0, -10);
         _cam.transform.rotation = Quaternion.Euler(0, 0, 0);

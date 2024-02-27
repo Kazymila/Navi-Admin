@@ -26,8 +26,21 @@ public class WallDotController : MonoBehaviour
         position = this.transform.position;
     }
 
-    public void PlayHoverAnimation() => _dotAnimator.Play("Hovered", 0, 0);
-    public void PlayDeniedAnimation() => _dotAnimator.Play("Denied", 0, 0);
+    public void PlaySelectAnimation()
+    {   // Play the select animation of the dot
+        this.transform.position += new Vector3(0, 0, -0.6f);
+        _dotAnimator.Play("Hovered", 0, 0);
+        Invoke("ResetAnimation", 0.2f);
+    }
+
+    public void PlayDeniedAnimation()
+    {   // Play the denied animation of the dot
+        this.transform.position += new Vector3(0, 0, -0.6f);
+        _dotAnimator.Play("Denied", 0, 0);
+        Invoke("ResetAnimation", 0.2f);
+    }
+
+    private void ResetAnimation() => this.transform.position += new Vector3(0, 0, -0.5f);
 
     public void SetPosition(Vector3 _position)
     {   // Set the position of the dot and update the lines
