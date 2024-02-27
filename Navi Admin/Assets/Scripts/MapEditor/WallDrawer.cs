@@ -68,6 +68,8 @@ public class WallDrawer : MonoBehaviour
         {   // Drag the line updating the end dot position
             _endWallDot.SetPosition(GetCursorPosition());
             _endWallDot.DotCollider.enabled = false;
+            _lineController.gameObject.GetComponent<LineRenderer>().startWidth = 0.15f;
+            _lineController.gameObject.GetComponent<LineRenderer>().endWidth = 0.15f;
             WallSizeOnGUI();
         }
         else _wallSizeLabel.SetActive(false);
@@ -167,7 +169,7 @@ public class WallDrawer : MonoBehaviour
         {   // If was already drawing, the selected dot is setted as the end dot
             if (_raycastDot.FindNeighbor(_startWallDot))
             {   // Iif the dots are already connected, cannot set the dot here
-                _errorMessageBox.ShowTimedMessage("Dots are already connected", 1);
+                _errorMessageBox.ShowTimedMessage("DotsAlreadyConnected", 2);
                 _raycastDot.PlayDeniedAnimation();
             }
             else

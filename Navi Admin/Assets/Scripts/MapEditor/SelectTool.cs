@@ -90,7 +90,11 @@ public class SelectTool : MonoBehaviour
         {
             if (_hit.collider.CompareTag("WallDot"))
             {   // Select the dot and start moving it
-                if (_changingLineSize) CancelLineSizeChange();
+                if (_changingLineSize)
+                {
+                    _wallSizeLabel.SetActive(false);
+                    CancelLineSizeChange();
+                }
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
                 _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
@@ -98,8 +102,8 @@ public class SelectTool : MonoBehaviour
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select the wall and show its size
                 _selectedLine = _hit.collider.GetComponent<WallLineController>();
-                _selectedLine.startDot.PlaySelectAnimation();
-                _selectedLine.endDot.PlaySelectAnimation();
+                _selectedLine.startDot.PlaySelectAnimation(false);
+                _selectedLine.endDot.PlaySelectAnimation(false);
 
                 _wallSizeInput.text = _selectedLine.CalculateLength().ToString("F2");
                 _oldWallSize = _selectedLine.CalculateLength();
@@ -108,7 +112,7 @@ public class SelectTool : MonoBehaviour
                 ShowWallSize();
             }
         }
-        else CancelLineSizeChange();
+        else if (_changingLineSize) CancelLineSizeChange();
     }
 
     #region --- Change Wall Line Size ---
@@ -129,7 +133,7 @@ public class SelectTool : MonoBehaviour
     public void SetLineSize()
     {   // Set the new line size on confirmation
         if (_wallSizeInput.text == "")
-            _errorMessageBox.ShowMessage("Please enter a value");
+            _errorMessageBox.ShowMessage("EnterSomeValue");
         else
         {
             _wallSizePanel.SetActive(false);
@@ -150,7 +154,6 @@ public class SelectTool : MonoBehaviour
         _wallSizeInput.text = _oldWallSize.ToString("F2");
         _selectedLine.ChangeSize(_oldWallSize);
         _wallSizePanel.SetActive(false);
-        _wallSizeLabel.SetActive(false);
         _changingLineSize = false;
     }
     #endregion
