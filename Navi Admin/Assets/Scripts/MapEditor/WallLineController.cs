@@ -23,9 +23,6 @@ public class WallLineController : MonoBehaviour
 
     void Start()
     {
-        _lineRenderer = GetComponent<LineRenderer>();
-        _polygonCollider = GetComponent<PolygonCollider2D>();
-
         Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
         _renderWall.name = "Render_" + this.gameObject.name;
@@ -41,7 +38,7 @@ public class WallLineController : MonoBehaviour
         return _length;
     }
 
-    public void ChangeSize(float _newLenght)
+    public void ChangeLength(float _newLenght)
     {   // Change the line size moving the end dot
         Vector3 _direction = (endDot.position - startDot.position).normalized;
         Vector3 _newPosition = startDot.position + _direction * _newLenght;

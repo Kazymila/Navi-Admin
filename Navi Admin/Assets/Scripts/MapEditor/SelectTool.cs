@@ -90,11 +90,9 @@ public class SelectTool : MonoBehaviour
         {
             if (_hit.collider.CompareTag("WallDot"))
             {   // Select the dot and start moving it
-                if (_changingLineSize)
-                {
-                    _wallSizeLabel.SetActive(false);
-                    CancelLineSizeChange();
-                }
+                if (_changingLineSize) CancelLineSizeChange();
+                _wallSizeLabel.SetActive(false);
+
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
                 _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
@@ -126,7 +124,7 @@ public class SelectTool : MonoBehaviour
         else
         {
             float _newSize = float.Parse("0" + _inputText);
-            _selectedLine.ChangeSize(_newSize);
+            _selectedLine.ChangeLength(_newSize);
             ShowWallSize();
         }
     }
@@ -152,7 +150,7 @@ public class SelectTool : MonoBehaviour
             if (_isOverPanel) return;
         }
         _wallSizeInput.text = _oldWallSize.ToString("F2");
-        _selectedLine.ChangeSize(_oldWallSize);
+        _selectedLine.ChangeLength(_oldWallSize);
         _wallSizePanel.SetActive(false);
         _changingLineSize = false;
     }
