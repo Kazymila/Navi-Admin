@@ -33,7 +33,7 @@ public class WallDotController : MonoBehaviour
             this.transform.position += new Vector3(0, 0, -0.6f);
             Invoke("ResetAnimation", 0.2f);
         }
-        _dotAnimator.Play("Hovered", 0, 0);
+        _dotAnimator.Play("Selected", 0, 0);
     }
 
     public void PlayDeniedAnimation(bool _showOver = true)

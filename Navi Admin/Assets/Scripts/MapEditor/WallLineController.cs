@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
 public class WallLineController : MonoBehaviour
 {
+    [Header("Dots")]
     public WallDotController startDot;
     public WallDotController endDot;
 

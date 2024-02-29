@@ -250,6 +250,7 @@ GameObject:
   - component: {fileID: 3123266497298359421}
   - component: {fileID: 9181385627310590207}
   - component: {fileID: 3383938866662251018}
+  - component: {fileID: 4563250737162015965}
   m_Layer: 0
   m_Name: Entrance
   m_TagString: Entrance
@@ -272,7 +273,7 @@ Transform:
   - {fileID: 2624240458207919029}
   - {fileID: 4068625799838728307}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3123266497298359421
 MonoBehaviour:
@@ -286,9 +287,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8eef08dc1ebc95449219de145934b81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _polygonCollider: {fileID: 3383938866662251018}
   _lineRenderer: {fileID: 9181385627310590207}
   _startDot: {fileID: 1328218084598735912}
   _endDot: {fileID: 1733712288379149928}
+  _entranceWall: {fileID: 0}
 --- !u!120 &9181385627310590207
 LineRenderer:
   serializedVersion: 2
@@ -409,7 +412,7 @@ PolygonCollider2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_LayerOverridePriority: 0
+  m_LayerOverridePriority: 1
   m_ForceSendLayers:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -443,3 +446,24 @@ PolygonCollider2D:
       - {x: 0.29389268, y: -0.40450847}
       - {x: 0.47552824, y: 0.15450856}
   m_UseDelaunayMesh: 0
+--- !u!95 &4563250737162015965
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9021457839476961771}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 13ac7211af2298e43824d24aa2342b53, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
