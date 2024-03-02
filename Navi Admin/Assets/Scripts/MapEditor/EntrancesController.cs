@@ -12,13 +12,17 @@ public class EntrancesController : MonoBehaviour
 
     [HideInInspector]
     public WallLineController _entranceWall;
+    public bool _isOverEntrance = false;
+    public bool _isSetted = false;
 
+    private ErrorMessageController _errorMessageBox;
     private Animator _animator;
     private float _lenght = 0.80f; // Default lenght
 
     private void Start()
     {
         _animator = GetComponent<Animator>();
+        _errorMessageBox = FindObjectOfType<ErrorMessageController>();
         _startDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         _endDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
     }
@@ -62,13 +66,14 @@ public class EntrancesController : MonoBehaviour
         Vector3 _startPosition = _onWallPosition - _direction * (_lenght / 2);
         Vector3 _endPosition = _onWallPosition + _direction * (_lenght / 2);
 
-        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.5f));
-        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.5f));
+        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.2f));
+        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.2f));
 
-        _startDot.transform.position = _startPosition + new Vector3(0, 0, -0.6f);
-        _endDot.transform.position = _endPosition + new Vector3(0, 0, -0.6f);
+        _startDot.transform.position = _startPosition + new Vector3(0, 0, -0.3f);
+        _endDot.transform.position = _endPosition + new Vector3(0, 0, -0.3f);
 
         _entranceWall = _wall;
+        SetLineCollider();
     }
 
     public void ChangeEntranceSize(float _newLenght)
@@ -80,7 +85,7 @@ public class EntrancesController : MonoBehaviour
         _endDot.transform.position = _newPosition;
         SetLineCollider();
     }
-
+    #region --- Line Collider ---
     public void SetLineCollider()
     {   // Generate the line collider
         List<Vector2> _colliderPoints = CalculateColliderPoints();
@@ -120,4 +125,29 @@ public class EntrancesController : MonoBehaviour
 
         return _colliderPoints;
     }
+    #endregion
+
+    #region --- Trigger Events ---
+    void OnTriggerStay2D(Collider2D _collider)
+    {
+        if (_collider.CompareTag("Entrance") && !_isSetted)
+        {   // Cannot set an entrance over a existing one, so show error message
+            _errorMessageBox.ShowMessage("CannotSetOverExistingEntrance");
+            PlayDeniedAnimation();
+            _isOverEntrance = true;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D _collider)
+    {
+        if (_collider.CompareTag("Entrance"))
+        {   // Hide the error message
+            _errorMessageBox.HideMessage();
+            _isOverEntrance = false;
+
+            if (!_isSetted) _animator.Play("Reset", 0, 0);
+            else PlaySettedAnimation();
+        }
+    }
+    #endregion
 }

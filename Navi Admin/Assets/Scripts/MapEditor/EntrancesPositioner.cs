@@ -5,7 +5,7 @@ using UnityEngine;
 public class EntrancesPositioner : MonoBehaviour
 {
     [Header("UI Components")]
-    [SerializeField] private ErrorMessageController _errorMessageBox;
+    [SerializeField] private EditorLayoutController _UIEditorController;
 
     [Header("Entrances Settings")]
     [SerializeField] private GameObject _entrancePrefab;
@@ -34,49 +34,54 @@ public class EntrancesPositioner : MonoBehaviour
         return _cursorPosition;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        if (_movingEntrance)
+        if (_UIEditorController.IsCursorOverEditorUI()) return;
+        RaycastHit2D _hit = Physics2D.Raycast(GetCursorPosition(), Vector2.zero);
+
+        if (!_movingEntrance)
+        {   // If not moving an entrance, create a new one
+            if (_hit.collider != null && _hit.collider.CompareTag("Wall"))
+            {   // Create a new entrance on click over a wall
+                _currentWall = _hit.collider.GetComponent<WallLineController>();
+                InstantiateEntrance(_hit.point, _currentWall);
+            }
+        }
+        else
         {
+            if (_hit.collider != null)
+            {
+                if (_hit.collider.CompareTag("Wall") && _hit.collider.name != _currentWall.name)
+                {   // Set the entrance position to a new wall
+                    _currentWall = _hit.collider.GetComponent<WallLineController>();
+                    _currentEntrance.SetEntrancePosition(_hit.point, _currentWall);
+                }
+            }
+            // Move the entrance to the cursor position
             _currentEntrance.SetEntrancePosition(GetCursorPosition(), _currentWall);
         }
     }
 
     private void SetEntrance()
-    {   // Set or create a new entrance on click
-        if (_movingEntrance)
-        {   // Set the entrance position
-            _currentEntrance.PlaySettedAnimation();
-            _currentEntrance.SetLineCollider();
-            _movingEntrance = false;
-            _currentEntrance = null;
-            _currentWall = null;
-        }
-        else NewEntrance();
+    {   // Set a entrance on click over a wall
+        if (_UIEditorController.IsCursorOverEditorUI()) return;
+        if (_currentEntrance._isOverEntrance) return;
+
+        _currentEntrance.PlaySettedAnimation();
+        _currentEntrance._isSetted = true;
+        _movingEntrance = false;
+        _currentEntrance = null;
+        _currentWall = null;
     }
 
-    private void NewEntrance()
-    {   // Create a new entrance snap to a existing wall
-        RaycastHit2D _hit = Physics2D.Raycast(GetCursorPosition(), Vector2.zero);
-        if (_hit.collider != null)
-        {
-            if (_hit.collider.CompareTag("Entrance"))
-            {
-                // TODO: Error that cannot set an entrance over a existing one
-                _errorMessageBox.ShowTimedMessage("CannotSetOverExistingEntrance", 2f);
-                //_currentEntrance.PlayDeniedAnimation();
-            }
-            else if (_hit.collider.CompareTag("Wall"))
-            {   // Create a new entrance
-                _currentWall = _hit.collider.GetComponent<WallLineController>();
-                GameObject _newEntrance = Instantiate(_entrancePrefab, GetCursorPosition(), Quaternion.identity, _entranceParent);
-                _currentEntrance = _newEntrance.GetComponent<EntrancesController>();
-                _currentEntrance.SetEntrancePosition(GetCursorPosition(), _currentWall);
-                _currentEntrance.name = "Entrance_" + _entrancesCount;
-                _entrancesCount++;
-                _movingEntrance = true;
-            }
-        }
+    private void InstantiateEntrance(Vector3 _position, WallLineController _wall)
+    {   // Instantiate a new entrance on the given position
+        GameObject _newEntrance = Instantiate(_entrancePrefab, _position, Quaternion.identity, _entranceParent);
+        _currentEntrance = _newEntrance.GetComponent<EntrancesController>();
+        _currentEntrance.SetEntrancePosition(_position, _wall);
+        _currentEntrance.name = "Entrance_" + _entrancesCount;
+        _movingEntrance = true;
+        _entrancesCount++;
     }
 
     private void CancelDraw()
