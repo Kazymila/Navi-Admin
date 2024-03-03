@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8873711856282862704}
   m_Layer: 0
   m_Name: StartDot
-  m_TagString: Untagged
+  m_TagString: EntranceDot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 5965222076594362659}
   m_Layer: 0
   m_Name: EndDot
-  m_TagString: Untagged
+  m_TagString: EntranceDot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -274,7 +274,7 @@ Transform:
   - {fileID: 2624240458207919029}
   - {fileID: 4068625799838728307}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3123266497298359421
 MonoBehaviour:
@@ -290,8 +290,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _polygonCollider: {fileID: 3383938866662251018}
   _lineRenderer: {fileID: 9181385627310590207}
-  _startDot: {fileID: 1328218084598735912}
-  _endDot: {fileID: 1733712288379149928}
+  startDot: {fileID: 1328218084598735912}
+  endDot: {fileID: 1733712288379149928}
   _entranceWall: {fileID: 0}
   _isOverEntrance: 0
   _isSetted: 0
@@ -411,7 +411,7 @@ PolygonCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0

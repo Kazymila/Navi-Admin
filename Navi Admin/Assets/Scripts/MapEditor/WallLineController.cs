@@ -5,6 +5,9 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
 public class WallLineController : MonoBehaviour
 {
+    [Header("On Wall Stuff")]
+    public List<EntrancesController> entrancesList = new List<EntrancesController>();
+
     [Header("Dots")]
     public WallDotController startDot;
     public WallDotController endDot;
@@ -34,7 +37,7 @@ public class WallLineController : MonoBehaviour
     }
 
     public float CalculateLength()
-    {
+    {   // Calculate the line lenght
         _length = Vector3.Distance(startDot.position, endDot.position);
         return _length;
     }
@@ -56,6 +59,7 @@ public class WallLineController : MonoBehaviour
             startDot.DeleteLine(startDot.lines.IndexOf(this.gameObject));
             endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
         }
+        foreach (EntrancesController _entrance in entrancesList) Destroy(_entrance.gameObject);
         Destroy(_renderWall);
         Destroy(this.gameObject);
     }

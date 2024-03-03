@@ -53,7 +53,12 @@ public class WallDotController : MonoBehaviour
         for (int i = 0; i < linesCount; i++)
         {
             lines[i].GetComponent<LineRenderer>().SetPosition(linesType[i], _position);
-            lines[i].GetComponent<WallLineController>().SetLineCollider();
+            WallLineController _lineController = lines[i].GetComponent<WallLineController>();
+            _lineController.SetLineCollider();
+
+            if (_lineController.entrancesList.Count > 0) // Update the entrances position
+                _lineController.entrancesList.ForEach(entrance =>
+                    entrance.SetEntrancePosition(entrance.transform.localPosition, _lineController));
         }
         position = _position + new Vector3(0, 0, -0.5f);
         this.transform.position = position;

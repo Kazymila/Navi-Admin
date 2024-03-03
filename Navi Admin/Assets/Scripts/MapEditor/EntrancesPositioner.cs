@@ -67,6 +67,7 @@ public class EntrancesPositioner : MonoBehaviour
         if (_UIEditorController.IsCursorOverEditorUI()) return;
         if (_currentEntrance._isOverEntrance) return;
 
+        _currentWall.entrancesList.Add(_currentEntrance);
         _currentEntrance.PlaySettedAnimation();
         _currentEntrance._isSetted = true;
         _movingEntrance = false;

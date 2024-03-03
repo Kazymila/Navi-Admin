@@ -10,6 +10,7 @@ public class SelectTool : MonoBehaviour
     [Header("UI Components")]
     [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private ErrorMessageController _errorMessageBox;
+    [SerializeField] private GameObject _entranceSettingsPanel;
     [SerializeField] private GameObject _wallSizePanel;
     [SerializeField] private Transform _UIItems;
 
@@ -20,8 +21,10 @@ public class SelectTool : MonoBehaviour
     #endregion
 
     private List<GameObject> _wallLabels = new List<GameObject>();
+    private EntrancesController _selectedEntrance;
     private WallLineController _selectedLine;
     private WallDotController _selectedDot;
+    private bool _movingEntrance;
     private bool _movingDot;
 
     private TMP_InputField _wallSizeInput;
@@ -63,6 +66,10 @@ public class SelectTool : MonoBehaviour
             _selectedDot.SetPosition(GetCursorPosition());
             ShowWallsSizeLabel();
         }
+        if (_movingEntrance && !_UIEditorController.IsCursorOverEditorUI())
+        {   // Move the selected entrance to the cursor position
+            _selectedEntrance.SetEntrancePosition(GetCursorPosition(), _selectedEntrance._entranceWall);
+        }
     }
 
     private void OnSelectClick()
@@ -73,6 +80,11 @@ public class SelectTool : MonoBehaviour
         {   // Set the dot position and stop moving it
             _selectedDot.PlaySelectAnimation();
             _movingDot = false;
+        }
+        else if (_movingEntrance)
+        {   // Set the entrance position and stop moving it
+            _selectedEntrance.PlaySettedAnimation();
+            _movingEntrance = false;
         }
         else
         {
@@ -90,15 +102,35 @@ public class SelectTool : MonoBehaviour
         {
             if (_hit.collider.CompareTag("WallDot"))
             {   // Select the dot and start moving it
-                if (_changingLineSize) CancelLineSizeChange();
+                if (_changingLineSize) CancelWallSizeChange();
                 _wallSizeLabel.SetActive(false);
 
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
                 _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
             }
+            else if (_hit.collider.CompareTag("EntranceDot"))
+            {   // Select a entrance dot and start move it
+                if (_changingLineSize) CancelWallSizeChange();
+                _wallSizeLabel.SetActive(false);
+
+                print("entrance dot");
+                // TODO: move the entrance dot
+            }
+            else if (_hit.collider.CompareTag("Entrance"))
+            {   // Select an entrance and edit it
+                if (_changingLineSize) CancelWallSizeChange();
+                _wallSizeLabel.SetActive(false);
+
+                _selectedEntrance = _hit.collider.GetComponent<EntrancesController>();
+                _selectedEntrance.PlayMovingAnimation();
+                _entranceSettingsPanel.SetActive(true);
+                _movingEntrance = true;
+
+                // TODO: edit the entrance
+            }
             else if (_hit.collider.CompareTag("Wall"))
-            {   // Select the wall and show its size
+            {   // Select a wall and edit it
                 _selectedLine = _hit.collider.GetComponent<WallLineController>();
                 _selectedLine.startDot.PlaySelectAnimation(false);
                 _selectedLine.endDot.PlaySelectAnimation(false);
@@ -110,7 +142,7 @@ public class SelectTool : MonoBehaviour
                 ShowWallSize();
             }
         }
-        else if (_changingLineSize) CancelLineSizeChange();
+        else if (_changingLineSize) CancelWallSizeChange();
     }
 
     #region --- Change Wall Line Size ---
@@ -140,7 +172,7 @@ public class SelectTool : MonoBehaviour
         }
     }
 
-    public void CancelLineSizeChange(bool _fromButton = false)
+    public void CancelWallSizeChange(bool _fromButton = false)
     {   // Cancel the line size change and reset the line
         if (!_fromButton)
         {   // If not canceled by the button, check if the cursor is over the panel

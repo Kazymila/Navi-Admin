@@ -7,8 +7,8 @@ public class EntrancesController : MonoBehaviour
     [Header("Required Components")]
     [SerializeField] private PolygonCollider2D _polygonCollider;
     [SerializeField] private LineRenderer _lineRenderer;
-    [SerializeField] private GameObject _startDot;
-    [SerializeField] private GameObject _endDot;
+    public GameObject startDot;
+    public GameObject endDot;
 
     [HideInInspector]
     public WallLineController _entranceWall;
@@ -23,17 +23,18 @@ public class EntrancesController : MonoBehaviour
     {
         _animator = GetComponent<Animator>();
         _errorMessageBox = FindObjectOfType<ErrorMessageController>();
-        _startDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
-        _endDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        startDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        endDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        PlayMovingAnimation();
     }
 
+    public void PlayMovingAnimation() => _animator.Play("Reset", 0, 0);
     public void PlaySettedAnimation() => _animator.Play("Setted", 0, 0);
-
     public void PlayDeniedAnimation() => _animator.Play("Denied", 0, 0);
 
     public float CalculateLength()
     {   // Calculate the line lenght
-        _lenght = Vector3.Distance(_startDot.transform.position, _endDot.transform.position);
+        _lenght = Vector3.Distance(startDot.transform.position, endDot.transform.position);
         return _lenght;
     }
 
@@ -69,8 +70,8 @@ public class EntrancesController : MonoBehaviour
         _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.2f));
         _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.2f));
 
-        _startDot.transform.position = _startPosition + new Vector3(0, 0, -0.3f);
-        _endDot.transform.position = _endPosition + new Vector3(0, 0, -0.3f);
+        startDot.transform.position = _startPosition + new Vector3(0, 0, -0.3f);
+        endDot.transform.position = _endPosition + new Vector3(0, 0, -0.3f);
 
         _entranceWall = _wall;
         SetLineCollider();
@@ -78,13 +79,20 @@ public class EntrancesController : MonoBehaviour
 
     public void ChangeEntranceSize(float _newLenght)
     {   // Change the line size moving the end dot
-        Vector3 _direction = (_endDot.transform.position - _startDot.transform.position).normalized;
-        Vector3 _newPosition = _startDot.transform.position + _direction * _newLenght;
+        Vector3 _direction = (endDot.transform.position - startDot.transform.position).normalized;
+        Vector3 _newPosition = startDot.transform.position + _direction * _newLenght;
         _newPosition.z = 0.0f;
 
-        _endDot.transform.position = _newPosition;
+        endDot.transform.position = _newPosition;
         SetLineCollider();
     }
+
+    public void DestroyEntrance()
+    {   // Delete the entrance and its references
+        _entranceWall.entrancesList.Remove(this);
+        Destroy(this.gameObject);
+    }
+
     #region --- Line Collider ---
     public void SetLineCollider()
     {   // Generate the line collider
@@ -96,7 +104,7 @@ public class EntrancesController : MonoBehaviour
 
     public List<Vector2> CalculateColliderPoints()
     {   // Calculate the points of the line collider
-        Vector3[] _positions = { _startDot.transform.position, _endDot.transform.position };
+        Vector3[] _positions = { startDot.transform.position, endDot.transform.position };
         float _width = _lineRenderer.startWidth;
 
         //Calculate the gradient (m) of the line
@@ -145,7 +153,7 @@ public class EntrancesController : MonoBehaviour
             _errorMessageBox.HideMessage();
             _isOverEntrance = false;
 
-            if (!_isSetted) _animator.Play("Reset", 0, 0);
+            if (!_isSetted) PlayMovingAnimation();
             else PlaySettedAnimation();
         }
     }
