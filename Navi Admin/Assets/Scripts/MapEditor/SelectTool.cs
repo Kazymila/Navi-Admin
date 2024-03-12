@@ -28,17 +28,20 @@ public class SelectTool : MonoBehaviour
     private EntrancesController _selectedEntrance;
     private WallLineController _selectedLine;
     private WallDotController _selectedDot;
+    private GameObject _selectedEntranceDot;
 
     // Remember the old values
+    private Vector3 _oldEntranceDotPos;
     private Vector3 _oldEntrancePos;
     private float _oldEntranceSize;
     private float _oldWallSize;
 
     // States variables
-    private bool _editingEntrance;
-    private bool _movingEntrance;
-    private bool _editingWall;
-    private bool _movingDot;
+    private bool _movingEntranceDot = false;
+    private bool _editingEntrance = false;
+    private bool _movingEntrance = false;
+    private bool _editingWall = false;
+    private bool _movingDot = false;
 
     #endregion
 
@@ -82,7 +85,12 @@ public class SelectTool : MonoBehaviour
         }
         if (_movingEntrance && !_UIEditorController.IsCursorOverEditorUI())
         {   // Move the selected entrance to the cursor position
-            _selectedEntrance.SetEntrancePositionFromCursor(GetCursorPosition(), _selectedEntrance.entranceWall);
+            _selectedEntrance.SetEntrancePositionFromCursor(GetCursorPosition(false), _selectedEntrance.entranceWall);
+        }
+        if (_movingEntranceDot && !_UIEditorController.IsCursorOverEditorUI())
+        {   // Move the selected entrance dot to the cursor position
+            _selectedEntrance.MoveEntranceDot(GetCursorPosition(false), _selectedEntranceDot);
+            _entranceSizeInput.text = _selectedEntrance.lenght.ToString("F5");
         }
     }
 
@@ -97,10 +105,19 @@ public class SelectTool : MonoBehaviour
         }
         else if (_movingEntrance)
         {   // Set the entrance position and stop moving it
+            if (_selectedEntrance.isOverEntrance) return;
             _oldEntrancePos = _selectedEntrance.transform.localPosition;
             _selectedEntrance.PlaySettedAnimation();
             _selectedEntrance.isSetted = true;
             _movingEntrance = false;
+        }
+        else if (_movingEntranceDot)
+        {   // Set the entrance dot position and stop moving it
+            if (_selectedEntrance.isOverEntrance) return;
+            _selectedEntrance.PlaySettedAnimation();
+            _selectedEntrance.isSetted = true;
+            _selectedEntranceDot = null;
+            _movingEntranceDot = false;
         }
         else
         {
@@ -123,6 +140,14 @@ public class SelectTool : MonoBehaviour
             _selectedEntrance.PlaySettedAnimation();
             _selectedEntrance.isSetted = true;
             _movingEntrance = false;
+        }
+        else if (_movingEntranceDot)
+        {   // Cancel the entrance dot movement
+            _selectedEntrance.MoveEntranceDot(_oldEntranceDotPos, _selectedEntranceDot);
+            _selectedEntrance.PlaySettedAnimation();
+            _selectedEntrance.isSetted = true;
+            _selectedEntranceDot = null;
+            _movingEntranceDot = false;
         }
     }
 
@@ -147,8 +172,13 @@ public class SelectTool : MonoBehaviour
                 if (_editingWall) CancelWallEdit();
                 _wallSizeLabel.SetActive(false);
 
-                print("entrance dot");
-                // TODO: move the entrance dot
+                _selectedEntrance = _hit.collider.transform.parent.GetComponent<EntrancesController>();
+                _selectedEntranceDot = _hit.collider.gameObject;
+                InitializeEntranceEditing();
+
+                _oldEntranceDotPos = _selectedEntranceDot.transform.position;
+                _oldEntranceDotPos.z = 0;
+                _movingEntranceDot = true;
             }
             else if (_hit.collider.CompareTag("Entrance"))
             {   // Select an entrance and edit it
@@ -156,15 +186,7 @@ public class SelectTool : MonoBehaviour
                 _wallSizeLabel.SetActive(false);
 
                 _selectedEntrance = _hit.collider.GetComponent<EntrancesController>();
-                _entranceSizeInput.text = _selectedEntrance.width.ToString("F5");
-                _oldEntrancePos = _selectedEntrance.transform.localPosition;
-                _entranceLabelInput.text = _selectedEntrance.name;
-                _oldEntranceSize = _selectedEntrance.width;
-
-                _selectedEntrance.PlayMovingAnimation();
-                _entranceSettingsPanel.SetActive(true);
-                _selectedEntrance.isSetted = false;
-                _editingEntrance = true;
+                InitializeEntranceEditing();
                 _movingEntrance = true;
             }
             else if (_hit.collider.CompareTag("Wall"))
@@ -174,8 +196,8 @@ public class SelectTool : MonoBehaviour
                 _selectedLine.startDot.PlaySelectAnimation();
                 _selectedLine.endDot.PlaySelectAnimation();
 
-                _wallSizeInput.text = _selectedLine.CalculateLength().ToString("F5");
-                _oldWallSize = _selectedLine.CalculateLength();
+                _wallSizeInput.text = _selectedLine.length.ToString("F5");
+                _oldWallSize = _selectedLine.length;
                 _wallSizePanel.SetActive(true);
                 _editingWall = true;
                 ShowWallSize();
@@ -228,55 +250,6 @@ public class SelectTool : MonoBehaviour
     }
     #endregion
 
-    #region --- Entrance Settings ---
-    public void ChangeEntranceSize()
-    {   // Change the selected entrance size with the input field value
-        if (!_editingEntrance) return;
-        string _inputText = _entranceSizeInput.text;
-        _errorMessageBox.HideMessage();
-
-        if (_inputText == "") return;
-        else if (float.Parse("0" + _inputText) == 0) return;
-        else
-        {
-            float _newSize = float.Parse("0" + _inputText);
-            _selectedEntrance.ChangeEntranceSize(_newSize);
-            _selectedEntrance.isSetted = false;
-        }
-    }
-    public void SetEntranceSettings()
-    {   // Set the entrance changes on confirmation
-        if (_selectedEntrance.isOverEntrance) return;
-        if (_entranceSizeInput.text == "")
-            _errorMessageBox.ShowMessage("EnterSomeValue");
-        else
-        {
-            _entranceSettingsPanel.SetActive(false);
-            _entranceSettingsPanel.SetActive(false);
-            _selectedEntrance.PlaySettedAnimation();
-            _selectedEntrance.isSetted = true;
-            _editingEntrance = false;
-
-            if (_entranceLabelInput.text != "") // Set label
-                _selectedEntrance.name = _entranceLabelInput.text;
-        }
-    }
-    public void CancelEntranceEdit(bool _fromButton = false)
-    {   // Cancel the entrance edit and reset the entrance
-        if (!_fromButton)
-        {   // If not canceled by the button, check if the cursor is over the panel
-            bool _isOverPanel = RectTransformUtility.RectangleContainsScreenPoint(
-                _entranceSettingsPanel.GetComponent<RectTransform>(),
-                _input.MapEditor.Position.ReadValue<Vector2>(), null);
-            if (_isOverPanel) return;
-        }
-        _entranceSizeInput.text = _oldEntranceSize.ToString("F5");
-        _selectedEntrance.ChangeEntranceSize(_oldEntranceSize);
-        _entranceSettingsPanel.SetActive(false);
-        _editingEntrance = false;
-    }
-    #endregion
-
     #region --- Wall Size Labels ---
     private void ShowWallSize()
     {   // Show the wall size label
@@ -314,6 +287,64 @@ public class SelectTool : MonoBehaviour
             Destroy(_wallLabels[i]);
         }
         _wallLabels.Clear();
+    }
+    #endregion
+
+    #region --- Entrance Settings ---
+    private void InitializeEntranceEditing()
+    {   // Set the entrance settings panel and start editing the entrance
+        _entranceSizeInput.text = _selectedEntrance.lenght.ToString("F5");
+        _oldEntrancePos = _selectedEntrance.transform.localPosition;
+        _entranceLabelInput.text = _selectedEntrance.name;
+        _oldEntranceSize = _selectedEntrance.lenght;
+
+        _selectedEntrance.PlayMovingAnimation();
+        _entranceSettingsPanel.SetActive(true);
+        _selectedEntrance.isSetted = false;
+        _editingEntrance = true;
+    }
+
+    public void ChangeEntranceSize()
+    {   // Change the selected entrance size with the input field value
+        if (!_editingEntrance || _movingEntranceDot) return;
+        string _inputText = _entranceSizeInput.text;
+        _errorMessageBox.HideMessage();
+
+        if (_inputText == "") return;
+        else if (float.Parse("0" + _inputText) == 0) return;
+        else
+        {
+            float _newSize = float.Parse("0" + _inputText);
+            _selectedEntrance.ChangeEntranceSize(_newSize);
+            _selectedEntrance.isSetted = false;
+        }
+    }
+    public void SetEntranceSettings()
+    {   // Set the entrance changes on confirmation
+        if (_selectedEntrance.isOverEntrance) return;
+        if (_entranceSizeInput.text == "")
+            _errorMessageBox.ShowMessage("EnterSomeValue");
+        else
+        {
+            _errorMessageBox.HideMessage();
+            _entranceSettingsPanel.SetActive(false);
+            _entranceSettingsPanel.SetActive(false);
+            _selectedEntrance.PlaySettedAnimation();
+            _selectedEntrance.isSetted = true;
+            _editingEntrance = false;
+            _movingEntrance = false;
+
+            if (_entranceLabelInput.text != "") // Set label
+                _selectedEntrance.name = _entranceLabelInput.text;
+        }
+    }
+    public void CancelEntranceEdit(bool _fromButton = false)
+    {   // Cancel the entrance edit and reset the entrance
+        if (_movingEntrance) _selectedEntrance.ChangeEntranceSize(_oldEntranceSize);
+        _entranceSizeInput.text = _oldEntranceSize.ToString("F5");
+        _entranceSettingsPanel.SetActive(false);
+        _editingEntrance = false;
+        _movingEntrance = false;
     }
     #endregion
 }

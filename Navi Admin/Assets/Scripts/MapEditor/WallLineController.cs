@@ -23,7 +23,7 @@ public class WallLineController : MonoBehaviour
     private MeshFilter _meshFilter;
     private Mesh _mesh;
 
-    private float _length;
+    public float length;
 
     void Start()
     {
@@ -38,8 +38,8 @@ public class WallLineController : MonoBehaviour
 
     public float CalculateLength()
     {   // Calculate the line lenght
-        _length = Vector3.Distance(startDot.position, endDot.position);
-        return _length;
+        length = Vector3.Distance(startDot.position, endDot.position);
+        return length;
     }
 
     public void ChangeLength(float _newLenght)
