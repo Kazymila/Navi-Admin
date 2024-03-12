@@ -7,17 +7,18 @@ public class EntrancesController : MonoBehaviour
     [Header("Required Components")]
     [SerializeField] private PolygonCollider2D _polygonCollider;
     [SerializeField] private LineRenderer _lineRenderer;
+
     public GameObject startDot;
     public GameObject endDot;
 
     [HideInInspector]
-    public WallLineController _entranceWall;
-    public bool _isOverEntrance = false;
-    public bool _isSetted = false;
+    public WallLineController entranceWall;
+    public bool isOverEntrance = false; // To check if CAN be setted
+    public bool isSetted = false;   // To check if is already setted
+    public float width = 0.825f; // Default entrance size
 
     private ErrorMessageController _errorMessageBox;
     private Animator _animator;
-    private float _lenght = 0.80f; // Default lenght
 
     private void Start()
     {
@@ -25,6 +26,10 @@ public class EntrancesController : MonoBehaviour
         _errorMessageBox = FindObjectOfType<ErrorMessageController>();
         startDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
         endDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        this.transform.localPosition = new Vector3(
+            this.transform.localPosition.x,
+            this.transform.localPosition.y,
+            -0.25f);
         PlayMovingAnimation();
     }
 
@@ -34,12 +39,13 @@ public class EntrancesController : MonoBehaviour
 
     public float CalculateLength()
     {   // Calculate the line lenght
-        _lenght = Vector3.Distance(startDot.transform.position, endDot.transform.position);
-        return _lenght;
+        width = Vector3.Distance(startDot.transform.position, endDot.transform.position);
+        return width;
     }
 
     private Vector3 GetProjectedPointOnWall(Vector3 _cursorPosition, Vector3 _startWallDot, Vector3 _endWallDot)
     {   // Project the cursor position on the wall line and return the projected point
+        _cursorPosition.z = 0;
         Vector3 _wallVector = _endWallDot - _startWallDot;
         Vector3 _cursorToWallVector = _cursorPosition - _startWallDot;
 
@@ -52,44 +58,60 @@ public class EntrancesController : MonoBehaviour
         else return _startWallDot + _d * _wallVector;
     }
 
-    public void SetEntrancePosition(Vector3 _position, WallLineController _wall)
+    public void SetEntrancePosition(Vector3 _position, Vector3 _direction)
     {   // Set the entrance line and dots position snap to the wall
-        Vector3 _onWallPosition = GetProjectedPointOnWall(_position, _wall.startDot.position, _wall.endDot.position);
-        Vector3 _direction = (_wall.endDot.position - _wall.startDot.position).normalized;
+        Vector3 _startPosition = _position - _direction * (width / 2);
+        Vector3 _endPosition = _position + _direction * (width / 2);
 
-        // Check if the entrance is out of the wall limits and re position it
-        if (Vector3.Distance(_onWallPosition, _wall.startDot.position) < (_lenght / 2) + 0.2f)
-            _onWallPosition = _wall.startDot.position + _direction * ((_lenght / 2) + 0.2f);
+        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.25f));
+        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.25f));
 
-        else if (Vector3.Distance(_onWallPosition, _wall.endDot.position) < (_lenght / 2) + 0.2f)
-            _onWallPosition = _wall.endDot.position - _direction * ((_lenght / 2) + 0.2f);
+        startDot.transform.position = _startPosition + new Vector3(0, 0, -0.25f);
+        endDot.transform.position = _endPosition + new Vector3(0, 0, -0.25f);
 
-        Vector3 _startPosition = _onWallPosition - _direction * (_lenght / 2);
-        Vector3 _endPosition = _onWallPosition + _direction * (_lenght / 2);
-
-        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.2f));
-        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.2f));
-
-        startDot.transform.position = _startPosition + new Vector3(0, 0, -0.3f);
-        endDot.transform.position = _endPosition + new Vector3(0, 0, -0.3f);
-
-        _entranceWall = _wall;
         SetLineCollider();
     }
 
-    public void ChangeEntranceSize(float _newLenght)
-    {   // Change the line size moving the end dot
-        Vector3 _direction = (endDot.transform.position - startDot.transform.position).normalized;
-        Vector3 _newPosition = startDot.transform.position + _direction * _newLenght;
-        _newPosition.z = 0.0f;
+    public void SetEntrancePositionFromCursor(Vector3 _position, WallLineController _wall)
+    {   // Set the entrance by cursor distance to wall
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startDot.position, _wall.endDot.position);
+        Vector3 _direction = (_wall.endDot.position - _wall.startDot.position).normalized;
 
-        endDot.transform.position = _newPosition;
+        // Check if the entrance is out of the wall limits and re position it
+        if (Vector3.Distance(_projectedPos, _wall.startDot.position) < (width / 2) + 0.2f)
+            _projectedPos = _wall.startDot.position + _direction * ((width / 2) + 0.2f);
+
+        else if (Vector3.Distance(_projectedPos, _wall.endDot.position) < (width / 2) + 0.2f)
+            _projectedPos = _wall.endDot.position - _direction * ((width / 2) + 0.2f);
+
+        SetEntrancePosition(_projectedPos, _direction);
+        entranceWall = _wall;
+    }
+
+    public void RepositionEntranceOnWall(Vector3 _position, WallLineController _wall)
+    {   // Reposition the entrance on wall
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startDot.position, _wall.endDot.position);
+        Vector3 _direction = (_wall.endDot.position - _wall.startDot.position).normalized;
+
+        SetEntrancePosition(_projectedPos, _direction);
+        entranceWall = _wall;
+    }
+
+    public void ChangeEntranceSize(float _newLenght)
+    {   // Change the line size moving the dots
+        width = _newLenght;
+        RepositionEntranceOnWall(this.transform.localPosition, entranceWall);
+    }
+
+    public void MoveEntranceDot(Vector3 _position, GameObject _dot)
+    {   // Move the entrance dot to the cursor position
+        // TODO: move the entrance dot
         SetLineCollider();
     }
 
     public void DestroyEntrance()
     {   // Delete the entrance and its references
-        _entranceWall.entrancesList.Remove(this);
+        entranceWall.entrancesList.Remove(this);
         Destroy(this.gameObject);
     }
 
@@ -138,11 +160,11 @@ public class EntrancesController : MonoBehaviour
     #region --- Trigger Events ---
     void OnTriggerStay2D(Collider2D _collider)
     {
-        if (_collider.CompareTag("Entrance") && !_isSetted)
+        if (_collider.CompareTag("Entrance") && !isSetted)
         {   // Cannot set an entrance over a existing one, so show error message
             _errorMessageBox.ShowMessage("CannotSetOverExistingEntrance");
             PlayDeniedAnimation();
-            _isOverEntrance = true;
+            isOverEntrance = true;
         }
     }
 
@@ -151,9 +173,9 @@ public class EntrancesController : MonoBehaviour
         if (_collider.CompareTag("Entrance"))
         {   // Hide the error message
             _errorMessageBox.HideMessage();
-            _isOverEntrance = false;
+            isOverEntrance = false;
 
-            if (!_isSetted) PlayMovingAnimation();
+            if (!isSetted) PlayMovingAnimation();
             else PlaySettedAnimation();
         }
     }

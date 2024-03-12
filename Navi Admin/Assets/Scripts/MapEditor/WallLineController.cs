@@ -50,6 +50,9 @@ public class WallLineController : MonoBehaviour
 
         endDot.SetPosition(_newPosition);
         SetLineCollider();
+
+        entrancesList.ForEach(entrance => // Update the entrances position
+            entrance.RepositionEntranceOnWall(entrance.transform.position, this));
     }
 
     public void DestroyLine(bool _fromDots = true)

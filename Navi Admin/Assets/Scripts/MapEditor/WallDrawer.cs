@@ -30,6 +30,7 @@ public class WallDrawer : MonoBehaviour
     private WallLineController _lineController;
     private WallDotController _startWallDot;
     private WallDotController _endWallDot;
+    private float _wallWidth = 0.15f;
     private int _linesCount = 0;
     private bool _drawingWall;
 
@@ -68,8 +69,8 @@ public class WallDrawer : MonoBehaviour
         {   // Drag the line updating the end dot position
             _endWallDot.SetPosition(GetCursorPosition());
             _endWallDot.DotCollider.enabled = false;
-            _lineController.gameObject.GetComponent<LineRenderer>().startWidth = 0.15f;
-            _lineController.gameObject.GetComponent<LineRenderer>().endWidth = 0.15f;
+            _lineController.gameObject.GetComponent<LineRenderer>().startWidth = _wallWidth;
+            _lineController.gameObject.GetComponent<LineRenderer>().endWidth = _wallWidth;
             WallSizeOnGUI();
         }
         else _wallSizeLabel.SetActive(false);
@@ -111,8 +112,8 @@ public class WallDrawer : MonoBehaviour
         LineRenderer _line = _newLine.GetComponent<LineRenderer>();
         _line.SetPosition(0, _position);
         _line.SetPosition(1, _position);
-        _line.startWidth = 0.15f;
-        _line.endWidth = 0.15f;
+        _line.startWidth = _wallWidth;
+        _line.endWidth = _wallWidth;
 
         _lineController = _newLine.GetComponent<WallLineController>();
         SetLineDots(_newLine, _startWallDot, _endWallDot);
@@ -130,12 +131,9 @@ public class WallDrawer : MonoBehaviour
     }
     private WallDotController InstantiateWallDot(Vector3 _position, int _type = 0)
     {   // Instantiate a wall dot and atach it to a line
-        Vector3 _dotPosition = _position + new Vector3(0, 0, -0.5f);
-        GameObject _wallDot = Instantiate(_dotPrefab, _dotPosition, Quaternion.identity, _dotsParent);
-        WallDotController _wallDotController = _wallDot.GetComponent<WallDotController>();
+        GameObject _wallDot = Instantiate(_dotPrefab, _position, Quaternion.identity, _dotsParent);
         _wallDot.name = ((_type == 0) ? "Start" : "End") + "Dot_Wall_" + _linesCount;
-        _wallDot.transform.localRotation = Quaternion.Euler(-90, 0, 0);
-        return _wallDotController;
+        return _wallDot.GetComponent<WallDotController>();
     }
 
     private void CancelDraw()
@@ -157,10 +155,8 @@ public class WallDrawer : MonoBehaviour
     {
         if (!_drawingWall)
         {   // Create a line from the selected dot
-            _raycastDot.PlaySelectAnimation();
-            Vector3 _noSnapPosition = GetCursorPosition(false);
-
             _startWallDot = _raycastDot;
+            _raycastDot.PlaySelectAnimation();
             _endWallDot = InstantiateWallDot(_raycastDot.position, 1);
             _lineObject = CreateLine(_raycastDot.position);
             _drawingWall = true;

@@ -18,35 +18,22 @@ public class WallDotController : MonoBehaviour
     {
         _dotAnimator = GetComponent<Animator>();
         DotCollider = GetComponent<CircleCollider2D>();
+        this.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        this.transform.localPosition = new Vector3(
+            this.transform.localPosition.x,
+            this.transform.localPosition.y,
+            0.0f);
     }
 
     private void Update()
     {   // Delete the dot if it has no lines
         if (lines.Count == 0) DeleteDot();
         position = this.transform.position;
+        position.z = 0.0f;
     }
 
-    public void PlaySelectAnimation(bool _showOver = true)
-    {   // Play the select animation of the dot
-        if (_showOver)
-        {
-            this.transform.position += new Vector3(0, 0, -0.6f);
-            Invoke("ResetAnimation", 0.2f);
-        }
-        _dotAnimator.Play("Selected", 0, 0);
-    }
-
-    public void PlayDeniedAnimation(bool _showOver = true)
-    {   // Play the denied animation of the dot
-        if (_showOver)
-        {
-            this.transform.position += new Vector3(0, 0, -0.6f);
-            Invoke("ResetAnimation", 0.2f);
-        }
-        _dotAnimator.Play("Denied", 0, 0);
-    }
-
-    private void ResetAnimation() => this.transform.position += new Vector3(0, 0, -0.5f);
+    public void PlaySelectAnimation() => _dotAnimator.Play("Selected", 0, 0);
+    public void PlayDeniedAnimation() => _dotAnimator.Play("Denied", 0, 0);
 
     public void SetPosition(Vector3 _position)
     {   // Set the position of the dot and update the lines
@@ -58,10 +45,9 @@ public class WallDotController : MonoBehaviour
 
             if (_lineController.entrancesList.Count > 0) // Update the entrances position
                 _lineController.entrancesList.ForEach(entrance =>
-                    entrance.SetEntrancePosition(entrance.transform.localPosition, _lineController));
+                    entrance.RepositionEntranceOnWall(entrance.transform.position, _lineController));
         }
-        position = _position + new Vector3(0, 0, -0.5f);
-        this.transform.position = position;
+        this.transform.localPosition = _position;
     }
 
     public void AddLine(GameObject _line, int _type, WallDotController _neighborDot)
