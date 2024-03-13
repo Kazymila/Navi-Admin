@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class SelectTool : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class SelectTool : MonoBehaviour
     #region --- Variables ---
     private List<GameObject> _wallLabels = new List<GameObject>();
     private EntrancesController _selectedEntrance;
-    private WallLineController _selectedLine;
+    private WallLineController _selectedWall;
     private WallDotController _selectedDot;
     private GameObject _selectedEntranceDot;
 
@@ -192,15 +193,16 @@ public class SelectTool : MonoBehaviour
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select a wall and edit it
                 if (_editingEntrance) CancelEntranceEdit();
-                _selectedLine = _hit.collider.GetComponent<WallLineController>();
-                _selectedLine.startDot.PlaySelectAnimation();
-                _selectedLine.endDot.PlaySelectAnimation();
+                _selectedWall = _hit.collider.GetComponent<WallLineController>();
+                _selectedWall.startDot.PlaySelectAnimation();
+                _selectedWall.endDot.PlaySelectAnimation();
 
-                _wallSizeInput.text = _selectedLine.length.ToString("F5");
-                _oldWallSize = _selectedLine.length;
+                _wallSizeInput.text = _selectedWall.length.ToString("F5");
+                _oldWallSize = _selectedWall.length;
                 _wallSizePanel.SetActive(true);
                 _editingWall = true;
-                ShowWallSize();
+                //ShowWallSize();
+                ShowWallSegmentsSize();
             }
         }
         else if (_editingWall) CancelWallEdit();
@@ -218,7 +220,7 @@ public class SelectTool : MonoBehaviour
         else
         {
             float _newSize = float.Parse("0" + _inputText);
-            _selectedLine.ChangeLength(_newSize);
+            _selectedWall.ResizeWall(_newSize);
             ShowWallSize();
         }
     }
@@ -244,17 +246,38 @@ public class SelectTool : MonoBehaviour
             if (_isOverPanel) return;
         }
         _wallSizeInput.text = _oldWallSize.ToString("F5");
-        _selectedLine.ChangeLength(_oldWallSize);
+        _selectedWall.ResizeWall(_oldWallSize);
         _wallSizePanel.SetActive(false);
         _editingWall = false;
     }
     #endregion
 
     #region --- Wall Size Labels ---
+    private void ShowWallSegmentsSize()
+    {   // Show the wall segments size labels
+        Tuple<List<Vector3[]>, List<float>, List<int>> _wallSegments = _selectedWall.GetWallSegments();
+        List<Vector3[]> _wallPoints = _wallSegments.Item1;
+        List<float> _wallSizes = _wallSegments.Item2;
+        List<int> _wallTypes = _wallSegments.Item3;
+
+        for (int i = 0; i < _wallSizes.Count; i++)
+        {
+            if (_wallTypes[i] == 1) continue; // Skip the entrances
+            GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
+            _label.name = "WallLabel_" + i.ToString();
+            //_wallLabels.Add(_label);
+
+            Vector3 _labelPosition = (_wallPoints[i][0] + _wallPoints[i][1]) / 2;
+            _label.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+            _label.GetComponentInChildren<TextMeshProUGUI>().text = _wallSizes[i].ToString("F2") + "m";
+            _label.SetActive(true);
+        }
+    }
+
     private void ShowWallSize()
     {   // Show the wall size label
-        float _wallSize = _selectedLine.CalculateLength();
-        Vector3 _labelPosition = (_selectedLine.endDot.position + _selectedLine.startDot.position) / 2;
+        float _wallSize = _selectedWall.CalculateLength();
+        Vector3 _labelPosition = (_selectedWall.endDot.position + _selectedWall.startDot.position) / 2;
         _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
         _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
         _wallSizeLabel.SetActive(true);
@@ -315,7 +338,7 @@ public class SelectTool : MonoBehaviour
         else
         {
             float _newSize = float.Parse("0" + _inputText);
-            _selectedEntrance.ChangeEntranceSize(_newSize);
+            _selectedEntrance.ResizeEntrance(_newSize);
             _selectedEntrance.isSetted = false;
         }
     }
@@ -340,7 +363,7 @@ public class SelectTool : MonoBehaviour
     }
     public void CancelEntranceEdit(bool _fromButton = false)
     {   // Cancel the entrance edit and reset the entrance
-        if (_movingEntrance) _selectedEntrance.ChangeEntranceSize(_oldEntranceSize);
+        if (_movingEntrance) _selectedEntrance.ResizeEntrance(_oldEntranceSize);
         _entranceSizeInput.text = _oldEntranceSize.ToString("F5");
         _entranceSettingsPanel.SetActive(false);
         _editingEntrance = false;

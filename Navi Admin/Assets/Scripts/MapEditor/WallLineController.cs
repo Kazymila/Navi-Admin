@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,10 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
 public class WallLineController : MonoBehaviour
 {
-    [Header("On Wall Stuff")]
+    #region --- Public & Required Variables ---
+    [Header("Wall Stuff")]
     public List<EntrancesController> entrancesList = new List<EntrancesController>();
+    public float length;
 
     [Header("Dots")]
     public WallDotController startDot;
@@ -18,12 +21,11 @@ public class WallLineController : MonoBehaviour
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
+    #endregion
 
     private GameObject _renderWall;
     private MeshFilter _meshFilter;
     private Mesh _mesh;
-
-    public float length;
 
     void Start()
     {
@@ -42,17 +44,19 @@ public class WallLineController : MonoBehaviour
         return length;
     }
 
-    public void ChangeLength(float _newLenght)
-    {   // Change the line size moving the end dot
+    public void ResizeWall(float _newLenght)
+    {   // Resize the wall line and update the dots position
         Vector3 _direction = (endDot.position - startDot.position).normalized;
-        Vector3 _newPosition = startDot.position + _direction * _newLenght;
-        _newPosition.z = 0.0f;
+        Vector3 _midPosition = (endDot.position + startDot.position) / 2;
 
-        endDot.SetPosition(_newPosition);
+        length = _newLenght;
+        Vector3 _startPosition = _midPosition - _direction * (length / 2);
+        Vector3 _endPosition = _midPosition + _direction * (length / 2);
+
+        startDot.SetPosition(_startPosition);
+        endDot.SetPosition(_endPosition);
+
         SetLineCollider();
-
-        entrancesList.ForEach(entrance => // Update the entrances position
-            entrance.RepositionEntranceOnWall(entrance.transform.position, this));
     }
 
     public void DestroyLine(bool _fromDots = true)
@@ -73,6 +77,48 @@ public class WallLineController : MonoBehaviour
         _polygonCollider.SetPath(0,
             _colliderPoints.ConvertAll(
                 p => (Vector2)transform.InverseTransformPoint(p)));
+    }
+
+    public Tuple<List<Vector3[]>, List<float>, List<int>> GetWallSegments()
+    {   // Get points from the wall segments between entrances
+        List<Vector3> _points = new List<Vector3>();
+        List<float> _distances = new List<float>();
+        List<int> _segmentType = new List<int>();     // 0 = wall, 1 = entrance
+        List<Vector3[]> _wallPoints = new List<Vector3[]>(); // Pairs of points
+
+        _points.Add(startDot.position);
+        foreach (EntrancesController _entrance in entrancesList)
+        {
+            Vector3 _entranceStart = _entrance.startDot.transform.position;
+            Vector3 _entranceEnd = _entrance.endDot.transform.position;
+            _entranceStart.z = 0;
+            _entranceEnd.z = 0;
+
+            _points.Add(_entranceStart);
+            _segmentType.Add(0);
+            _points.Add(_entranceEnd);
+            _segmentType.Add(1);
+        }
+        _points.Add(endDot.position);
+        _segmentType.Add(0);
+
+        _points.Sort((p1, p2) => Vector3.Distance(p1, startDot.position).CompareTo(Vector3.Distance(p2, startDot.position)));
+
+        for (int i = 0; i < _points.Count - 1; i++)
+        {   // Save the distance between each point and group the points in pairs
+            float _distance = Vector3.Distance(_points[i], _points[i + 1]);
+            if (_distance > 0.0f)
+            {   // If the distance is not 0, save the segment
+                _distances.Add(_distance);
+                _wallPoints.Add(new Vector3[] { _points[i], _points[i + 1] });
+            }
+            else _segmentType.RemoveAt(i);
+        }
+
+        for (int i = 0; i < _segmentType.Count; i++) // Debug the segment type and distance
+            Debug.Log("Segment " + i + " type: " + _segmentType[i] + " distance: " + _distances[i]);
+
+        return Tuple.Create(_wallPoints, _distances, _segmentType);
     }
 
     #region --- 3D Render ---

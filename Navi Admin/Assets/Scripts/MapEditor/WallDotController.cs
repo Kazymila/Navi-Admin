@@ -13,6 +13,7 @@ public class WallDotController : MonoBehaviour
 
     public CircleCollider2D DotCollider;
     private Animator _dotAnimator;
+    private bool _isOnEntranceDot;
 
     private void Start()
     {
@@ -39,13 +40,20 @@ public class WallDotController : MonoBehaviour
     {   // Set the position of the dot and update the lines
         for (int i = 0; i < linesCount; i++)
         {
+            if (_isOnEntranceDot)
+            {
+                // TODO: Drag the entrance with the dot
+            }
             lines[i].GetComponent<LineRenderer>().SetPosition(linesType[i], _position);
             WallLineController _lineController = lines[i].GetComponent<WallLineController>();
+            _lineController.CalculateLength();
             _lineController.SetLineCollider();
 
             if (_lineController.entrancesList.Count > 0) // Update the entrances position
                 _lineController.entrancesList.ForEach(entrance =>
-                    entrance.RepositionEntranceOnWall(entrance.transform.position, _lineController));
+                    entrance.RepositionEntranceOnWall(
+                        (entrance.endDot.transform.position + entrance.startDot.transform.position) / 2,
+                        _lineController));
         }
         this.transform.localPosition = _position;
     }
@@ -85,4 +93,24 @@ public class WallDotController : MonoBehaviour
         if (neighborsDots.Contains(_neighborDot)) return true;
         else return false;
     }
+
+    #region --- Trigger Events ---
+    private void OnTriggerStay2D(Collider2D _collider)
+    {
+        if (_collider.CompareTag("EntranceDot"))
+        {
+            _isOnEntranceDot = true;
+            print("OnEntranceDot");
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("EntranceDot"))
+        {
+            _isOnEntranceDot = false;
+            print("ExitEntranceDot");
+        }
+    }
+    #endregion
 }

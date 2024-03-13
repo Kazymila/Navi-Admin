@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
 public class EntrancesController : MonoBehaviour
 {
     [Header("Required Components")]
@@ -44,6 +45,13 @@ public class EntrancesController : MonoBehaviour
         return lenght;
     }
 
+    public void DestroyEntrance()
+    {   // Delete the entrance and its references
+        entranceWall.entrancesList.Remove(this);
+        Destroy(this.gameObject);
+    }
+
+    #region --- Entrance Position ---
     private Vector3 GetProjectedPointOnWall(Vector3 _cursorPosition, Vector3 _startWallDot, Vector3 _endWallDot)
     {   // Project the cursor position on the wall line and return the projected point
         _cursorPosition.z = 0;
@@ -67,8 +75,8 @@ public class EntrancesController : MonoBehaviour
         _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.25f));
         _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.25f));
 
-        startDot.transform.position = _startPosition + new Vector3(0, 0, -0.75f);
-        endDot.transform.position = _endPosition + new Vector3(0, 0, -0.75f);
+        startDot.transform.position = _startPosition + new Vector3(0, 0, -0.5f);
+        endDot.transform.position = _endPosition + new Vector3(0, 0, -0.5f);
 
         SetLineCollider();
     }
@@ -78,8 +86,8 @@ public class EntrancesController : MonoBehaviour
         _lineRenderer.SetPosition(0, entranceWall.startDot.position + new Vector3(0, 0, -0.25f));
         _lineRenderer.SetPosition(1, entranceWall.endDot.position + new Vector3(0, 0, -0.25f));
 
-        startDot.transform.position = entranceWall.startDot.position + new Vector3(0, 0, -0.75f);
-        endDot.transform.position = entranceWall.endDot.position + new Vector3(0, 0, -0.75f);
+        startDot.transform.position = entranceWall.startDot.position + new Vector3(0, 0, -0.5f);
+        endDot.transform.position = entranceWall.endDot.position + new Vector3(0, 0, -0.5f);
 
         SetLineCollider();
     }
@@ -121,9 +129,10 @@ public class EntrancesController : MonoBehaviour
         SetEntrancePosition(_projectedPos, _direction);
         entranceWall = _wall;
     }
+    #endregion
 
     public void MoveEntranceDot(Vector3 _position, GameObject _dot)
-    {   // Move the entrance dot to the cursor position changing the lenght
+    {   // Move the entrance dot to the cursor position resizing the entrance
         Vector3 _projectedPos = GetProjectedPointOnWall(_position, entranceWall.startDot.position, entranceWall.endDot.position);
         Vector3 _otherDotPosition = _dot == startDot ? endDot.transform.position : startDot.transform.position;
         _otherDotPosition.z = 0;
@@ -133,13 +142,12 @@ public class EntrancesController : MonoBehaviour
         Vector3 _newPosition = _otherDotPosition - _direction * lenght;
 
         _lineRenderer.SetPosition(_dot == startDot ? 0 : 1, _newPosition + new Vector3(0, 0, -0.25f));
-        _dot.transform.position = _newPosition + new Vector3(0, 0, -0.75f);
+        _dot.transform.position = _newPosition + new Vector3(0, 0, -0.5f);
         SetLineCollider();
     }
 
-    public void ChangeEntranceSize(float _newLenght)
-    {   // Change the line size moving the dots
-
+    public void ResizeEntrance(float _newLenght)
+    {   // Change the entrance size
         if (_newLenght > entranceWall.length)
         {   // If the entrance is bigger than the wall
             _errorMessageBox.ShowMessage("EntranceTooBig");
@@ -152,12 +160,6 @@ public class EntrancesController : MonoBehaviour
         }
         lenght = _newLenght;
         RepositionEntranceOnWall(this.transform.localPosition, entranceWall);
-    }
-
-    public void DestroyEntrance()
-    {   // Delete the entrance and its references
-        entranceWall.entrancesList.Remove(this);
-        Destroy(this.gameObject);
     }
 
     #region --- Line Collider ---
@@ -203,7 +205,7 @@ public class EntrancesController : MonoBehaviour
     #endregion
 
     #region --- Trigger Events ---
-    void OnTriggerStay2D(Collider2D _collider)
+    private void OnTriggerStay2D(Collider2D _collider)
     {
         if (_collider.CompareTag("Entrance") && !isSetted)
         {   // Cannot set an entrance over a existing one, so show error message
@@ -213,7 +215,7 @@ public class EntrancesController : MonoBehaviour
         }
     }
 
-    void OnTriggerExit2D(Collider2D _collider)
+    private void OnTriggerExit2D(Collider2D _collider)
     {
         if (_collider.CompareTag("Entrance"))
         {   // Hide the error message
