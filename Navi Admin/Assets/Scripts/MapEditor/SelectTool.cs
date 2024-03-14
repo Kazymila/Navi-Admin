@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using Unity.VisualScripting;
 
 public class SelectTool : MonoBehaviour
 {
@@ -56,7 +57,12 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.Click.started += ctx => OnSelectClick();
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
     }
-    private void OnDisable() => _input.MapEditor.Disable();
+    private void OnDisable()
+    {
+        _input.MapEditor.Disable();
+        if (_editingEntrance) CancelEntranceEdit();
+        if (_editingWall) CancelWallEdit();
+    }
 
     private void Start()
     {
@@ -118,6 +124,7 @@ public class SelectTool : MonoBehaviour
         else if (_movingEntranceDot)
         {   // Set the entrance dot position and stop moving it
             if (_selectedEntrance.isOverEntrance) return;
+            _oldEntranceSize = _selectedEntrance.lenght;
             _selectedEntrance.PlaySettedAnimation();
             _selectedEntrance.isSetted = true;
             _selectedEntranceDot = null;
@@ -270,7 +277,7 @@ public class SelectTool : MonoBehaviour
 
         for (int i = 0; i < _wallPoints.Count; i++)
         {
-            Debug.Log("Wall_" + i + " length: " + _wallSizes[i]);
+            //Debug.Log("Wall_" + i + " length: " + _wallSizes[i]);
 
             if (_segmentsLabels.Count < _wallPoints.Count)
             {   // Create the label if not exists

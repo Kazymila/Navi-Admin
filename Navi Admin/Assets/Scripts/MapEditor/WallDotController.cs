@@ -10,10 +10,10 @@ public class WallDotController : MonoBehaviour
     public List<int> linesType = new List<int>();
     public int linesCount = 0;
     public Vector3 position;
+    public bool isOnEntranceDot;
 
     public CircleCollider2D DotCollider;
     private Animator _dotAnimator;
-    private bool _isOnEntranceDot;
 
     private void Start()
     {
@@ -40,7 +40,7 @@ public class WallDotController : MonoBehaviour
     {   // Set the position of the dot and update the lines
         for (int i = 0; i < linesCount; i++)
         {
-            if (_isOnEntranceDot)
+            if (isOnEntranceDot)
             {
                 // TODO: Drag the entrance with the dot
             }
@@ -99,7 +99,7 @@ public class WallDotController : MonoBehaviour
     {
         if (_collider.CompareTag("EntranceDot"))
         {
-            _isOnEntranceDot = true;
+            isOnEntranceDot = true;
             print("OnEntranceDot");
         }
     }
@@ -108,7 +108,7 @@ public class WallDotController : MonoBehaviour
     {
         if (other.CompareTag("EntranceDot"))
         {
-            _isOnEntranceDot = false;
+            isOnEntranceDot = false;
             print("ExitEntranceDot");
         }
     }

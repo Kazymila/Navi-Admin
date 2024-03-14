@@ -36,7 +36,7 @@ public class RenderViewManager : MonoBehaviour
 
     public void BackToEditor()
     {   // Return to the editor view
-        if (_gridManager.gridActive)
+        if (_gridManager.gridActive) // If the grid was active, reactivate it
             _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(true);
 
         _editorUILayout.gameObject.SetActive(true);

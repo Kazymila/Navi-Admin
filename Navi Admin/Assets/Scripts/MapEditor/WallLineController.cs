@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
@@ -37,7 +38,7 @@ public class WallLineController : MonoBehaviour
     #region --- 3D Render Variables ---
     private GameObject _renderWall;
     private MeshFilter _meshFilter;
-    private Mesh _mesh;
+    private Mesh[] _meshes;
     #endregion
 
     void Start()
@@ -46,9 +47,6 @@ public class WallLineController : MonoBehaviour
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
         _renderWall.name = "Render_" + this.gameObject.name;
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
-
-        _mesh = new Mesh();
-        _mesh.name = "Mesh_" + this.gameObject.name;
     }
 
     public float CalculateLength()
@@ -86,7 +84,8 @@ public class WallLineController : MonoBehaviour
 
     public void SetLineCollider()
     {   // Generate the line collider
-        List<Vector2> _colliderPoints = CalculateColliderPoints();
+        Vector3[] _positions = { startDot.position, endDot.position };
+        List<Vector2> _colliderPoints = CalculateMeshPoints(_positions);
         _polygonCollider.SetPath(0,
             _colliderPoints.ConvertAll(
                 p => (Vector2)transform.InverseTransformPoint(p)));
@@ -110,6 +109,29 @@ public class WallLineController : MonoBehaviour
             }
         }
         return Tuple.Create(_wallSegmentsPoints, _wallSegmentsLenghts);
+    }
+
+    private Tuple<List<Vector3[]>, List<float>> CalculateSegments(List<Vector3> _points)
+    {   // Calculate the segments length and group the points in pairs to get the wall segments
+        _segmentsPoints.Clear();
+        _segmentsLengths.Clear();
+
+        for (int i = 0; i < _points.Count - 1; i++)
+        {   // Calculate the distance between each point
+            float _distance = Vector3.Distance(_points[i], _points[i + 1]);
+
+            if (_distance > 0.0f)
+            {   // If the distance is not 0, save the segment
+                _segmentsLengths.Add(_distance);
+                _segmentsPoints.Add(new Vector3[] { _points[i], _points[i + 1] });
+            }
+            else _segmentsType.RemoveAt(i);
+        }
+        for (int i = 0; i < _segmentsPoints.Count; i++)
+        {   // Print the segments points and distances
+            print(" Segment " + i + " | ditance: " + _segmentsLengths[i] + " | type: " + _segmentsType[i]);
+        }
+        return Tuple.Create(_segmentsPoints, _segmentsLengths);
     }
 
     private List<Vector3> GetSegmentsPoints()
@@ -136,63 +158,37 @@ public class WallLineController : MonoBehaviour
         _points.Sort((p1, p2) => Vector3.Distance(p1, startDot.position).CompareTo(Vector3.Distance(p2, startDot.position)));
         return _points;
     }
-
-    private Tuple<List<Vector3[]>, List<float>> CalculateSegments(List<Vector3> _points)
-    {   // Calculate the segments length and group the points in pairs to get the wall segments
-        _segmentsPoints.Clear();
-        _segmentsLengths.Clear();
-
-        for (int i = 0; i < _points.Count - 1; i++)
-        {   // Calculate the distance between each point
-            float _distance = Vector3.Distance(_points[i], _points[i + 1]);
-
-            if (_distance > 0.0f)
-            {   // If the distance is not 0, save the segment
-                _segmentsLengths.Add(_distance);
-                _segmentsPoints.Add(new Vector3[] { _points[i], _points[i + 1] });
-            }
-            else _segmentsType.RemoveAt(i);
-        }
-        return Tuple.Create(_segmentsPoints, _segmentsLengths);
-    }
     #endregion
 
     #region --- 3D Render ---
-    public List<Vector2> CalculateColliderPoints()
-    {   // Calculate the points of the line collider
-        Vector3[] _positions = { startDot.position, endDot.position };
-        float _width = _lineRenderer.startWidth;
-
-        //Calculate the gradient (m) of the line
-        float _m = (_positions[1].y - _positions[0].y) / (_positions[1].x - _positions[0].x);
-        float _deltaX = _width / 2; // Offset when the line is parallel to the y-axis
-        float _deltaY = 0;
-
-        if (!float.IsInfinity(_m)) // If the line is not parallel to the y-axis
-        {
-            _deltaX = (_width / 2f) * (_m / Mathf.Pow(_m * _m + 1, 0.5f));
-            _deltaY = (_width / 2f) * (1 / Mathf.Pow(_m * _m + 1, 0.5f));
-        }
-
-        // Calculate offset from each point to mesh
-        Vector3[] _offsets = new Vector3[2];
-        _offsets[0] = new Vector3(-_deltaX, _deltaY);
-        _offsets[1] = new Vector3(_deltaX, -_deltaY);
-
-        // Generate mesh points
-        List<Vector2> _colliderPoints = new List<Vector2>{
-            _positions[0] + _offsets[0],
-            _positions[1] + _offsets[0],
-            _positions[1] + _offsets[1],
-            _positions[0] + _offsets[1],
-        };
-
-        return _colliderPoints;
-    }
-
     public void GenerateWallMesh()
     {   // Generate the 3D wall mesh
-        Vector2[] _points = CalculateColliderPoints().ToArray();
+        _wallSegmentsPoints = GetWallSegments().Item1;
+        _meshes = new Mesh[_wallSegmentsPoints.Count];
+
+        _renderWall.transform.localRotation = Quaternion.identity;
+        _renderWall.transform.localPosition = Vector3.zero;
+
+        for (int i = 0; i < _wallSegmentsPoints.Count; i++)
+        {   // Generate the mesh for each wall segment
+            _meshes[i] = GenerateMesh(_wallSegmentsPoints[i]);
+        }
+
+        CombineInstance[] _combine = new CombineInstance[_meshes.Length];
+        for (int i = 0; i < _meshes.Length; i++)
+        {   // Combine the meshes into one mesh
+            _combine[i].mesh = _meshes[i];
+            _combine[i].transform = _renderWall.transform.localToWorldMatrix;
+        }
+
+        _meshFilter.mesh = new Mesh();
+        _meshFilter.mesh.CombineMeshes(_combine);
+        _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
+        _renderWall.transform.localPosition = new Vector3(0, 2f, 0);
+    }
+    public Mesh GenerateMesh(Vector3[] _positions)
+    {   // Generate the 3D mesh from line points
+        Vector2[] _points = CalculateMeshPoints(_positions).ToArray();
 
         Vector3[] _vertices = new Vector3[] {
             // Bottom vertices
@@ -258,14 +254,44 @@ public class WallLineController : MonoBehaviour
             22, 20, 23,
         };
 
+        // Generate the mesh
+        Mesh _mesh = new Mesh();
         _mesh.vertices = _vertices;
         _mesh.triangles = _triangles;
         _mesh.RecalculateNormals();
         _mesh.RecalculateBounds();
+        return _mesh;
+    }
 
-        _meshFilter.mesh = _mesh;
-        _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        _renderWall.transform.localPosition = new Vector3(0, 2f, 0);
+    public List<Vector2> CalculateMeshPoints(Vector3[] _positions)
+    {   // Calculate the points of the line collider
+        float _width = _lineRenderer.startWidth;
+
+        //Calculate the gradient (m) of the line
+        float _m = (_positions[1].y - _positions[0].y) / (_positions[1].x - _positions[0].x);
+        float _deltaX = _width / 2; // Offset when the line is parallel to the y-axis
+        float _deltaY = 0;
+
+        if (!float.IsInfinity(_m)) // If the line is not parallel to the y-axis
+        {
+            _deltaX = (_width / 2f) * (_m / Mathf.Pow(_m * _m + 1, 0.5f));
+            _deltaY = (_width / 2f) * (1 / Mathf.Pow(_m * _m + 1, 0.5f));
+        }
+
+        // Calculate offset from each point to mesh
+        Vector3[] _offsets = new Vector3[2];
+        _offsets[0] = new Vector3(-_deltaX, _deltaY);
+        _offsets[1] = new Vector3(_deltaX, -_deltaY);
+
+        // Generate mesh points
+        List<Vector2> _colliderPoints = new List<Vector2>{
+            _positions[0] + _offsets[0],
+            _positions[1] + _offsets[0],
+            _positions[1] + _offsets[1],
+            _positions[0] + _offsets[1],
+        };
+
+        return _colliderPoints;
     }
     #endregion
 }
