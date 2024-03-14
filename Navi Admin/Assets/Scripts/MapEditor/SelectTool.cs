@@ -26,6 +26,7 @@ public class SelectTool : MonoBehaviour
 
     #region --- Variables ---
     private List<GameObject> _wallLabels = new List<GameObject>();
+    private List<GameObject> _segmentsLabels = new List<GameObject>();
     private EntrancesController _selectedEntrance;
     private WallLineController _selectedWall;
     private WallDotController _selectedDot;
@@ -87,11 +88,13 @@ public class SelectTool : MonoBehaviour
         if (_movingEntrance && !_UIEditorController.IsCursorOverEditorUI())
         {   // Move the selected entrance to the cursor position
             _selectedEntrance.SetEntrancePositionFromCursor(GetCursorPosition(false), _selectedEntrance.entranceWall);
+            ShowWallSegmentsSize(_selectedEntrance.entranceWall);
         }
         if (_movingEntranceDot && !_UIEditorController.IsCursorOverEditorUI())
         {   // Move the selected entrance dot to the cursor position
             _selectedEntrance.MoveEntranceDot(GetCursorPosition(false), _selectedEntranceDot);
             _entranceSizeInput.text = _selectedEntrance.lenght.ToString("F5");
+            ShowWallSegmentsSize(_selectedEntrance.entranceWall);
         }
     }
 
@@ -172,6 +175,7 @@ public class SelectTool : MonoBehaviour
             {   // Select a entrance dot and start move it
                 if (_editingWall) CancelWallEdit();
                 _wallSizeLabel.SetActive(false);
+                RemoveSegmentsSizeLabel();
 
                 _selectedEntrance = _hit.collider.transform.parent.GetComponent<EntrancesController>();
                 _selectedEntranceDot = _hit.collider.gameObject;
@@ -180,15 +184,20 @@ public class SelectTool : MonoBehaviour
                 _oldEntranceDotPos = _selectedEntranceDot.transform.position;
                 _oldEntranceDotPos.z = 0;
                 _movingEntranceDot = true;
+
+                ShowWallSegmentsSize(_selectedEntrance.entranceWall);
             }
             else if (_hit.collider.CompareTag("Entrance"))
             {   // Select an entrance and edit it
                 if (_editingWall) CancelWallEdit();
                 _wallSizeLabel.SetActive(false);
+                RemoveSegmentsSizeLabel();
 
                 _selectedEntrance = _hit.collider.GetComponent<EntrancesController>();
                 InitializeEntranceEditing();
                 _movingEntrance = true;
+
+                ShowWallSegmentsSize(_selectedEntrance.entranceWall);
             }
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select a wall and edit it
@@ -201,8 +210,7 @@ public class SelectTool : MonoBehaviour
                 _oldWallSize = _selectedWall.length;
                 _wallSizePanel.SetActive(true);
                 _editingWall = true;
-                //ShowWallSize();
-                ShowWallSegmentsSize();
+                ShowWallSize();
             }
         }
         else if (_editingWall) CancelWallEdit();
@@ -224,6 +232,7 @@ public class SelectTool : MonoBehaviour
             ShowWallSize();
         }
     }
+
     public void SetLineSize()
     {   // Set the new line size on confirmation
         if (_wallSizeInput.text == "")
@@ -253,24 +262,30 @@ public class SelectTool : MonoBehaviour
     #endregion
 
     #region --- Wall Size Labels ---
-    private void ShowWallSegmentsSize()
+    private void ShowWallSegmentsSize(WallLineController _wall)
     {   // Show the wall segments size labels
-        Tuple<List<Vector3[]>, List<float>, List<int>> _wallSegments = _selectedWall.GetWallSegments();
+        Tuple<List<Vector3[]>, List<float>> _wallSegments = _wall.GetWallSegments();
         List<Vector3[]> _wallPoints = _wallSegments.Item1;
         List<float> _wallSizes = _wallSegments.Item2;
-        List<int> _wallTypes = _wallSegments.Item3;
 
-        for (int i = 0; i < _wallSizes.Count; i++)
+        for (int i = 0; i < _wallPoints.Count; i++)
         {
-            if (_wallTypes[i] == 1) continue; // Skip the entrances
-            GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
-            _label.name = "WallLabel_" + i.ToString();
-            //_wallLabels.Add(_label);
+            Debug.Log("Wall_" + i + " length: " + _wallSizes[i]);
 
-            Vector3 _labelPosition = (_wallPoints[i][0] + _wallPoints[i][1]) / 2;
-            _label.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
-            _label.GetComponentInChildren<TextMeshProUGUI>().text = _wallSizes[i].ToString("F2") + "m";
-            _label.SetActive(true);
+            if (_segmentsLabels.Count < _wallPoints.Count)
+            {   // Create the label if not exists
+                GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
+                _label.name = "WallLabel_" + i.ToString();
+                _segmentsLabels.Add(_label);
+            }
+            if (_wallSizes[i] < 0.001f) _segmentsLabels[i].SetActive(false); // ONLY WORKS ON START DOT (!)
+            else
+            {   // Set the label position and text
+                Vector3 _labelPosition = (_wallPoints[i][0] + _wallPoints[i][1]) / 2;
+                _segmentsLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+                _segmentsLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _wallSizes[i].ToString("F2") + "m";
+                _segmentsLabels[i].SetActive(true);
+            }
         }
     }
 
@@ -288,7 +303,7 @@ public class SelectTool : MonoBehaviour
         for (int i = 0; i < _selectedDot.linesCount; i++)
         {
             if (_wallLabels.Count < _selectedDot.linesCount)
-            {
+            {   // Create the label if not exists
                 GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
                 _label.name = "WallLabel_" + i.ToString();
                 _wallLabels.Add(_label);
@@ -296,8 +311,7 @@ public class SelectTool : MonoBehaviour
             WallLineController _line = _selectedDot.lines[i].GetComponent<WallLineController>();
             Vector3 _labelPosition = (_line.endDot.position + _line.startDot.position) / 2;
 
-            float _wallSize = _line.CalculateLength();
-            _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
+            _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _line.length.ToString("F2") + "m";
             _wallLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
             _wallLabels[i].SetActive(true);
         }
@@ -310,6 +324,15 @@ public class SelectTool : MonoBehaviour
             Destroy(_wallLabels[i]);
         }
         _wallLabels.Clear();
+    }
+
+    private void RemoveSegmentsSizeLabel()
+    {   // Destroy the walls labels
+        for (int i = 0; i < _segmentsLabels.Count; i++)
+        {
+            Destroy(_segmentsLabels[i]);
+        }
+        _segmentsLabels.Clear();
     }
     #endregion
 
@@ -340,6 +363,7 @@ public class SelectTool : MonoBehaviour
             float _newSize = float.Parse("0" + _inputText);
             _selectedEntrance.ResizeEntrance(_newSize);
             _selectedEntrance.isSetted = false;
+            ShowWallSegmentsSize(_selectedEntrance.entranceWall);
         }
     }
     public void SetEntranceSettings()
@@ -359,6 +383,8 @@ public class SelectTool : MonoBehaviour
 
             if (_entranceLabelInput.text != "") // Set label
                 _selectedEntrance.name = _entranceLabelInput.text;
+
+            RemoveSegmentsSizeLabel();
         }
     }
     public void CancelEntranceEdit(bool _fromButton = false)
@@ -368,6 +394,7 @@ public class SelectTool : MonoBehaviour
         _entranceSettingsPanel.SetActive(false);
         _editingEntrance = false;
         _movingEntrance = false;
+        RemoveSegmentsSizeLabel();
     }
     #endregion
 }

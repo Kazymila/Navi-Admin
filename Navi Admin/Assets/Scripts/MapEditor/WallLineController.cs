@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
@@ -23,9 +25,20 @@ public class WallLineController : MonoBehaviour
     [SerializeField] private GameObject _renderPrefab;
     #endregion
 
+    #region --- Wall Segments Variables ---
+    private List<Vector3[]> _wallSegmentsPoints = new List<Vector3[]>();
+    private List<float> _wallSegmentsLenghts = new List<float>();
+
+    private List<Vector3[]> _segmentsPoints = new List<Vector3[]>();
+    private List<float> _segmentsLengths = new List<float>();
+    private List<int> _segmentsType = new List<int>();
+    #endregion
+
+    #region --- 3D Render Variables ---
     private GameObject _renderWall;
     private MeshFilter _meshFilter;
     private Mesh _mesh;
+    #endregion
 
     void Start()
     {
@@ -79,47 +92,70 @@ public class WallLineController : MonoBehaviour
                 p => (Vector2)transform.InverseTransformPoint(p)));
     }
 
-    public Tuple<List<Vector3[]>, List<float>, List<int>> GetWallSegments()
+    #region --- Wall segments ---
+    public Tuple<List<Vector3[]>, List<float>> GetWallSegments()
     {   // Get points from the wall segments between entrances
+        List<Vector3> _points = GetSegmentsPoints();
+        CalculateSegments(_points);
+
+        _wallSegmentsPoints.Clear();
+        _wallSegmentsLenghts.Clear();
+
+        for (int i = 0; i < _segmentsPoints.Count; i++)
+        {   // Save only the wall segments points and distances
+            if (_segmentsType[i] == 0)
+            {   // If the segment is a wall, consider this segment
+                _wallSegmentsPoints.Add(_segmentsPoints[i]);
+                _wallSegmentsLenghts.Add(_segmentsLengths[i]);
+            }
+        }
+        return Tuple.Create(_wallSegmentsPoints, _wallSegmentsLenghts);
+    }
+
+    private List<Vector3> GetSegmentsPoints()
+    {   // Get the points from the wall segments between entrances
         List<Vector3> _points = new List<Vector3>();
-        List<float> _distances = new List<float>();
-        List<int> _segmentType = new List<int>();     // 0 = wall, 1 = entrance
-        List<Vector3[]> _wallPoints = new List<Vector3[]>(); // Pairs of points
+        _segmentsType.Clear();
 
         _points.Add(startDot.position);
         foreach (EntrancesController _entrance in entrancesList)
-        {
+        {   // Save the entrance points and the segment type between them
             Vector3 _entranceStart = _entrance.startDot.transform.position;
             Vector3 _entranceEnd = _entrance.endDot.transform.position;
             _entranceStart.z = 0;
             _entranceEnd.z = 0;
 
             _points.Add(_entranceStart);
-            _segmentType.Add(0);
+            _segmentsType.Add(0);
             _points.Add(_entranceEnd);
-            _segmentType.Add(1);
+            _segmentsType.Add(1);
         }
         _points.Add(endDot.position);
-        _segmentType.Add(0);
+        _segmentsType.Add(0);
 
         _points.Sort((p1, p2) => Vector3.Distance(p1, startDot.position).CompareTo(Vector3.Distance(p2, startDot.position)));
+        return _points;
+    }
+
+    private Tuple<List<Vector3[]>, List<float>> CalculateSegments(List<Vector3> _points)
+    {   // Calculate the segments length and group the points in pairs to get the wall segments
+        _segmentsPoints.Clear();
+        _segmentsLengths.Clear();
 
         for (int i = 0; i < _points.Count - 1; i++)
-        {   // Save the distance between each point and group the points in pairs
+        {   // Calculate the distance between each point
             float _distance = Vector3.Distance(_points[i], _points[i + 1]);
+
             if (_distance > 0.0f)
             {   // If the distance is not 0, save the segment
-                _distances.Add(_distance);
-                _wallPoints.Add(new Vector3[] { _points[i], _points[i + 1] });
+                _segmentsLengths.Add(_distance);
+                _segmentsPoints.Add(new Vector3[] { _points[i], _points[i + 1] });
             }
-            else _segmentType.RemoveAt(i);
+            else _segmentsType.RemoveAt(i);
         }
-
-        for (int i = 0; i < _segmentType.Count; i++) // Debug the segment type and distance
-            Debug.Log("Segment " + i + " type: " + _segmentType[i] + " distance: " + _distances[i]);
-
-        return Tuple.Create(_wallPoints, _distances, _segmentType);
+        return Tuple.Create(_segmentsPoints, _segmentsLengths);
     }
+    #endregion
 
     #region --- 3D Render ---
     public List<Vector2> CalculateColliderPoints()
