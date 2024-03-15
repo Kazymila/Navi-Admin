@@ -42,6 +42,9 @@ public class WallDrawer : MonoBehaviour
         _input.MapEditor.Enable();
         _input.MapEditor.Click.started += ctx => NewWall();
         _input.MapEditor.EndDraw.started += ctx => CancelDraw();
+
+        MapViewManager _mapViewManager = FindObjectOfType<MapViewManager>();
+        if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
     }
     private void OnDisable() => _input.MapEditor.Disable();
 

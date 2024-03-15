@@ -1,22 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MapViewManager : MonoBehaviour
 {
     private GameObject _wallDots;
-    private bool _wallDotsActive;
+    private GameObject _entrances;
+    public bool editDotsActive;
 
-    // Start is called before the first frame update
     void Start()
     {
         _wallDots = this.transform.GetChild(1).gameObject;
-        _wallDotsActive = true;
+        _entrances = this.transform.GetChild(2).gameObject;
+        editDotsActive = true;
     }
 
-    public void HideWallDots()
-    {   // Hide the dots from the map view
-        _wallDotsActive = !_wallDotsActive;
-        _wallDots.SetActive(_wallDotsActive);
+    public void ViewEditDots()
+    {   // Show or hide the dots from the map view
+        editDotsActive = !editDotsActive;
+        _wallDots.SetActive(editDotsActive);
+
+        foreach (Transform _entrance in _entrances.transform)
+        {
+            _entrance.GetComponent<EntrancesController>().ActivateDots(editDotsActive);
+        }
     }
 }

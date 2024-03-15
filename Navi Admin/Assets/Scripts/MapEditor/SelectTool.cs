@@ -56,6 +56,9 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.Enable();
         _input.MapEditor.Click.started += ctx => OnSelectClick();
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
+
+        MapViewManager _mapViewManager = FindObjectOfType<MapViewManager>();
+        if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
     }
     private void OnDisable()
     {

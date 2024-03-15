@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Unity.VisualScripting;
@@ -253,6 +254,13 @@ public class WallLineController : MonoBehaviour
             21, 20, 22,
             22, 20, 23,
         };
+
+        // Reverse the triangles if the line is drawn from right to left
+        if (_positions[0].x > _positions[1].x) _triangles = _triangles.Reverse().ToArray();
+
+        // If the line is vertical and drawn from bottom to top
+        if (_positions[0].x == _positions[1].x && _positions[0].y > _positions[1].y)
+            _triangles = _triangles.Reverse().ToArray();
 
         // Generate the mesh
         Mesh _mesh = new Mesh();

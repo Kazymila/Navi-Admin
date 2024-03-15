@@ -38,6 +38,12 @@ public class EntrancesController : MonoBehaviour
     public void PlaySettedAnimation() => _animator.Play("Setted", 0, 0);
     public void PlayDeniedAnimation() => _animator.Play("Denied", 0, 0);
 
+    public void ActivateDots(bool _show = true)
+    {   // Show or hide the entrance dots
+        startDot.SetActive(_show);
+        endDot.SetActive(_show);
+    }
+
     public float CalculateLength(Vector3[] _positions = null)
     {   // Calculate the line lenght
         if (_positions != null) lenght = Vector3.Distance(_positions[0], _positions[1]);
