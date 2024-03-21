@@ -9,6 +9,7 @@ public class RenderViewManager : MonoBehaviour
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _3DViewLayout;
     [SerializeField] private GameObject _mapDrawLayout;
+    [SerializeField] private GameObject _polygonsRender;
 
     private GameObject _wallsRender;
     private GameObject _wallLines;
@@ -25,6 +26,7 @@ public class RenderViewManager : MonoBehaviour
     {   // Show the 3D view of the map
         GenerateMapRender();
 
+        _polygonsRender.transform.localRotation = Quaternion.Euler(90, 0, 0);
         _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(false);
         _editorUILayout.HideEditorInterface();
         _cameraManager.SetPerspectiveView();
@@ -39,6 +41,7 @@ public class RenderViewManager : MonoBehaviour
         if (_gridManager.gridActive) // If the grid was active, reactivate it
             _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(true);
 
+        _polygonsRender.transform.localRotation = Quaternion.identity;
         _editorUILayout.gameObject.SetActive(true);
         _cameraManager.SetOrthographicView();
         _mapDrawLayout.SetActive(true);

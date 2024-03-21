@@ -2,9 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer), typeof(PolygonCollider2D))]
@@ -13,6 +10,7 @@ public class WallLineController : MonoBehaviour
     #region --- Public & Required Variables ---
     [Header("Wall Stuff")]
     public List<EntrancesController> entrancesList = new List<EntrancesController>();
+    public List<WallLineController> connectedWalls = new List<WallLineController>();
     public float length;
 
     [Header("Dots")]
@@ -25,6 +23,8 @@ public class WallLineController : MonoBehaviour
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
+
+    private PolygonsManager _polygonsManager;
     #endregion
 
     #region --- Wall Segments Variables ---
@@ -44,6 +44,8 @@ public class WallLineController : MonoBehaviour
 
     void Start()
     {
+        _polygonsManager = GameObject.Find("PolygonsManager").GetComponent<PolygonsManager>();
+
         Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
         _renderWall.name = "Render_" + this.gameObject.name;
@@ -81,6 +83,18 @@ public class WallLineController : MonoBehaviour
         foreach (EntrancesController _entrance in entrancesList) Destroy(_entrance.gameObject);
         Destroy(_renderWall);
         Destroy(this.gameObject);
+    }
+
+    public void AddConnectedWall(WallLineController _wall)
+    {   // Add a connected wall to the list and check for loops (closed areas)
+        if (connectedWalls.Contains(_wall))
+        {
+            print("loop");
+            // _polygonsManager.CreatePolygonMesh(connectedWalls);
+
+        }
+        connectedWalls.Add(_wall);
+        if (!_wall.connectedWalls.Contains(this)) _wall.connectedWalls.Add(this);
     }
 
     public void SetLineCollider()

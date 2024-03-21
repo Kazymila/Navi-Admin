@@ -1,10 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System;
-using Unity.VisualScripting;
 
 public class SelectTool : MonoBehaviour
 {
@@ -20,6 +18,7 @@ public class SelectTool : MonoBehaviour
     private TMP_InputField _entranceLabelInput;
 
     [Header("Map Editor Components")]
+    [SerializeField] private PolygonsManager _polygonsManager;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
     [SerializeField] private GameObject _wallSizeLabel;
@@ -59,6 +58,7 @@ public class SelectTool : MonoBehaviour
 
         MapViewManager _mapViewManager = FindObjectOfType<MapViewManager>();
         if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
+        _polygonsManager.GetClosedAreas();
     }
     private void OnDisable()
     {

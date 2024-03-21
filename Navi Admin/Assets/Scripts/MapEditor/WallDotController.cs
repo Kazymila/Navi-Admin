@@ -9,21 +9,24 @@ public class WallDotController : MonoBehaviour
     public List<GameObject> lines = new List<GameObject>();
     public List<int> linesType = new List<int>();
     public int linesCount = 0;
+    public int dotIndex;
     public Vector3 position;
     public bool isOnEntranceDot;
 
-    public CircleCollider2D DotCollider;
+    public CircleCollider2D dotCollider;
     private Animator _dotAnimator;
 
     private void Start()
     {
         _dotAnimator = GetComponent<Animator>();
-        DotCollider = GetComponent<CircleCollider2D>();
-        this.transform.localRotation = Quaternion.Euler(-90, 0, 0);
-        this.transform.localPosition = new Vector3(
-            this.transform.localPosition.x,
-            this.transform.localPosition.y,
+        dotCollider = GetComponent<CircleCollider2D>();
+        transform.localRotation = Quaternion.Euler(-90, 0, 0);
+        transform.localPosition = new Vector3(
+            transform.localPosition.x,
+            transform.localPosition.y,
             0.0f);
+        dotIndex = transform.GetSiblingIndex();
+        name = "Dot_" + dotIndex;
     }
 
     private void Update()
@@ -60,6 +63,10 @@ public class WallDotController : MonoBehaviour
 
     public void AddLine(GameObject _line, int _type, WallDotController _neighborDot)
     {   // Add a line to the dot
+        lines.ForEach(line => // Add the line to the connected walls
+            line.GetComponent<WallLineController>().AddConnectedWall(
+                _line.GetComponent<WallLineController>()));
+
         lines.Add(_line);
         linesType.Add(_type);
         neighborsDots.Add(_neighborDot);
@@ -70,6 +77,10 @@ public class WallDotController : MonoBehaviour
     {   // Delete a line from the dot
         if (_index != -1)
         {
+            lines.ForEach(line => // Remove the line in connected walls
+            line.GetComponent<WallLineController>().connectedWalls.Remove(
+                lines[_index].GetComponent<WallLineController>()));
+
             lines.RemoveAt(_index);
             linesType.RemoveAt(_index);
             neighborsDots.RemoveAt(_index);
@@ -88,7 +99,7 @@ public class WallDotController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public bool FindNeighbor(WallDotController _neighborDot)
+    public bool FindNeighborDot(WallDotController _neighborDot)
     {   // Find a neighbor dot in the list
         if (neighborsDots.Contains(_neighborDot)) return true;
         else return false;

@@ -16,7 +16,7 @@ public class EntrancesController : MonoBehaviour
     public WallLineController entranceWall;
     public bool isOverEntrance = false; // To check if CAN be setted
     public bool isSetted = false;   // To check if is already setted
-    public float lenght = 0.825f; // Default entrance size
+    public float lenght = 0.825f; // Default entrance size (standar door size)
 
     private ErrorMessageController _errorMessageBox;
     private Animator _animator;
