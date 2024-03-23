@@ -1,18 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PolygonsManager : MonoBehaviour
 {
+    [Header("Polygons Elements")]
     public List<PolygonController> _polygons = new List<PolygonController>();
     [SerializeField] private GameObject _polygonPrefab;
     [SerializeField] private GameObject _nodesParent;
 
-    private int _polygonsCount = 0;
+    [Header("UI Elements")]
+    [SerializeField] private GameObject _textlabelPrefab;
+    [SerializeField] private Transform _labelsParent;
 
     private List<int>[] _adjacentGraph; // Adjacent list of the graph
     private List<int>[] _cycles; // Cycles in the graph
     private int _cycleIndex = 0;
+    private int _polygonsCount = 0;
 
     public void GeneratePolygons()
     {   // Create polygons from the graph cycles (closed areas)
@@ -119,6 +124,38 @@ public class PolygonsManager : MonoBehaviour
             _list[i].ForEach(node => _innerList += node + ", ");
             print(_iteratorName + i + ": " + _innerList);
         }
+    }
+    #endregion
+
+    #region --- UI Elements ---
+    public void ShowPolygonsLabels()
+    {   // Show the labels of the polygons
+        foreach (PolygonController _polygon in _polygons)
+        {
+            GameObject _label = Instantiate(_textlabelPrefab, Vector3.zero, Quaternion.identity, _labelsParent);
+            _label.transform.position = Camera.main.WorldToScreenPoint(GetPolygonCenter(_polygon));
+            _label.GetComponent<TextMeshProUGUI>().text = _polygon.polygonLabel;
+        }
+    }
+    public void UpdateLabelsPosition()
+    {   // Update the position of the labels to follow the camera
+        for (int i = 0; i < _labelsParent.childCount; i++)
+        {
+            Transform _label = _labelsParent.GetChild(i);
+            _label.position = Camera.main.WorldToScreenPoint(GetPolygonCenter(_polygons[i]));
+        }
+    }
+    public void RemovePolygonsLabels()
+    {   // Remove the labels of the polygons
+        foreach (Transform _label in _labelsParent)
+            Destroy(_label.gameObject);
+    }
+    private Vector3 GetPolygonCenter(PolygonController _polygon)
+    {   // Get the center of the polygon
+        Vector3 _center = Vector3.zero;
+        _polygon.nodes.ForEach(node => _center += node.transform.localPosition);
+        _center /= _polygon.nodes.Count;
+        return _center;
     }
     #endregion
 }
