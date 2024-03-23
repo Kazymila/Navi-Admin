@@ -68,8 +68,10 @@
     <Compile Include="Assets\Scripts\UI\MapEditorCanvasManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallLineController.cs" />
     <Compile Include="Assets\Input\InputMap.cs" />
+    <Compile Include="Assets\FlexibleColorPicker\Scripts\FCP_Persistence.cs" />
     <Compile Include="Assets\Scripts\MapEditor\RenderViewManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorCameraManager.cs" />
+    <Compile Include="Assets\FlexibleColorPicker\Scripts\FCP_SpriteMeshEditor.cs" />
     <Compile Include="Assets\Scripts\UI\EditorLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EraserTool.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonsManager.cs" />
@@ -78,11 +80,13 @@
     <Compile Include="Assets\Scripts\UI\ErrorMessageController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorGridManager.cs" />
+    <Compile Include="Assets\FlexibleColorPicker\ExampleScene\FCP_ExampleScript.cs" />
     <Compile Include="Assets\Scripts\Utils\Triangulator.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesTool.cs" />
     <Compile Include="Assets\Scripts\UI\RenderLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallDrawer.cs" />
+    <Compile Include="Assets\FlexibleColorPicker\Scripts\FlexibleColorPicker.cs" />
     <Compile Include="Assets\Scripts\UI\SliderController.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +105,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\FlexibleColorPicker\Materials\FCP_Gradient.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />

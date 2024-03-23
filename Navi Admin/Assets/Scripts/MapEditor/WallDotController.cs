@@ -63,10 +63,6 @@ public class WallDotController : MonoBehaviour
 
     public void AddLine(GameObject _line, int _type, WallDotController _neighborDot)
     {   // Add a line to the dot
-        lines.ForEach(line => // Add the line to the connected walls
-            line.GetComponent<WallLineController>().AddConnectedWall(
-                _line.GetComponent<WallLineController>()));
-
         lines.Add(_line);
         linesType.Add(_type);
         neighborsDots.Add(_neighborDot);
@@ -77,10 +73,6 @@ public class WallDotController : MonoBehaviour
     {   // Delete a line from the dot
         if (_index != -1)
         {
-            lines.ForEach(line => // Remove the line in connected walls
-            line.GetComponent<WallLineController>().connectedWalls.Remove(
-                lines[_index].GetComponent<WallLineController>()));
-
             lines.RemoveAt(_index);
             linesType.RemoveAt(_index);
             neighborsDots.RemoveAt(_index);

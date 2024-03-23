@@ -1,24 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Haze;
 
 public class PolygonsManager : MonoBehaviour
 {
-    [SerializeField] private GameObject _nodesParent;
+    public List<PolygonController> _polygons = new List<PolygonController>();
     [SerializeField] private GameObject _polygonPrefab;
+    [SerializeField] private GameObject _nodesParent;
 
-    private List<PolygonController> _polygons;
-    private int polygonsCount = 0;
+    private int _polygonsCount = 0;
 
-    private List<int>[] _adjacentGraph;
-    private List<int>[] _cycles;
-    private int cyclenumber = 0;
+    private List<int>[] _adjacentGraph; // Adjacent list of the graph
+    private List<int>[] _cycles; // Cycles in the graph
+    private int _cycleIndex = 0;
 
-    #region --- Find Polygons (Cycles in Graph) ---
+    public void GeneratePolygons()
+    {   // Create polygons from the graph cycles (closed areas)
+        GetCyclesOnGraph();
 
-    public void GetClosedAreas()
+        for (int i = 0; i < _cycles.Length; i++)
+        {   // Create a polygon for each cycle in the graph
+            CreatePolygon(_cycles[i]);
+        }
+    }
+
+    public void CreatePolygon(List<int> _cycleNodes)
+    {   // Create a polygon from the given cycle nodes
+        GameObject _polygon = Instantiate(_polygonPrefab, Vector3.zero, Quaternion.identity, this.transform);
+        PolygonController _polygonController = _polygon.GetComponent<PolygonController>();
+        _cycleNodes.ForEach(nodeIndex =>
+        {   // Add the nodes to the polygon
+            WallDotController _dot = _nodesParent.transform.GetChild(nodeIndex).GetComponent<WallDotController>();
+            _polygonController.nodes.Add(_dot);
+        });
+        _polygon.name = "Polygon_" + _polygonsCount;
+        _polygonController.polygonLabel = _polygon.name;
+        _polygonController.CreatePolygonMesh();
+        _polygons.Add(_polygonController);
+        _polygonsCount++;
+    }
+
+    #region --- Graph operations ---
+    public void GetCyclesOnGraph()
     {   // Get the closed areas (cycles) from the graph
+        _cycleIndex = 0;
         GetAdjacentList();
         int _nodesCount = _nodesParent.transform.childCount;
 
@@ -27,17 +52,16 @@ public class PolygonsManager : MonoBehaviour
         int[] parents = new int[_nodesCount];
         GetCyclesByDFS(1, 0, markers, parents);
 
-        PrintListInfo("Node ", _adjacentGraph);
-        PrintListInfo("Cycle ", _cycles);
-    }
-    private void PrintListInfo(string _iteratorName, List<int>[] _list)
-    {   // Print the info of a list (adjacent list or cycles in graph)
-        for (int i = 0; i < _list.Length; i++)
-        {
-            string _innerList = "";
-            _list[i].ForEach(neighbor => _innerList += _innerList + ", ");
-            print(_iteratorName + i + ": " + _innerList);
-        }
+        // Remove the empty cycles
+        List<int>[] _cyclesOnGraph = new List<int>[_cycleIndex];
+        for (int i = 0; i < _cycleIndex; i++)
+            if (_cycles[i].Count > 0)
+                _cyclesOnGraph[i] = _cycles[i];
+        _cycles = _cyclesOnGraph;
+
+        print("Cycles count: " + _cycleIndex);
+        PrintGraphList("Node ", _adjacentGraph);
+        PrintGraphList("Cycle ", _cycles);
     }
 
     private void GetAdjacentList()
@@ -71,8 +95,8 @@ public class PolygonsManager : MonoBehaviour
                 current = parents[current];
                 inCycleNodes.Add(current);
             }
-            _cycles[cyclenumber] = inCycleNodes;
-            cyclenumber++;
+            _cycles[_cycleIndex] = inCycleNodes;
+            _cycleIndex++;
             return;
         }
         parents[u] = p;
@@ -87,51 +111,14 @@ public class PolygonsManager : MonoBehaviour
         visited[u] = 2; // completely visited
     }
 
-    private void GetPointsFromCycles()
-    {   // Get positions of nodes in cycles to create polygons
-        // TODO
+    private void PrintGraphList(string _iteratorName, List<int>[] _list)
+    {   // Print the info of a list (adjacent list or cycles in graph)
+        for (int i = 0; i < _list.Length; i++)
+        {
+            string _innerList = "";
+            _list[i].ForEach(node => _innerList += node + ", ");
+            print(_iteratorName + i + ": " + _innerList);
+        }
     }
     #endregion
-
-
-    public void CreatePolygonMesh(List<WallLineController> _walls)
-    {   // Create a polygon mesh from connected points
-
-        List<Vector3> _points = new List<Vector3>();
-        _walls.ForEach(wall =>
-        {
-            if (!_points.Contains(wall.startDot.transform.position))
-                _points.Add(wall.startDot.transform.position);
-            if (!_points.Contains(wall.endDot.transform.position))
-                _points.Add(wall.endDot.transform.position);
-        });
-
-        // Convert the 3D points to 2D points
-        List<Vector2> _points2D = new List<Vector2>();
-        _points.ForEach(point => _points2D.Add(new Vector2(point.x, point.y)));
-
-        // Triangulate the 2D points
-        List<Triangulator.Triangle> _triangles = Triangulator.Triangulate(_points2D);
-        List<Vector3> _vertices = new List<Vector3>();
-        List<int> _indices = new List<int>();
-
-        Triangulator.AddTrianglesToMesh(ref _vertices, ref _indices, _triangles, 0.05f, true);
-        polygonsCount++;
-
-        // Create the mesh
-        Mesh _mesh = new Mesh();
-        _mesh.vertices = _vertices.ToArray();
-        _mesh.triangles = _indices.ToArray();
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateBounds();
-
-        GameObject _polygon = Instantiate(_polygonPrefab, Vector3.zero, Quaternion.identity, this.transform);
-        _polygon.GetComponent<MeshFilter>().mesh = _mesh;
-        _polygon.name = "Polygon_" + polygonsCount;
-        /*
-        MeshRenderer _meshRenderer = _polygon.AddComponent<MeshRenderer>();
-        _meshRenderer.material = new Material(Shader.Find("Standard"));
-        _meshRenderer.material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        */
-    }
 }

@@ -10,12 +10,22 @@ public class SelectTool : MonoBehaviour
     [Header("UI Components")]
     [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private ErrorMessageController _errorMessageBox;
-    [SerializeField] private GameObject _entranceSettingsPanel;
-    [SerializeField] private GameObject _wallSizePanel;
     [SerializeField] private Transform _UIItems;
+
+    [Header("Settings Panels")]
+    [SerializeField] private GameObject _entranceSettingsPanel;
+    [SerializeField] private GameObject _polygonSettingsPanel;
+    [SerializeField] private GameObject _wallSettingsPanel;
+
     private TMP_InputField _wallSizeInput;
     private TMP_InputField _entranceSizeInput;
     private TMP_InputField _entranceLabelInput;
+    private TMP_InputField _polygonLabelInput;
+
+    [Header("Color Picker")]
+    [SerializeField] private FlexibleColorPicker _colorPicker;
+    [SerializeField] private Material _colorOpaquePreview;
+    [SerializeField] private Material _colorAlphaPreview;
 
     [Header("Map Editor Components")]
     [SerializeField] private PolygonsManager _polygonsManager;
@@ -31,12 +41,14 @@ public class SelectTool : MonoBehaviour
     private WallLineController _selectedWall;
     private WallDotController _selectedDot;
     private GameObject _selectedEntranceDot;
+    private PolygonController _selectedPolygon;
 
     // Remember the old values
     private Vector3 _oldEntranceDotPos;
     private Vector3 _oldEntrancePos;
     private float _oldEntranceSize;
     private float _oldWallSize;
+    private Color _oldPolygonColor;
 
     // States variables
     private bool _movingEntranceDot = false;
@@ -58,20 +70,27 @@ public class SelectTool : MonoBehaviour
 
         MapViewManager _mapViewManager = FindObjectOfType<MapViewManager>();
         if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
-        _polygonsManager.GetClosedAreas();
+
+        // Enable the polygons manager
+        _polygonsManager.gameObject.SetActive(true);
+        _polygonsManager.GeneratePolygons();
     }
     private void OnDisable()
     {
         _input.MapEditor.Disable();
         if (_editingEntrance) CancelEntranceEdit();
         if (_editingWall) CancelWallEdit();
+
+        // Disable the polygons manager
+        _polygonsManager.gameObject.SetActive(false);
     }
 
     private void Start()
     {
-        _wallSizeInput = _wallSizePanel.GetComponentInChildren<TMP_InputField>();
+        _wallSizeInput = _wallSettingsPanel.GetComponentInChildren<TMP_InputField>();
         _entranceSizeInput = _entranceSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();
         _entranceLabelInput = _entranceSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
+        _polygonLabelInput = _polygonSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
     }
 
     private Vector3 GetCursorPosition(bool _considerSnap = true)
@@ -115,6 +134,8 @@ public class SelectTool : MonoBehaviour
         {   // Set the dot position and stop moving it
             _selectedDot.PlaySelectAnimation();
             _movingDot = false;
+
+            _polygonsManager.GeneratePolygons();
         }
         else if (_movingEntrance)
         {   // Set the entrance position and stop moving it
@@ -180,6 +201,8 @@ public class SelectTool : MonoBehaviour
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
                 _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
+
+                _polygonsManager.gameObject.SetActive(false);
             }
             else if (_hit.collider.CompareTag("EntranceDot"))
             {   // Select a entrance dot and start move it
@@ -218,9 +241,30 @@ public class SelectTool : MonoBehaviour
 
                 _wallSizeInput.text = _selectedWall.length.ToString("F5");
                 _oldWallSize = _selectedWall.length;
-                _wallSizePanel.SetActive(true);
+                _wallSettingsPanel.SetActive(true);
                 _editingWall = true;
                 ShowWallSize();
+
+                _polygonsManager.gameObject.SetActive(false);
+            }
+            else if (_hit.collider.CompareTag("Polygon"))
+            {   // Select a polygon and edit it
+                if (_editingWall) CancelWallEdit();
+                if (_editingEntrance) CancelEntranceEdit();
+                _wallSizeLabel.SetActive(false);
+                RemoveSegmentsSizeLabel();
+
+                _selectedPolygon = _hit.collider.GetComponent<PolygonController>();
+                _oldPolygonColor = _selectedPolygon.colorMaterial.GetColor("_Color1");
+                _colorOpaquePreview.SetColor("_Color1", _oldPolygonColor);
+                _colorOpaquePreview.SetColor("_Color2", _oldPolygonColor);
+                _colorAlphaPreview.SetColor("_Color1", _oldPolygonColor);
+                _colorAlphaPreview.SetColor("_Color2", _oldPolygonColor);
+                _colorPicker.color = _oldPolygonColor;
+
+                _selectedPolygon.nodes.ForEach(node => node.PlaySelectAnimation());
+                _polygonLabelInput.text = _selectedPolygon.polygonLabel;
+                _polygonSettingsPanel.SetActive(true);
             }
         }
         else if (_editingWall) CancelWallEdit();
@@ -249,7 +293,7 @@ public class SelectTool : MonoBehaviour
             _errorMessageBox.ShowMessage("EnterSomeValue");
         else
         {
-            _wallSizePanel.SetActive(false);
+            _wallSettingsPanel.SetActive(false);
             _wallSizeLabel.SetActive(false);
             _editingWall = false;
         }
@@ -260,89 +304,14 @@ public class SelectTool : MonoBehaviour
         if (!_fromButton)
         {   // If not canceled by the button, check if the cursor is over the panel
             bool _isOverPanel = RectTransformUtility.RectangleContainsScreenPoint(
-                _wallSizePanel.GetComponent<RectTransform>(),
+                _wallSettingsPanel.GetComponent<RectTransform>(),
                 _input.MapEditor.Position.ReadValue<Vector2>(), null);
             if (_isOverPanel) return;
         }
         _wallSizeInput.text = _oldWallSize.ToString("F5");
         _selectedWall.ResizeWall(_oldWallSize);
-        _wallSizePanel.SetActive(false);
+        _wallSettingsPanel.SetActive(false);
         _editingWall = false;
-    }
-    #endregion
-
-    #region --- Wall Size Labels ---
-    private void ShowWallSegmentsSize(WallLineController _wall)
-    {   // Show the wall segments size labels
-        Tuple<List<Vector3[]>, List<float>> _wallSegments = _wall.GetWallSegments();
-        List<Vector3[]> _wallPoints = _wallSegments.Item1;
-        List<float> _wallSizes = _wallSegments.Item2;
-
-        for (int i = 0; i < _wallPoints.Count; i++)
-        {
-            //Debug.Log("Wall_" + i + " length: " + _wallSizes[i]);
-
-            if (_segmentsLabels.Count < _wallPoints.Count)
-            {   // Create the label if not exists
-                GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
-                _label.name = "WallLabel_" + i.ToString();
-                _segmentsLabels.Add(_label);
-            }
-            if (_wallSizes[i] < 0.001f) _segmentsLabels[i].SetActive(false); // ONLY WORKS ON START DOT (!)
-            else
-            {   // Set the label position and text
-                Vector3 _labelPosition = (_wallPoints[i][0] + _wallPoints[i][1]) / 2;
-                _segmentsLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
-                _segmentsLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _wallSizes[i].ToString("F2") + "m";
-                _segmentsLabels[i].SetActive(true);
-            }
-        }
-    }
-
-    private void ShowWallSize()
-    {   // Show the wall size label
-        float _wallSize = _selectedWall.CalculateLength();
-        Vector3 _labelPosition = (_selectedWall.endDot.position + _selectedWall.startDot.position) / 2;
-        _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
-        _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
-        _wallSizeLabel.SetActive(true);
-    }
-
-    private void ShowWallsSizeLabel()
-    {   // Show the walls labels connected to the selected dot
-        for (int i = 0; i < _selectedDot.linesCount; i++)
-        {
-            if (_wallLabels.Count < _selectedDot.linesCount)
-            {   // Create the label if not exists
-                GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
-                _label.name = "WallLabel_" + i.ToString();
-                _wallLabels.Add(_label);
-            }
-            WallLineController _line = _selectedDot.lines[i].GetComponent<WallLineController>();
-            Vector3 _labelPosition = (_line.endDot.position + _line.startDot.position) / 2;
-
-            _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _line.length.ToString("F2") + "m";
-            _wallLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
-            _wallLabels[i].SetActive(true);
-        }
-    }
-
-    private void RemoveWallsSizeLabel()
-    {   // Destroy the walls labels
-        for (int i = 0; i < _wallLabels.Count; i++)
-        {
-            Destroy(_wallLabels[i]);
-        }
-        _wallLabels.Clear();
-    }
-
-    private void RemoveSegmentsSizeLabel()
-    {   // Destroy the walls labels
-        for (int i = 0; i < _segmentsLabels.Count; i++)
-        {
-            Destroy(_segmentsLabels[i]);
-        }
-        _segmentsLabels.Clear();
     }
     #endregion
 
@@ -405,6 +374,103 @@ public class SelectTool : MonoBehaviour
         _editingEntrance = false;
         _movingEntrance = false;
         RemoveSegmentsSizeLabel();
+    }
+    #endregion
+
+    #region --- Polygon Settings ---
+    public void ChangePolygonColor()
+    {   // Change the selected polygon color with the color picker value
+        if (_selectedPolygon == null) return;
+        _colorPicker.UpdateCustomMaterial(_selectedPolygon.colorMaterial, true);
+        _colorPicker.UpdateCustomMaterial(_colorOpaquePreview, false);
+        _colorPicker.UpdateCustomMaterial(_colorAlphaPreview, true);
+    }
+    public void SetPolygonSettings()
+    {   // Set the polygon changes on confirmation
+        if (_polygonLabelInput.text != "") // Set label
+            _selectedPolygon.polygonLabel = _polygonLabelInput.text;
+
+        _colorPicker.gameObject.SetActive(false);
+        _polygonSettingsPanel.SetActive(false);
+    }
+    public void CancelPolygonEdit()
+    {   // Cancel the polygon edit and reset the polygon
+        _selectedPolygon.colorMaterial.SetColor("_Color1", _oldPolygonColor);
+        _colorPicker.gameObject.SetActive(false);
+        _polygonSettingsPanel.SetActive(false);
+    }
+    #endregion
+
+    #region --- UI Labels ---
+    private void ShowWallSegmentsSize(WallLineController _wall)
+    {   // Show the wall segments size labels
+        Tuple<List<Vector3[]>, List<float>> _wallSegments = _wall.GetWallSegments();
+        List<Vector3[]> _wallPoints = _wallSegments.Item1;
+        List<float> _wallSizes = _wallSegments.Item2;
+
+        for (int i = 0; i < _wallPoints.Count; i++)
+        {
+            if (_segmentsLabels.Count < _wallPoints.Count)
+            {   // Create the label if not exists
+                GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
+                _label.name = "WallLabel_" + i.ToString();
+                _segmentsLabels.Add(_label);
+            }
+            if (_wallSizes[i] < 0.001f) _segmentsLabels[i].SetActive(false); // ONLY WORKS ON START DOT (!)
+            else
+            {   // Set the label position and text
+                Vector3 _labelPosition = (_wallPoints[i][0] + _wallPoints[i][1]) / 2;
+                _segmentsLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+                _segmentsLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _wallSizes[i].ToString("F2") + "m";
+                _segmentsLabels[i].SetActive(true);
+            }
+        }
+    }
+
+    private void ShowWallSize()
+    {   // Show the wall size label
+        float _wallSize = _selectedWall.CalculateLength();
+        Vector3 _labelPosition = (_selectedWall.endDot.position + _selectedWall.startDot.position) / 2;
+        _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+        _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
+        _wallSizeLabel.SetActive(true);
+    }
+
+    private void ShowWallsSizeLabel()
+    {   // Show the walls labels connected to the selected dot
+        for (int i = 0; i < _selectedDot.linesCount; i++)
+        {
+            if (_wallLabels.Count < _selectedDot.linesCount)
+            {   // Create the label if not exists
+                GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
+                _label.name = "WallLabel_" + i.ToString();
+                _wallLabels.Add(_label);
+            }
+            WallLineController _line = _selectedDot.lines[i].GetComponent<WallLineController>();
+            Vector3 _labelPosition = (_line.endDot.position + _line.startDot.position) / 2;
+
+            _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _line.length.ToString("F2") + "m";
+            _wallLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+            _wallLabels[i].SetActive(true);
+        }
+    }
+
+    private void RemoveWallsSizeLabel()
+    {   // Destroy the walls labels
+        for (int i = 0; i < _wallLabels.Count; i++)
+        {
+            Destroy(_wallLabels[i]);
+        }
+        _wallLabels.Clear();
+    }
+
+    private void RemoveSegmentsSizeLabel()
+    {   // Destroy the walls labels
+        for (int i = 0; i < _segmentsLabels.Count; i++)
+        {
+            Destroy(_segmentsLabels[i]);
+        }
+        _segmentsLabels.Clear();
     }
     #endregion
 }

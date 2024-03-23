@@ -25,8 +25,10 @@ public class RenderViewManager : MonoBehaviour
     public void ShowRenderView()
     {   // Show the 3D view of the map
         GenerateMapRender();
-
+        _polygonsRender.SetActive(true);
+        //_polygonsRender.GetComponent<PolygonsManager>().GeneratePolygons();
         _polygonsRender.transform.localRotation = Quaternion.Euler(90, 0, 0);
+
         _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(false);
         _editorUILayout.HideEditorInterface();
         _cameraManager.SetPerspectiveView();

@@ -10,7 +10,6 @@ public class WallLineController : MonoBehaviour
     #region --- Public & Required Variables ---
     [Header("Wall Stuff")]
     public List<EntrancesController> entrancesList = new List<EntrancesController>();
-    public List<WallLineController> connectedWalls = new List<WallLineController>();
     public float length;
 
     [Header("Dots")]
@@ -44,6 +43,8 @@ public class WallLineController : MonoBehaviour
 
     void Start()
     {
+        _lineRenderer = this.GetComponent<LineRenderer>();
+        _polygonCollider = this.GetComponent<PolygonCollider2D>();
         _polygonsManager = GameObject.Find("PolygonsManager").GetComponent<PolygonsManager>();
 
         Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
@@ -83,18 +84,6 @@ public class WallLineController : MonoBehaviour
         foreach (EntrancesController _entrance in entrancesList) Destroy(_entrance.gameObject);
         Destroy(_renderWall);
         Destroy(this.gameObject);
-    }
-
-    public void AddConnectedWall(WallLineController _wall)
-    {   // Add a connected wall to the list and check for loops (closed areas)
-        if (connectedWalls.Contains(_wall))
-        {
-            print("loop");
-            // _polygonsManager.CreatePolygonMesh(connectedWalls);
-
-        }
-        connectedWalls.Add(_wall);
-        if (!_wall.connectedWalls.Contains(this)) _wall.connectedWalls.Add(this);
     }
 
     public void SetLineCollider()
