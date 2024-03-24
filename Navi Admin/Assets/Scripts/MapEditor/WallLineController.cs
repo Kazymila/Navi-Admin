@@ -45,7 +45,7 @@ public class WallLineController : MonoBehaviour
     {
         _lineRenderer = this.GetComponent<LineRenderer>();
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
-        _polygonsManager = GameObject.Find("PolygonsManager").GetComponent<PolygonsManager>();
+        _polygonsManager = FindAnyObjectByType<PolygonsManager>();
 
         Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);

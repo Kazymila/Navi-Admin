@@ -6,6 +6,7 @@ using UnityEngine;
 public class WallDotController : MonoBehaviour
 {
     public List<WallDotController> neighborsDots = new List<WallDotController>();
+    public List<PolygonController> polygons = new List<PolygonController>();
     public List<GameObject> lines = new List<GameObject>();
     public List<int> linesType = new List<int>();
     public int linesCount = 0;
@@ -47,12 +48,14 @@ public class WallDotController : MonoBehaviour
             {
                 // TODO: Drag the entrance with the dot
             }
+            // Update the wall lines position
             lines[i].GetComponent<LineRenderer>().SetPosition(linesType[i], _position);
             WallLineController _lineController = lines[i].GetComponent<WallLineController>();
             _lineController.CalculateLength();
             _lineController.SetLineCollider();
 
-            if (_lineController.entrancesList.Count > 0) // Update the entrances position
+            // Update the entrances position
+            if (_lineController.entrancesList.Count > 0)
                 _lineController.entrancesList.ForEach(entrance =>
                     entrance.RepositionEntranceOnWall(
                         (entrance.endDot.transform.position + entrance.startDot.transform.position) / 2,
@@ -87,6 +90,11 @@ public class WallDotController : MonoBehaviour
             if (_destroyLines) lines[i].GetComponent<WallLineController>().DestroyLine(false);
             neighborsDots[i].DeleteLine(neighborsDots[i].neighborsDots.IndexOf(this));
             if (neighborsDots[i].linesCount == 0) neighborsDots[i].DeleteDot();
+        }
+        foreach (PolygonController _polygon in polygons)
+        {   // Remove the dot from the polygon and regenerate the mesh
+            _polygon.nodes.Remove(this);
+            _polygon.CreatePolygonMesh();
         }
         Destroy(gameObject);
     }

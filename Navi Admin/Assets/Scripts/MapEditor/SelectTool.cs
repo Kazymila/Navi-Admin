@@ -82,7 +82,11 @@ public class SelectTool : MonoBehaviour
         if (_editingWall) CancelWallEdit();
 
         // Disable the polygons manager
-        _polygonsManager.gameObject.SetActive(false);
+        if (Camera.main.orthographic)
+            _polygonsManager.gameObject.SetActive(false);
+
+        _colorPicker.gameObject.SetActive(false);
+        _polygonSettingsPanel.SetActive(false);
     }
 
     private void Start()
@@ -124,6 +128,14 @@ public class SelectTool : MonoBehaviour
             _entranceSizeInput.text = _selectedEntrance.lenght.ToString("F5");
             ShowWallSegmentsSize(_selectedEntrance.entranceWall);
         }
+        if (_editingWall && !_UIEditorController.IsCursorOverEditorUI())
+        {   // Update the position of the wall size label
+            ShowWallSize();
+        }
+        if (_editingEntrance && !_UIEditorController.IsCursorOverEditorUI())
+        {   // Update the position of the wall segments size labels
+            ShowWallSegmentsSize(_selectedEntrance.entranceWall);
+        }
     }
 
     private void OnSelectClick()
@@ -135,7 +147,8 @@ public class SelectTool : MonoBehaviour
             _selectedDot.PlaySelectAnimation();
             _movingDot = false;
 
-            _polygonsManager.GeneratePolygons();
+            _polygonsManager.UpdatePolygons();
+            _polygonsManager.gameObject.SetActive(true);
         }
         else if (_movingEntrance)
         {   // Set the entrance position and stop moving it
@@ -196,6 +209,8 @@ public class SelectTool : MonoBehaviour
             {   // Select the dot and start moving it
                 if (_editingWall) CancelWallEdit();
                 if (_editingEntrance) CancelEntranceEdit();
+                _polygonSettingsPanel.SetActive(false);
+                _colorPicker.gameObject.SetActive(false);
                 _wallSizeLabel.SetActive(false);
 
                 _selectedDot = _hit.collider.GetComponent<WallDotController>();
@@ -206,6 +221,8 @@ public class SelectTool : MonoBehaviour
             }
             else if (_hit.collider.CompareTag("EntranceDot"))
             {   // Select a entrance dot and start move it
+                _polygonSettingsPanel.SetActive(false);
+                _colorPicker.gameObject.SetActive(false);
                 if (_editingWall) CancelWallEdit();
                 _wallSizeLabel.SetActive(false);
                 RemoveSegmentsSizeLabel();
@@ -222,6 +239,8 @@ public class SelectTool : MonoBehaviour
             }
             else if (_hit.collider.CompareTag("Entrance"))
             {   // Select an entrance and edit it
+                _polygonSettingsPanel.SetActive(false);
+                _colorPicker.gameObject.SetActive(false);
                 if (_editingWall) CancelWallEdit();
                 _wallSizeLabel.SetActive(false);
                 RemoveSegmentsSizeLabel();
@@ -234,6 +253,9 @@ public class SelectTool : MonoBehaviour
             }
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select a wall and edit it
+                _polygonSettingsPanel.SetActive(false);
+                _colorPicker.gameObject.SetActive(false);
+
                 if (_editingEntrance) CancelEntranceEdit();
                 _selectedWall = _hit.collider.GetComponent<WallLineController>();
                 _selectedWall.startDot.PlaySelectAnimation();
@@ -296,6 +318,9 @@ public class SelectTool : MonoBehaviour
             _wallSettingsPanel.SetActive(false);
             _wallSizeLabel.SetActive(false);
             _editingWall = false;
+
+            _polygonsManager.UpdatePolygons();
+            _polygonsManager.gameObject.SetActive(true);
         }
     }
 
@@ -312,6 +337,8 @@ public class SelectTool : MonoBehaviour
         _selectedWall.ResizeWall(_oldWallSize);
         _wallSettingsPanel.SetActive(false);
         _editingWall = false;
+
+        _polygonsManager.gameObject.SetActive(true);
     }
     #endregion
 

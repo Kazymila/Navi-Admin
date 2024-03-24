@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,13 +20,39 @@ public class PolygonsManager : MonoBehaviour
     private int _cycleIndex = 0;
     private int _polygonsCount = 0;
 
+    public void UpdatePolygons()
+    {   // Update the polygons meshes and colliders
+        _polygons.ForEach(polygon => polygon.CreatePolygonMesh());
+    }
+
     public void GeneratePolygons()
     {   // Create polygons from the graph cycles (closed areas)
         GetCyclesOnGraph();
 
-        for (int i = 0; i < _cycles.Length; i++)
-        {   // Create a polygon for each cycle in the graph
-            CreatePolygon(_cycles[i]);
+        if (_polygons.Count == 0)
+        {   // If there are no polygons, create them
+            foreach (List<int> _cycle in _cycles) CreatePolygon(_cycle);
+        }
+        else
+        {   // Check if the polygons already exist in the graph
+            for (int i = 0; i < _cycles.Length; i++)
+            {
+                List<WallDotController> _nodes = new List<WallDotController>();
+                foreach (int _node in _cycles[i])
+                    _nodes.Add(_nodesParent.transform.GetChild(_node).GetComponent<WallDotController>());
+
+                // Check if the polygon already exists
+                bool _polygonExists = false;
+                foreach (PolygonController _polygon in _polygons)
+                {
+                    if (new HashSet<WallDotController>(_nodes).SetEquals(_polygon.nodes))
+                    {
+                        _polygonExists = true;
+                        break;
+                    }
+                }   // If the polygon does not exist, create it
+                if (!_polygonExists) CreatePolygon(_cycles[i]);
+            }
         }
     }
 
@@ -34,8 +61,9 @@ public class PolygonsManager : MonoBehaviour
         GameObject _polygon = Instantiate(_polygonPrefab, Vector3.zero, Quaternion.identity, this.transform);
         PolygonController _polygonController = _polygon.GetComponent<PolygonController>();
         _cycleNodes.ForEach(nodeIndex =>
-        {   // Add the nodes to the polygon
+        {   // Add the nodes to the polygon and the polygon to the nodes
             WallDotController _dot = _nodesParent.transform.GetChild(nodeIndex).GetComponent<WallDotController>();
+            _dot.polygons.Add(_polygonController);
             _polygonController.nodes.Add(_dot);
         });
         _polygon.name = "Polygon_" + _polygonsCount;
@@ -53,9 +81,10 @@ public class PolygonsManager : MonoBehaviour
         int _nodesCount = _nodesParent.transform.childCount;
 
         _cycles = new List<int>[_nodesCount];
-        int[] markers = new int[_nodesCount];
+        int[] visited = new int[_nodesCount];
         int[] parents = new int[_nodesCount];
-        GetCyclesByDFS(1, 0, markers, parents);
+
+        GetCyclesByDFS(_adjacentGraph[0][0], 0, visited, parents);
 
         // Remove the empty cycles
         List<int>[] _cyclesOnGraph = new List<int>[_cycleIndex];

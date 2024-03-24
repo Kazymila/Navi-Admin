@@ -33,7 +33,6 @@ public class MapViewManager : MonoBehaviour
         }
         else
         {   // Hide the map view
-            _polygonRender.gameObject.SetActive(false);
             _polygonRender.RemovePolygonsLabels();
             _mapViewActive = false;
         }

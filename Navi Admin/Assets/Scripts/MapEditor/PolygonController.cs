@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -44,7 +45,7 @@ public class PolygonController : MonoBehaviour
         List<Vector3> _vertices = new List<Vector3>();
         List<int> _indices = new List<int>();
 
-        Triangulator.AddTrianglesToMesh(ref _vertices, ref _indices, _triangles, 0.05f, true);
+        Triangulator.AddTrianglesToMesh(ref _vertices, ref _indices, _triangles, 0.01f, true);
 
         // Create the mesh
         Mesh _mesh = new Mesh();
