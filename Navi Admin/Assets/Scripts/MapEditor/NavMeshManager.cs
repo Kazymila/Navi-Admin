@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
 using TMPro;
-using System;
 
 public class NavMeshManager : MonoBehaviour
 {
@@ -15,10 +14,9 @@ public class NavMeshManager : MonoBehaviour
 
     [Header("Navigation Settings")]
     [SerializeField] private LayerMask _navLayerMask;
-
     private NavMeshSurface _navMeshSurface;
     private GameObject _placeMarker;
-    private GameObject _navigationAgent;
+    private GameObject _navAgent;
     private LineRenderer _pathLine;
     private InputMap _input;
     private bool _placingAgent = false;
@@ -27,14 +25,14 @@ public class NavMeshManager : MonoBehaviour
     {
         _input = new InputMap();
         _navMeshSurface = this.GetComponent<NavMeshSurface>();
-        _navigationAgent = this.transform.GetChild(0).gameObject;
+        _navAgent = this.transform.GetChild(0).gameObject;
         _pathLine = this.transform.GetChild(1).GetComponent<LineRenderer>();
         _placeMarker = this.transform.GetChild(2).gameObject;
-        _navigationAgent.SetActive(false);
+        _navAgent.SetActive(false);
     }
     private void Update()
     {
-        if (_placingAgent) _navigationAgent.transform.position = GetCursorPositionOnPlane();
+        if (_placingAgent) _navAgent.transform.position = GetCursorPositionOnPlane();
         if (_pathLine.gameObject.activeSelf) // Move the path line texture
             _pathLine.material.mainTextureOffset = new Vector2(-Time.time, 0);
     }
@@ -50,7 +48,7 @@ public class NavMeshManager : MonoBehaviour
             _position.y = 0.4f;
             return _position;
         }
-        else return _navigationAgent.transform.position;
+        else return _navAgent.transform.position;
     }
     public void SetDropdownOptions()
     {   // Set the dropdown options
@@ -62,18 +60,14 @@ public class NavMeshManager : MonoBehaviour
         _roomsDropdown.AddOptions(_rooms);
     }
 
-    public void GenerateNavMesh()
-    {   // Generate the navigation mesh
-        _navMeshSurface.BuildNavMesh();
-        //NavMesh.AddNavMeshData(_navMeshSurface.navMeshData);
-    }
+    public void GenerateNavMesh() => _navMeshSurface.BuildNavMesh();
 
     public void PlaceAgentPosition()
     {   // Place the agent in the clicked position
         _input.RenderView.Enable();
         _input.RenderView.Click.started += ctx => SetAgentPosition();
 
-        _navigationAgent.SetActive(true);
+        _navAgent.SetActive(true);
         _placingAgent = true;
         _pathLine.gameObject.SetActive(false);
         _placeMarker.SetActive(false);
@@ -81,7 +75,7 @@ public class NavMeshManager : MonoBehaviour
 
     private void SetAgentPosition()
     {   // Set the agent position to the clicked position
-        _navigationAgent.transform.position = GetCursorPositionOnPlane();
+        _navAgent.transform.position = GetCursorPositionOnPlane();
         _input.RenderView.Disable();
         _placingAgent = false;
         GeneratePath();
@@ -90,7 +84,7 @@ public class NavMeshManager : MonoBehaviour
     public void GeneratePath()
     {   // Generate a path from the agent to the room selected
         if (_roomsDropdown.value == 0) return; // If no room is selected, return
-        if (!_navigationAgent.activeSelf) return; // If the agent is not placed, return
+        if (!_navAgent.activeSelf) return; // If the agent is not placed, return
         _errorMessageBox.HideMessage();
 
         // Get the destination point of the selected room
@@ -101,7 +95,7 @@ public class NavMeshManager : MonoBehaviour
 
         // Calculate the path to the destination point and show it
         NavMeshPath _path = new NavMeshPath();
-        NavMesh.CalculatePath(_navigationAgent.transform.position, _destinationPoint, NavMesh.AllAreas, _path);
+        NavMesh.CalculatePath(_navAgent.transform.position, _destinationPoint, NavMesh.AllAreas, _path);
 
         if (_path.status != NavMeshPathStatus.PathComplete)
         {   // If the destination point is not reachable, show an error message
@@ -122,7 +116,7 @@ public class NavMeshManager : MonoBehaviour
 
     public void HideNavigation()
     {   // Hide the agent position and the path line
-        _navigationAgent.SetActive(false);
+        _navAgent.SetActive(false);
         _pathLine.gameObject.SetActive(false);
         _placeMarker.SetActive(false);
     }

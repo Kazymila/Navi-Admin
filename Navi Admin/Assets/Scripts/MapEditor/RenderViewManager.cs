@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class RenderViewManager : MonoBehaviour
 {
@@ -33,8 +32,6 @@ public class RenderViewManager : MonoBehaviour
     public void ShowRenderView()
     {   // Show the 3D view of the map
         GenerateMapRender();
-        _navMeshManager.GenerateNavMesh();
-        _navMeshManager.SetDropdownOptions();
 
         _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(false);
         _editorUILayout.HideEditorInterface();
@@ -43,6 +40,10 @@ public class RenderViewManager : MonoBehaviour
 
         _3DViewLayout.SetActive(true);
         ShowRenderElements(true);
+
+        _navMeshManager.gameObject.SetActive(true);
+        _navMeshManager.SetDropdownOptions();
+        _navMeshManager.GenerateNavMesh();
     }
 
     public void BackToEditor()
@@ -50,14 +51,15 @@ public class RenderViewManager : MonoBehaviour
         if (_gridManager.gridActive) // If the grid was active, reactivate it
             _gridManager.gameObject.transform.GetChild(0).gameObject.SetActive(true);
 
-        NavMesh.RemoveAllNavMeshData();
-        _navMeshManager.HideNavigation();
         _editorUILayout.gameObject.SetActive(true);
         _cameraManager.SetOrthographicView();
         _mapDrawLayout.SetActive(true);
 
         _3DViewLayout.SetActive(false);
         ShowRenderElements(false);
+
+        _navMeshManager.HideNavigation();
+        _navMeshManager.gameObject.SetActive(false);
     }
 
     private void GenerateMapRender()
