@@ -57,4 +57,13 @@ public class PolygonController : MonoBehaviour
 
         SetPolygonCollider();
     }
+
+    public Vector3 GetPolygonCenter(bool _3Dpolygon = false)
+    {   // Get the center of the polygon
+        Vector3 _center = Vector3.zero;
+        nodes.ForEach(node => _center += node.transform.position);
+        if (_3Dpolygon) _center = Quaternion.Euler(90, 0, 0) * _center;
+        _center /= nodes.Count;
+        return _center;
+    }
 }

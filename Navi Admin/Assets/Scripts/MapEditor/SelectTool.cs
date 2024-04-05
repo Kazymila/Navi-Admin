@@ -29,6 +29,7 @@ public class SelectTool : MonoBehaviour
 
     [Header("Map Editor Components")]
     [SerializeField] private PolygonsManager _polygonsManager;
+    [SerializeField] private GameObject _polygonsParent;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
     [SerializeField] private GameObject _wallSizeLabel;
@@ -72,8 +73,8 @@ public class SelectTool : MonoBehaviour
         if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
 
         // Enable the polygons manager
-        _polygonsManager.gameObject.SetActive(true);
         _polygonsManager.GeneratePolygons();
+        _polygonsParent.SetActive(true);
     }
     private void OnDisable()
     {
@@ -81,10 +82,7 @@ public class SelectTool : MonoBehaviour
         if (_editingEntrance) CancelEntranceEdit();
         if (_editingWall) CancelWallEdit();
 
-        // Disable the polygons manager
-        if (Camera.main.orthographic)
-            _polygonsManager.gameObject.SetActive(false);
-
+        _polygonsParent.SetActive(false);
         _colorPicker.gameObject.SetActive(false);
         _polygonSettingsPanel.SetActive(false);
     }

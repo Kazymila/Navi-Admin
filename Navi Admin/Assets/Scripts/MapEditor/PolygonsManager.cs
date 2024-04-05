@@ -7,8 +7,11 @@ using TMPro;
 public class PolygonsManager : MonoBehaviour
 {
     [Header("Polygons Elements")]
-    public List<PolygonController> _polygons = new List<PolygonController>();
-    [SerializeField] private GameObject _polygonPrefab;
+    public List<PolygonController> polygons = new List<PolygonController>();
+    [SerializeField] private Transform _2DPolygonsParent;
+    [SerializeField] private Transform _3DPolygonsParent;
+    [SerializeField] private GameObject _2DPolygonPrefab;
+    [SerializeField] private GameObject _3DPolygonPrefab;
     [SerializeField] private GameObject _nodesParent;
 
     [Header("UI Elements")]
@@ -22,14 +25,14 @@ public class PolygonsManager : MonoBehaviour
 
     public void UpdatePolygons()
     {   // Update the polygons meshes and colliders
-        _polygons.ForEach(polygon => polygon.CreatePolygonMesh());
+        polygons.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
     public void GeneratePolygons()
     {   // Create polygons from the graph cycles (closed areas)
         GetCyclesOnGraph();
 
-        if (_polygons.Count == 0)
+        if (polygons.Count == 0)
         {   // If there are no polygons, create them
             foreach (List<int> _cycle in _cycles) CreatePolygon(_cycle);
         }
@@ -43,7 +46,7 @@ public class PolygonsManager : MonoBehaviour
 
                 // Check if the polygon already exists
                 bool _polygonExists = false;
-                foreach (PolygonController _polygon in _polygons)
+                foreach (PolygonController _polygon in polygons)
                 {
                     if (new HashSet<WallDotController>(_nodes).SetEquals(_polygon.nodes))
                     {
@@ -58,8 +61,9 @@ public class PolygonsManager : MonoBehaviour
 
     public void CreatePolygon(List<int> _cycleNodes)
     {   // Create a polygon from the given cycle nodes
-        GameObject _polygon = Instantiate(_polygonPrefab, Vector3.zero, Quaternion.identity, this.transform);
+        GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
         PolygonController _polygonController = _polygon.GetComponent<PolygonController>();
+        _polygonController.colorMaterial.SetColor("_Color1", new Color(0.5f, 0.5f, 0.5f, 0.5f));
         _cycleNodes.ForEach(nodeIndex =>
         {   // Add the nodes to the polygon and the polygon to the nodes
             WallDotController _dot = _nodesParent.transform.GetChild(nodeIndex).GetComponent<WallDotController>();
@@ -67,10 +71,24 @@ public class PolygonsManager : MonoBehaviour
             _polygonController.nodes.Add(_dot);
         });
         _polygon.name = "Polygon_" + _polygonsCount;
-        _polygonController.polygonLabel = _polygon.name;
+        _polygonController.polygonLabel = "Room_" + _polygonsCount;
         _polygonController.CreatePolygonMesh();
-        _polygons.Add(_polygonController);
+        polygons.Add(_polygonController);
         _polygonsCount++;
+    }
+
+    public void Generate3DPolygons()
+    {   // Generate the 3D polygons from the 2D polygons
+        foreach (Transform _3Dpolygon in _3DPolygonsParent) Destroy(_3Dpolygon.gameObject);
+
+        foreach (PolygonController _polygon in polygons)
+        {
+            GameObject _3Dpolygon = Instantiate(_3DPolygonPrefab, Vector3.zero, Quaternion.Euler(90, 0, 0), _3DPolygonsParent);
+            _3Dpolygon.GetComponent<MeshCollider>().sharedMesh = _polygon.GetComponent<MeshFilter>().mesh;
+            _3Dpolygon.GetComponent<MeshFilter>().mesh = _polygon.GetComponent<MeshFilter>().mesh;
+            _3Dpolygon.GetComponent<MeshRenderer>().material = _polygon.colorMaterial;
+            _3Dpolygon.name = _polygon.name;
+        }
     }
 
     #region --- Graph operations ---
@@ -93,27 +111,9 @@ public class PolygonsManager : MonoBehaviour
                 _cyclesOnGraph[i] = _cycles[i];
         _cycles = _cyclesOnGraph;
 
-        print("Cycles count: " + _cycleIndex);
-        PrintGraphList("Node ", _adjacentGraph);
-        PrintGraphList("Cycle ", _cycles);
-    }
-
-    private void GetAdjacentList()
-    {   // Get the adjacent list of the graph from wall dots
-        _adjacentGraph = new List<int>[_nodesParent.transform.childCount];
-
-        for (int i = 0; i < _adjacentGraph.Length; i++)
-            _adjacentGraph[i] = new List<int>();
-
-        for (int i = 0; i < _nodesParent.transform.childCount; i++)
-        {
-            WallDotController _dot = _nodesParent.transform.GetChild(i).GetComponent<WallDotController>();
-            _dot.neighborsDots.ForEach(neighbor =>
-            {
-                int _index = neighbor.transform.GetSiblingIndex();
-                _adjacentGraph[i].Add(_index);
-            });
-        }
+        //print("Cycles count: " + _cycleIndex);
+        //PrintGraphList("Node ", _adjacentGraph);
+        //PrintGraphList("Cycle ", _cycles);
     }
 
     private void GetCyclesByDFS(int u, int p, int[] visited, int[] parents)
@@ -145,6 +145,31 @@ public class PolygonsManager : MonoBehaviour
         visited[u] = 2; // completely visited
     }
 
+    private void GetAdjacentList()
+    {   // Get the adjacent list of the graph from wall dots
+        _adjacentGraph = new List<int>[_nodesParent.transform.childCount];
+
+        for (int i = 0; i < _adjacentGraph.Length; i++)
+            _adjacentGraph[i] = new List<int>();
+
+        for (int i = 0; i < _nodesParent.transform.childCount; i++)
+        {
+            WallDotController _dot = _nodesParent.transform.GetChild(i).GetComponent<WallDotController>();
+            //List<WallDotController> _nodes = SortNodesByDistance(_dot, _dot.neighborsDots);
+            _dot.neighborsDots.ForEach(neighbor =>
+            {   // Add the neighbors nodes to the adjacent list
+                int _index = neighbor.transform.GetSiblingIndex();
+                _adjacentGraph[i].Add(_index);
+            });
+        }
+    }
+
+    private List<WallDotController> SortNodesByDistance(WallDotController _dot, List<WallDotController> _nodes)
+    {   // Sort the nodes by distance to the given dot
+        _nodes.Sort((a, b) => Vector3.Distance(a.transform.position, _dot.transform.position).CompareTo(Vector3.Distance(b.transform.position, _dot.transform.position)));
+        return _nodes;
+    }
+
     private void PrintGraphList(string _iteratorName, List<int>[] _list)
     {   // Print the info of a list (adjacent list or cycles in graph)
         for (int i = 0; i < _list.Length; i++)
@@ -159,10 +184,10 @@ public class PolygonsManager : MonoBehaviour
     #region --- UI Elements ---
     public void ShowPolygonsLabels()
     {   // Show the labels of the polygons
-        foreach (PolygonController _polygon in _polygons)
+        foreach (PolygonController _polygon in polygons)
         {
             GameObject _label = Instantiate(_textlabelPrefab, Vector3.zero, Quaternion.identity, _labelsParent);
-            _label.transform.position = Camera.main.WorldToScreenPoint(GetPolygonCenter(_polygon));
+            _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCenter());
             _label.GetComponent<TextMeshProUGUI>().text = _polygon.polygonLabel;
         }
     }
@@ -171,20 +196,13 @@ public class PolygonsManager : MonoBehaviour
         for (int i = 0; i < _labelsParent.childCount; i++)
         {
             Transform _label = _labelsParent.GetChild(i);
-            _label.position = Camera.main.WorldToScreenPoint(GetPolygonCenter(_polygons[i]));
+            _label.position = Camera.main.WorldToScreenPoint(polygons[i].GetPolygonCenter());
         }
     }
     public void RemovePolygonsLabels()
     {   // Remove the labels of the polygons
         foreach (Transform _label in _labelsParent)
             Destroy(_label.gameObject);
-    }
-    private Vector3 GetPolygonCenter(PolygonController _polygon)
-    {   // Get the center of the polygon
-        Vector3 _center = Vector3.zero;
-        _polygon.nodes.ForEach(node => _center += node.transform.localPosition);
-        _center /= _polygon.nodes.Count;
-        return _center;
     }
     #endregion
 }

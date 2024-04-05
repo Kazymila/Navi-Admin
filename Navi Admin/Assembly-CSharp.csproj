@@ -59,7 +59,7 @@
     <UnityVersion>2022.3.1f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\KazyPC\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.0.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\KazyPC\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.0.1\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="D:\unityeditorfolder\2022.3.1f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="D:\unityeditorfolder\2022.3.1f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
@@ -77,6 +77,7 @@
     <Compile Include="Assets\Scripts\MapEditor\PolygonsManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallDotController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapViewManager.cs" />
+    <Compile Include="Assets\Scripts\MapEditor\NavMeshManager.cs" />
     <Compile Include="Assets\Scripts\UI\ErrorMessageController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorGridManager.cs" />
@@ -952,6 +953,7 @@
     <ProjectReference Include="SimpleFolderIcon.csproj" />
     <ProjectReference Include="Unity.EditorCoroutines.Editor.csproj" />
     <ProjectReference Include="Unity.RenderPipelines.Core.Runtime.csproj" />
+    <ProjectReference Include="Unity.AI.Navigation.csproj" />
     <ProjectReference Include="Unity.PlasticSCM.Editor.csproj" />
     <ProjectReference Include="Unity.ResourceManager.csproj" />
     <ProjectReference Include="Unity.Timeline.Editor.csproj" />
@@ -964,13 +966,13 @@
     <ProjectReference Include="UnityEditor.UI.csproj" />
     <ProjectReference Include="Unity.VisualScripting.Core.csproj" />
     <ProjectReference Include="Unity.VisualScripting.Core.Editor.csproj" />
-    <ProjectReference Include="UnityEditor.CacheServer.csproj" />
     <ProjectReference Include="Unity.Rider.Editor.csproj" />
+    <ProjectReference Include="UnityEditor.CacheServer.csproj" />
     <ProjectReference Include="UnityEngine.UI.csproj" />
     <ProjectReference Include="Unity.Localization.csproj" />
     <ProjectReference Include="Unity.RenderPipelines.Core.Editor.csproj" />
-    <ProjectReference Include="Unity.VisualScripting.Flow.csproj" />
     <ProjectReference Include="Unity.VisualScripting.Flow.Editor.csproj" />
+    <ProjectReference Include="Unity.VisualScripting.Flow.csproj" />
     <ProjectReference Include="Unity.Timeline.csproj" />
     <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.csproj" />
     <ProjectReference Include="Unity.InputSystem.csproj" />
@@ -980,6 +982,7 @@
     <ProjectReference Include="Unity.RenderPipelines.Core.ShaderLibrary.csproj" />
     <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.csproj" />
     <ProjectReference Include="Plugins.Baedrick.ColoredHeaderCreator.Editor.csproj" />
+    <ProjectReference Include="Unity.AI.Navigation.Updater.csproj" />
     <ProjectReference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Model.csproj" />
     <ProjectReference Include="Unity.Addressables.Editor.csproj" />
     <ProjectReference Include="Unity.VisualScripting.State.Editor.csproj" />
@@ -988,9 +991,11 @@
     <ProjectReference Include="Unity.TextMeshPro.Editor.csproj" />
     <ProjectReference Include="Unity.Searcher.Editor.csproj" />
     <ProjectReference Include="Nobi.UiRoundedCorners.Editor.csproj" />
+    <ProjectReference Include="Unity.AI.Navigation.Editor.csproj" />
     <ProjectReference Include="Unity.VisualScripting.State.csproj" />
-    <ProjectReference Include="Unity.VSCode.Editor.csproj" />
+    <ProjectReference Include="Unity.AI.Navigation.Editor.ConversionSystem.csproj" />
     <ProjectReference Include="Unity.ScriptableBuildPipeline.Editor.csproj" />
+    <ProjectReference Include="Unity.VSCode.Editor.csproj" />
     <ProjectReference Include="Unity.Addressables.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

@@ -208,6 +208,15 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Click"",
+                    ""type"": ""Button"",
+                    ""id"": ""e8cbe18f-a57c-4489-afdc-ed93ccc1df10"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -287,6 +296,17 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""14780da1-5de1-4607-88f5-171343b522ea"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -309,6 +329,7 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         m_RenderView_Hand = m_RenderView.FindAction("Hand", throwIfNotFound: true);
         m_RenderView_Rotate = m_RenderView.FindAction("Rotate", throwIfNotFound: true);
         m_RenderView_Position = m_RenderView.FindAction("Position", throwIfNotFound: true);
+        m_RenderView_Click = m_RenderView.FindAction("Click", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -462,6 +483,7 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
     private readonly InputAction m_RenderView_Hand;
     private readonly InputAction m_RenderView_Rotate;
     private readonly InputAction m_RenderView_Position;
+    private readonly InputAction m_RenderView_Click;
     public struct RenderViewActions
     {
         private @InputMap m_Wrapper;
@@ -472,6 +494,7 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         public InputAction @Hand => m_Wrapper.m_RenderView_Hand;
         public InputAction @Rotate => m_Wrapper.m_RenderView_Rotate;
         public InputAction @Position => m_Wrapper.m_RenderView_Position;
+        public InputAction @Click => m_Wrapper.m_RenderView_Click;
         public InputActionMap Get() { return m_Wrapper.m_RenderView; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -499,6 +522,9 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @Position.started += instance.OnPosition;
             @Position.performed += instance.OnPosition;
             @Position.canceled += instance.OnPosition;
+            @Click.started += instance.OnClick;
+            @Click.performed += instance.OnClick;
+            @Click.canceled += instance.OnClick;
         }
 
         private void UnregisterCallbacks(IRenderViewActions instance)
@@ -521,6 +547,9 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
             @Position.started -= instance.OnPosition;
             @Position.performed -= instance.OnPosition;
             @Position.canceled -= instance.OnPosition;
+            @Click.started -= instance.OnClick;
+            @Click.performed -= instance.OnClick;
+            @Click.canceled -= instance.OnClick;
         }
 
         public void RemoveCallbacks(IRenderViewActions instance)
@@ -555,5 +584,6 @@ public partial class @InputMap: IInputActionCollection2, IDisposable
         void OnHand(InputAction.CallbackContext context);
         void OnRotate(InputAction.CallbackContext context);
         void OnPosition(InputAction.CallbackContext context);
+        void OnClick(InputAction.CallbackContext context);
     }
 }

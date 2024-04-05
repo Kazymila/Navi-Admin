@@ -36,6 +36,7 @@ public class WallLineController : MonoBehaviour
     #endregion
 
     #region --- 3D Render Variables ---
+    private float _wallHeight = 1f;
     private GameObject _renderWall;
     private MeshFilter _meshFilter;
     private Mesh[] _meshes;
@@ -47,7 +48,7 @@ public class WallLineController : MonoBehaviour
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
         _polygonsManager = FindAnyObjectByType<PolygonsManager>();
 
-        Transform _renderParent = GameObject.Find("3DRender").transform.GetChild(0);
+        Transform _renderParent = GameObject.Find("MapRenderView").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
         _renderWall.name = "Render_" + this.gameObject.name;
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
@@ -131,10 +132,10 @@ public class WallLineController : MonoBehaviour
             }
             else _segmentsType.RemoveAt(i);
         }
-        for (int i = 0; i < _segmentsPoints.Count; i++)
+        /*for (int i = 0; i < _segmentsPoints.Count; i++)
         {   // Print the segments points and distances
             print(" Segment " + i + " | ditance: " + _segmentsLengths[i] + " | type: " + _segmentsType[i]);
-        }
+        }*/
         return Tuple.Create(_segmentsPoints, _segmentsLengths);
     }
 
@@ -188,7 +189,7 @@ public class WallLineController : MonoBehaviour
         _meshFilter.mesh = new Mesh();
         _meshFilter.mesh.CombineMeshes(_combine);
         _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        _renderWall.transform.localPosition = new Vector3(0, 2f, 0);
+        _renderWall.transform.localPosition = new Vector3(0, _wallHeight, 0);
     }
     public Mesh GenerateMesh(Vector3[] _positions)
     {   // Generate the 3D mesh from line points
@@ -202,34 +203,34 @@ public class WallLineController : MonoBehaviour
             new Vector3(_points[3].x, _points[3].y, 0),
 
             // Top vertices
-            new Vector3(_points[0].x, _points[0].y, 2),
-            new Vector3(_points[1].x, _points[1].y, 2),
-            new Vector3(_points[2].x, _points[2].y, 2),
-            new Vector3(_points[3].x, _points[3].y, 2),
+            new Vector3(_points[0].x, _points[0].y, _wallHeight),
+            new Vector3(_points[1].x, _points[1].y, _wallHeight),
+            new Vector3(_points[2].x, _points[2].y, _wallHeight),
+            new Vector3(_points[3].x, _points[3].y, _wallHeight),
 
             // Front vertices
             new Vector3(_points[0].x, _points[0].y, 0),
             new Vector3(_points[1].x, _points[1].y, 0),
-            new Vector3(_points[1].x, _points[1].y, 2),
-            new Vector3(_points[0].x, _points[0].y, 2),
+            new Vector3(_points[1].x, _points[1].y, _wallHeight),
+            new Vector3(_points[0].x, _points[0].y, _wallHeight),
 
             // Back vertices
             new Vector3(_points[3].x, _points[3].y, 0),
             new Vector3(_points[2].x, _points[2].y, 0),
-            new Vector3(_points[2].x, _points[2].y, 2),
-            new Vector3(_points[3].x, _points[3].y, 2),
+            new Vector3(_points[2].x, _points[2].y, _wallHeight),
+            new Vector3(_points[3].x, _points[3].y, _wallHeight),
 
             // Left vertices
             new Vector3(_points[0].x, _points[0].y, 0),
             new Vector3(_points[3].x, _points[3].y, 0),
-            new Vector3(_points[3].x, _points[3].y, 2),
-            new Vector3(_points[0].x, _points[0].y, 2),
+            new Vector3(_points[3].x, _points[3].y, _wallHeight),
+            new Vector3(_points[0].x, _points[0].y, _wallHeight),
 
             // Right vertices
             new Vector3(_points[1].x, _points[1].y, 0),
             new Vector3(_points[2].x, _points[2].y, 0),
-            new Vector3(_points[2].x, _points[2].y, 2),
-            new Vector3(_points[1].x, _points[1].y, 2),
+            new Vector3(_points[2].x, _points[2].y, _wallHeight),
+            new Vector3(_points[1].x, _points[1].y, _wallHeight),
             };
 
         int[] _triangles = new int[] {

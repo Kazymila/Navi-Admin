@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2616721589844270939}
   - component: {fileID: 7619371669937802832}
   - component: {fileID: 4863921709624461580}
-  - component: {fileID: -1118022995115289912}
+  - component: {fileID: 8451595172386609970}
   m_Layer: 0
   m_Name: Polygon
   m_TagString: Polygon
@@ -50,7 +50,7 @@ MonoBehaviour:
   polygonLabel: 
   nodes: []
   _polygonPoints2D: []
-  _polygonCollider: {fileID: -1118022995115289912}
+  _polygonCollider: {fileID: 8451595172386609970}
   _meshFilter: {fileID: 7619371669937802832}
   colorMaterial: {fileID: 2100000, guid: 2b51e65e1855282478b3e7a92df5d3b8, type: 2}
 --- !u!33 &7619371669937802832
@@ -103,7 +103,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!60 &-1118022995115289912
+--- !u!60 &8451595172386609970
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

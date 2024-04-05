@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CircleCollider2D))]
@@ -93,8 +94,12 @@ public class WallDotController : MonoBehaviour
         }
         foreach (PolygonController _polygon in polygons)
         {   // Remove the dot from the polygon and regenerate the mesh
-            _polygon.nodes.Remove(this);
-            _polygon.CreatePolygonMesh();
+            foreach (WallDotController _node in _polygon.nodes)
+            {
+                if (_node != this) _node.polygons.Remove(_polygon);
+            }
+            _polygon.transform.parent.GetComponent<PolygonsManager>().polygons.Remove(_polygon);
+            Destroy(_polygon.gameObject);
         }
         Destroy(gameObject);
     }

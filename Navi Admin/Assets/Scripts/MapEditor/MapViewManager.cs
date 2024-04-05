@@ -6,8 +6,10 @@ using UnityEngine;
 public class MapViewManager : MonoBehaviour
 {
     [SerializeField] private PolygonsManager _polygonRender;
+    [SerializeField] private GameObject _selectTool;
     private GameObject _wallDots;
     private GameObject _entrances;
+    private GameObject _polygons;
     public bool editDotsActive;
     private bool _mapViewActive = false;
 
@@ -15,6 +17,7 @@ public class MapViewManager : MonoBehaviour
     {
         _wallDots = this.transform.GetChild(1).gameObject;
         _entrances = this.transform.GetChild(2).gameObject;
+        _polygons = this.transform.GetChild(3).gameObject;
         editDotsActive = true;
     }
 
@@ -27,13 +30,15 @@ public class MapViewManager : MonoBehaviour
     {   // Show the map view
         if (!_mapViewActive)
         {
-            _polygonRender.gameObject.SetActive(true);
+            _polygonRender.GeneratePolygons();
             _polygonRender.ShowPolygonsLabels();
+            _polygons.SetActive(true);
             _mapViewActive = true;
         }
         else
         {   // Hide the map view
             _polygonRender.RemovePolygonsLabels();
+            if (!_selectTool.activeSelf) _polygons.SetActive(false);
             _mapViewActive = false;
         }
 
