@@ -46,9 +46,16 @@ public class EditorLayoutController : MonoBehaviour
         this.gameObject.SetActive(false);
     }
 
-    public bool IsCursorOverEditorUI()
+    public bool IsCursorOverEditorUI(RectTransform[] _extraRects = null)
     {   // Check if the mouse is not in the UI, to avoid drawing over the UI
-        return _canvasManager.IsCursorOverUICanvas(_layoutRects);
+        if (_extraRects == null)
+            return _canvasManager.IsCursorOverUICanvas(_layoutRects);
+        else
+        {
+            List<RectTransform> _rects = new List<RectTransform>(_layoutRects);
+            _rects.AddRange(_extraRects);
+            return _canvasManager.IsCursorOverUICanvas(_rects.ToArray());
+        }
     }
 
     public void OnEditorButtonSelected(Button _button)

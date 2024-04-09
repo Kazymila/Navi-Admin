@@ -73,7 +73,7 @@ public class SelectTool : MonoBehaviour
         if (!_mapViewManager.editDotsActive) _mapViewManager.ViewEditDots();
 
         // Enable the polygons manager
-        _polygonsManager.GeneratePolygons();
+        _polygonsManager.Generate2DPolygons();
         _polygonsParent.SetActive(true);
     }
     private void OnDisable()

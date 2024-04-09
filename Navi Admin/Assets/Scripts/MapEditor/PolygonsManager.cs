@@ -28,7 +28,7 @@ public class PolygonsManager : MonoBehaviour
         polygons.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
-    public void GeneratePolygons()
+    public void Generate2DPolygons()
     {   // Create polygons from the graph cycles (closed areas)
         GetCyclesOnGraph();
 
@@ -59,6 +59,20 @@ public class PolygonsManager : MonoBehaviour
         }
     }
 
+    public void Generate3DPolygons()
+    {   // Generate the 3D polygons from the 2D polygons
+        foreach (Transform _3Dpolygon in _3DPolygonsParent) Destroy(_3Dpolygon.gameObject);
+
+        foreach (PolygonController _polygon in polygons)
+        {
+            GameObject _3Dpolygon = Instantiate(_3DPolygonPrefab, Vector3.zero, Quaternion.Euler(90, 0, 0), _3DPolygonsParent);
+            _3Dpolygon.GetComponent<MeshCollider>().sharedMesh = _polygon.GetComponent<MeshFilter>().mesh;
+            _3Dpolygon.GetComponent<MeshFilter>().mesh = _polygon.GetComponent<MeshFilter>().mesh;
+            _3Dpolygon.GetComponent<MeshRenderer>().material = _polygon.colorMaterial;
+            _3Dpolygon.name = _polygon.name;
+        }
+    }
+
     public void CreatePolygon(List<int> _cycleNodes)
     {   // Create a polygon from the given cycle nodes
         GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
@@ -77,21 +91,74 @@ public class PolygonsManager : MonoBehaviour
         _polygonsCount++;
     }
 
-    public void Generate3DPolygons()
-    {   // Generate the 3D polygons from the 2D polygons
-        foreach (Transform _3Dpolygon in _3DPolygonsParent) Destroy(_3Dpolygon.gameObject);
+    #region --- Graph operations ---
 
-        foreach (PolygonController _polygon in polygons)
-        {
-            GameObject _3Dpolygon = Instantiate(_3DPolygonPrefab, Vector3.zero, Quaternion.Euler(90, 0, 0), _3DPolygonsParent);
-            _3Dpolygon.GetComponent<MeshCollider>().sharedMesh = _polygon.GetComponent<MeshFilter>().mesh;
-            _3Dpolygon.GetComponent<MeshFilter>().mesh = _polygon.GetComponent<MeshFilter>().mesh;
-            _3Dpolygon.GetComponent<MeshRenderer>().material = _polygon.colorMaterial;
-            _3Dpolygon.name = _polygon.name;
-        }
+    private void GetPolygonsFromCycles()
+    {   // Get polygons from the cycles in the graph
+        return;
     }
 
-    #region --- Graph operations ---
+    private void MinimunCycleBasis(float[,] _graphMatrix)
+    {   // Get the minimun cycles from the graph
+        int _nodesCount = _graphMatrix.GetLength(0);
+        float[,] _shortestPaths = AllPairsShortestPaths(_graphMatrix);
+        List<int>[] _cyclesSets = new List<int>[_nodesCount];
+        //TODO: Implement the minimun cycle basis algorithm
+    }
+
+    private float[,] AllPairsShortestPaths(float[,] _graphMatrix)
+    {   // Get the all pairs shortest paths from the graph, using Floyd-Warshall algorithm
+        int _nodesCount = _graphMatrix.GetLength(0);
+        float[,] dist = new float[_nodesCount, _nodesCount];
+
+        // Initialize the solution matrix same as input graph matrix
+        // Or we can say the initial values of shortest distances
+        // are based on shortest paths considering no intermediate vertex
+        for (int i = 0; i < _nodesCount; i++)
+        {
+            for (int j = 0; j < _nodesCount; j++)
+            {
+                dist[i, j] = _graphMatrix[i, j];
+            }
+        }
+        /* Add all vertices one by one to the set of intermediate vertices.
+        ---> Before start of a iteration, we have shortest distances
+             between all pairs of vertices such that the shortest distances
+             consider only the vertices in set {0, 1, 2, .. k-1} as intermediate vertices.
+        ---> After the end of a iteration, vertex no. k is added to the set of intermediate
+             vertices and the set becomes {0, 1, 2, .. k} */
+
+        for (int k = 0; k < _nodesCount; k++)
+        {   // Pick all vertices as source (one by one)
+            for (int i = 0; i < _nodesCount; i++)
+            {   // Pick all vertices as destination (for the above picked source)
+                for (int j = 0; j < _nodesCount; j++)
+                {   // If vertex k is on the shortest path from i to j, 
+                    // then update the value of dist[i][j]
+                    if (dist[i, k] + dist[k, j] < dist[i, j])
+                        dist[i, j] = dist[i, k] + dist[k, j];
+                }
+            }
+        }
+        return dist;
+    }
+
+    private float[,] GetWeightedAdjacentMatrix()
+    {   // Get the weighted adjacent matrix from the graph (distance between nodes)
+        float[,] _graphMatrix = new float[_adjacentGraph.Length, _adjacentGraph.Length];
+        for (int i = 0; i < _adjacentGraph.Length; i++)
+        {
+            for (int j = 0; j < _adjacentGraph.Length; j++)
+            {   // If the nodes are adjacent, get the distance between them (weight)
+                if (_adjacentGraph[i].Contains(j))
+                    _graphMatrix[i, j] = Vector3.Distance(_nodesParent.transform.GetChild(i).position, _nodesParent.transform.GetChild(j).position);
+                else
+                    _graphMatrix[i, j] = 99999;
+            }
+        }
+        return _graphMatrix;
+    }
+
     public void GetCyclesOnGraph()
     {   // Get the closed areas (cycles) from the graph
         _cycleIndex = 0;
@@ -155,19 +222,12 @@ public class PolygonsManager : MonoBehaviour
         for (int i = 0; i < _nodesParent.transform.childCount; i++)
         {
             WallDotController _dot = _nodesParent.transform.GetChild(i).GetComponent<WallDotController>();
-            //List<WallDotController> _nodes = SortNodesByDistance(_dot, _dot.neighborsDots);
             _dot.neighborsDots.ForEach(neighbor =>
             {   // Add the neighbors nodes to the adjacent list
                 int _index = neighbor.transform.GetSiblingIndex();
                 _adjacentGraph[i].Add(_index);
             });
         }
-    }
-
-    private List<WallDotController> SortNodesByDistance(WallDotController _dot, List<WallDotController> _nodes)
-    {   // Sort the nodes by distance to the given dot
-        _nodes.Sort((a, b) => Vector3.Distance(a.transform.position, _dot.transform.position).CompareTo(Vector3.Distance(b.transform.position, _dot.transform.position)));
-        return _nodes;
     }
 
     private void PrintGraphList(string _iteratorName, List<int>[] _list)

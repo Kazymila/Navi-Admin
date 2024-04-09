@@ -30,7 +30,7 @@ public class MapViewManager : MonoBehaviour
     {   // Show the map view
         if (!_mapViewActive)
         {
-            _polygonRender.GeneratePolygons();
+            _polygonRender.Generate2DPolygons();
             _polygonRender.ShowPolygonsLabels();
             _polygons.SetActive(true);
             _mapViewActive = true;

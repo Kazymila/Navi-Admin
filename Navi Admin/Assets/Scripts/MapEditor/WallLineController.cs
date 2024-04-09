@@ -11,10 +11,13 @@ public class WallLineController : MonoBehaviour
     [Header("Wall Stuff")]
     public List<EntrancesController> entrancesList = new List<EntrancesController>();
     public float length;
+    public bool isDrawing = false;
 
     [Header("Dots")]
     public WallDotController startDot;
     public WallDotController endDot;
+    [SerializeField] private GameObject _dotPrefab;
+    [SerializeField] private Transform _dotsParent;
 
     [Header("Required Components")]
     [SerializeField] private LineRenderer _lineRenderer;
@@ -22,8 +25,6 @@ public class WallLineController : MonoBehaviour
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
-
-    private PolygonsManager _polygonsManager;
     #endregion
 
     #region --- Wall Segments Variables ---
@@ -42,11 +43,17 @@ public class WallLineController : MonoBehaviour
     private Mesh[] _meshes;
     #endregion
 
+    #region --- Lines intersection Variables ---
+    private List<WallDotController> _intersectionDots = new List<WallDotController>();
+    private WallDotController _intersectionDot;   // Dot at the intersection on static line
+    private WallLineController _intersectionLine; // Moving line that is colliding with the static line
+    #endregion
+
     void Start()
     {
         _lineRenderer = this.GetComponent<LineRenderer>();
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
-        _polygonsManager = FindAnyObjectByType<PolygonsManager>();
+        _dotsParent = GameObject.Find("LineDots").transform;
 
         Transform _renderParent = GameObject.Find("MapRenderView").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
@@ -305,5 +312,95 @@ public class WallLineController : MonoBehaviour
 
         return _colliderPoints;
     }
+    #endregion
+
+    #region --- Walls Intersection ---
+    /*
+    private void OnTriggerEnter2D(Collider2D _collision)
+    {   // Check if an static wall line is colliding with a moving line
+        if (_collision.gameObject.CompareTag("Wall") && !isDrawing)
+        {   // Check if the collided line is not connected to the dots of this line
+            if (!startDot.lines.Contains(_collision.gameObject) && !endDot.lines.Contains(_collision.gameObject))
+            {   // Create a dot at the intersection point between the lines and connect them
+                Vector3 _intersection = GetIntersectionPoint(_collision.gameObject.GetComponent<WallLineController>());
+                GameObject _newDot = Instantiate(_dotPrefab, _intersection, Quaternion.identity, _dotsParent);
+                _intersectionLine = _collision.gameObject.GetComponent<WallLineController>();
+                _intersectionDot = _newDot.GetComponent<WallDotController>();
+                _intersectionDot.AddLine(this.gameObject, 1, startDot);
+            }
+        }
+    }
+    private void OnTriggerStay2D(Collider2D _collision)
+    {   // Check if the wall line is colliding with another line
+        if (_collision.gameObject.CompareTag("Wall") && !isDrawing)
+        {   // Check if the collided line is not connected to the dots of this line
+            if (_intersectionLine == _collision.gameObject.GetComponent<WallLineController>())
+            {   // Update the intersection point between this line and the collided line
+                Vector3 _intersection = GetIntersectionPoint(_collision.gameObject.GetComponent<WallLineController>());
+                _intersectionDot.SetPosition(_intersection);
+            }
+        }
+    }
+    private void OnTriggerExit2D(Collider2D _collision)
+    {   // Check if the wall line is colliding with another line
+        if (_collision.gameObject.CompareTag("Wall") && !isDrawing)
+        {   // Check if the collided line is not connected to the dots of this line
+            if (_intersectionLine == _collision.gameObject.GetComponent<WallLineController>())
+            {   // Destroy the intersection point between the lines
+                Destroy(_intersectionDot.gameObject);
+                _intersectionLine = null;
+                _intersectionDot = null;
+            }
+        }
+    }
+    private Vector3 GetIntersectionPoint(WallLineController _collidedLine)
+    {   // Get the intersection point between two lines
+        Vector3 _start1 = startDot.position;
+        Vector3 _end1 = endDot.position;
+        Vector3 _start2 = _collidedLine.startDot.position;
+        Vector3 _end2 = _collidedLine.endDot.position;
+
+        float _a1 = _end1.y - _start1.y;
+        float _b1 = _start1.x - _end1.x;
+        float _c1 = _a1 * _start1.x + _b1 * _start1.y;
+
+        float _a2 = _end2.y - _start2.y;
+        float _b2 = _start2.x - _end2.x;
+        float _c2 = _a2 * _start2.x + _b2 * _start2.y;
+
+        float _delta = _a1 * _b2 - _a2 * _b1;
+        if (_delta == 0) return Vector3.zero;
+
+        float _x = (_b2 * _c1 - _b1 * _c2) / _delta;
+        float _y = (_a1 * _c2 - _a2 * _c1) / _delta;
+
+        return new Vector3(_x, _y, 0);
+    }
+
+    public void DivideLineByIntersection()
+    {   // Divide the line into two lines at the intersection point
+        if (_intersectionDot == null) return;
+
+        GameObject _newLine = Instantiate(this.gameObject, Vector3.zero, Quaternion.identity, this.transform.parent);
+        WallLineController _newLineController = _newLine.GetComponent<WallLineController>();
+
+        _newLineController.startDot = _intersectionDot;
+        _newLineController.endDot = endDot;
+
+        endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
+        _intersectionDot.AddLine(_newLine, 0, endDot);
+        endDot = _intersectionDot;
+
+        _newLine.GetComponent<LineRenderer>().SetPosition(0, _intersectionDot.position);
+        _newLine.GetComponent<LineRenderer>().SetPosition(1, endDot.position);
+        _lineRenderer.SetPosition(1, _intersectionDot.position);
+        _lineRenderer.SetPosition(0, startDot.position);
+
+        _newLineController.CalculateLength();
+        _newLineController.SetLineCollider();
+        _intersectionLine = null;
+        _intersectionDot = null;
+    }*/
+
     #endregion
 }

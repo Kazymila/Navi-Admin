@@ -66,12 +66,12 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\MapEditor\SelectTool.cs" />
     <Compile Include="Assets\Scripts\UI\MapEditorCanvasManager.cs" />
+    <Compile Include="Assets\Scripts\MapEditor\QRCodeController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallLineController.cs" />
     <Compile Include="Assets\Input\InputMap.cs" />
-    <Compile Include="Assets\FlexibleColorPicker\Scripts\FCP_Persistence.cs" />
     <Compile Include="Assets\Scripts\MapEditor\RenderViewManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorCameraManager.cs" />
-    <Compile Include="Assets\FlexibleColorPicker\Scripts\FCP_SpriteMeshEditor.cs" />
+    <Compile Include="Assets\Scripts\MapEditor\QRCodesManager.cs" />
     <Compile Include="Assets\Scripts\UI\EditorLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EraserTool.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonsManager.cs" />
@@ -81,13 +81,11 @@
     <Compile Include="Assets\Scripts\UI\ErrorMessageController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorGridManager.cs" />
-    <Compile Include="Assets\FlexibleColorPicker\ExampleScene\FCP_ExampleScript.cs" />
     <Compile Include="Assets\Scripts\Utils\Triangulator.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesTool.cs" />
     <Compile Include="Assets\Scripts\UI\RenderLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallDrawer.cs" />
-    <Compile Include="Assets\FlexibleColorPicker\Scripts\FlexibleColorPicker.cs" />
     <Compile Include="Assets\Scripts\UI\SliderController.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -106,7 +104,6 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
-    <None Include="Assets\FlexibleColorPicker\Materials\FCP_Gradient.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
@@ -449,6 +446,10 @@
     </Reference>
     <Reference Include="ReportGeneratorMerged">
       <HintPath>Library\PackageCache\com.unity.testtools.codecoverage@1.2.3\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="zxing.unity">
+      <HintPath>Assets\Plugins\zxing.unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
@@ -949,6 +950,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj" />
     <ProjectReference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.csproj" />
     <ProjectReference Include="SimpleFolderIcon.csproj" />
     <ProjectReference Include="Unity.EditorCoroutines.Editor.csproj" />

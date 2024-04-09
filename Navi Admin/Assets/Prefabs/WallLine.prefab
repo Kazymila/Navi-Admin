@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4590802304240321426}
   - component: {fileID: 4128213522926535061}
   - component: {fileID: 605030445936951089}
+  - component: {fileID: -8255416990680467951}
   m_Layer: 0
   m_Name: WallLine
   m_TagString: Wall
@@ -49,10 +50,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entrancesList: []
-  connectedWalls: []
   length: 0
   startDot: {fileID: 0}
   endDot: {fileID: 0}
+  _dotPrefab: {fileID: 861134584662478616, guid: 07951ab49c3df4f4aa2749a6966e4947, type: 3}
+  _dotsParent: {fileID: 0}
   _lineRenderer: {fileID: 2168909941902409299}
   _polygonCollider: {fileID: 605030445936951089}
   _renderPrefab: {fileID: 1181623390597465360, guid: 6e599d3fb571c0e428bc68b21f1a07a6, type: 3}
@@ -239,7 +241,7 @@ PolygonCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -260,3 +262,30 @@ PolygonCollider2D:
       - {x: 0.14694634, y: -0.20225424}
       - {x: 0.23776412, y: 0.07725428}
   m_UseDelaunayMesh: 0
+--- !u!50 &-8255416990680467951
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705491313679658090}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 2
+  m_CollisionDetection: 1
+  m_Constraints: 4

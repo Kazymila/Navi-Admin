@@ -68,7 +68,7 @@ public class RenderViewManager : MonoBehaviour
         {
             _wallLines.transform.GetChild(i).GetComponent<WallLineController>().GenerateWallMesh();
         }
-        _polygonsManager.GeneratePolygons();
+        _polygonsManager.Generate2DPolygons();
         _polygonsManager.RemovePolygonsLabels();
         _polygonsManager.Generate3DPolygons();
     }

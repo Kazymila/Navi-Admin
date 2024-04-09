@@ -96,6 +96,7 @@ public class WallDrawer : MonoBehaviour
             _endWallDot = InstantiateWallDot(_cursorPosition);
             _lineObject = CreateLine(_cursorPosition);
             _drawingWall = true;
+            _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
         else if (_lineObject != null && _drawingWall)
         {   // Set dot and add line from this last dot
@@ -105,6 +106,7 @@ public class WallDrawer : MonoBehaviour
             _endWallDot = InstantiateWallDot(_cursorPosition);
             _lineObject = CreateLine(_cursorPosition);
         }
+        //_lineObject.GetComponent<WallLineController>().DivideLineByIntersections();
     }
 
     private GameObject CreateLine(Vector3 _position)
@@ -145,6 +147,7 @@ public class WallDrawer : MonoBehaviour
             _startWallDot.DeleteLine(_startWallDot.lines.IndexOf(_lineObject));
             _endWallDot.DeleteDot(true);
         }
+        _lineObject.GetComponent<WallLineController>().isDrawing = true;
         _drawingWall = false;
         _endWallDot = null;
         _lineObject = null;
@@ -162,6 +165,7 @@ public class WallDrawer : MonoBehaviour
             _endWallDot = InstantiateWallDot(_raycastDot.position);
             _lineObject = CreateLine(_raycastDot.position);
             _drawingWall = true;
+            _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
         else
         {   // If was already drawing, the selected dot is setted as the end dot
@@ -184,6 +188,9 @@ public class WallDrawer : MonoBehaviour
                 _endWallDot = InstantiateWallDot(_cursorPosition);
                 _lineObject = CreateLine(_cursorPosition);
                 _startWallDot.SetPosition(_raycastDot.position);
+
+                if (_startWallDot.GetComponent<WallDotController>().CheckForCycle())
+                    print("Cycle detected");
             }
         }
     }
