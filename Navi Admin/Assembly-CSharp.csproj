@@ -68,24 +68,36 @@
     <Compile Include="Assets\Scripts\UI\MapEditorCanvasManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\QRCodeController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallLineController.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserWindows.cs" />
     <Compile Include="Assets\Input\InputMap.cs" />
     <Compile Include="Assets\Scripts\MapEditor\RenderViewManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorCameraManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\QRCodesManager.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowser.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleSaveFileText.cs" />
     <Compile Include="Assets\Scripts\UI\EditorLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EraserTool.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonsManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallDotController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapViewManager.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserEditor.cs" />
     <Compile Include="Assets\Scripts\MapEditor\NavMeshManager.cs" />
     <Compile Include="Assets\Scripts\UI\ErrorMessageController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\PolygonController.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileTextMultiple.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorGridManager.cs" />
     <Compile Include="Assets\Scripts\Utils\Triangulator.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleSaveFileImage.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesTool.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\IStandaloneFileBrowser.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserLinux.cs" />
     <Compile Include="Assets\Scripts\UI\RenderLayoutController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\EntrancesController.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileText.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\BasicSample.cs" />
     <Compile Include="Assets\Scripts\MapEditor\WallDrawer.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileImage.cs" />
+    <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserMac.cs" />
     <Compile Include="Assets\Scripts\UI\SliderController.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +107,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\StandaloneFileBrowser\Plugins\Ookii.Dialogs.dll" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
@@ -105,6 +118,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\StandaloneFileBrowser\Plugins\System.Windows.Forms.dll" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
@@ -458,6 +472,14 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@3.2.1\Runtime\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Ookii.Dialogs">
+      <HintPath>Assets\StandaloneFileBrowser\Plugins\Ookii.Dialogs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <HintPath>Assets\StandaloneFileBrowser\Plugins\System.Windows.Forms.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">

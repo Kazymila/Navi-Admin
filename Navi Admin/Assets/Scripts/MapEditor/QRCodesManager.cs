@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using SFB;
 
 public class QRCodesManager : MonoBehaviour
 {
@@ -198,15 +199,14 @@ public class QRCodesManager : MonoBehaviour
     {   // Save the QR Code as a png image
         if (_currentQRCode == null) return;
 
-        string _path = Application.persistentDataPath + "/" + _currentQRCode.codeLabel + ".png";
+        var extensionList = new[] { // Extension filter for the save file window
+            new ExtensionFilter("Image Files", "png", "jpg", "jpeg" ),
+            new ExtensionFilter("All Files", "*" )
+        };
+        string _path = StandaloneFileBrowser.SaveFilePanel("Save QRCode", "", _currentQRCode.codeLabel, extensionList);
+        if (_path == "") return;
         byte[] _bytes = _currentQRCode.GetQRCodeTexture().EncodeToPNG();
         System.IO.File.WriteAllBytes(_path, _bytes);
         print(_path);
-    }
-
-    private void OpenFileExplorer()
-    {   // Open the file explorer to choose the path to save the QR code
-
-
     }
 }
