@@ -6,7 +6,7 @@ public class RenderViewManager : MonoBehaviour
 {
     [Header("UI Stuff")]
     [SerializeField] private EditorLayoutController _editorUILayout;
-    [SerializeField] private GameObject _3DViewLayout;
+    [SerializeField] private RenderLayoutController _3DViewLayout;
     [SerializeField] private GameObject _mapDrawLayout;
 
     [Header("Managers")]
@@ -38,7 +38,7 @@ public class RenderViewManager : MonoBehaviour
         _cameraManager.SetPerspectiveView();
         _mapDrawLayout.SetActive(false);
 
-        _3DViewLayout.SetActive(true);
+        _3DViewLayout.gameObject.SetActive(true);
         ShowRenderElements(true);
 
         _navMeshManager.gameObject.SetActive(true);
@@ -55,7 +55,7 @@ public class RenderViewManager : MonoBehaviour
         _cameraManager.SetOrthographicView();
         _mapDrawLayout.SetActive(true);
 
-        _3DViewLayout.SetActive(false);
+        _3DViewLayout.HideRenderInterface();
         ShowRenderElements(false);
 
         _navMeshManager.HideNavigation();

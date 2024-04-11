@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class RenderLayoutController : MonoBehaviour
 {
+    [Header("Required Stuff")]
+    [SerializeField] private GameObject[] _featuresManagers;
+
     private MapEditorCanvasManager _canvasManager;
     private RectTransform[] _layoutRects;
     private Button[] _buttons;
@@ -21,9 +24,36 @@ public class RenderLayoutController : MonoBehaviour
         _layoutRects = _canvasManager.GetLayoutRects(this.transform);
     }
 
-    public bool IsCursorOverRenderUI()
+    public void HideRenderInterface()
+    {   // Hide the editor interface (when show the 3D view)
+        _animator.SetBool("Hide", true);
+        Invoke("DisableLayout", 0.2f);
+    }
+
+    private void DisableLayout()
+    {   // Disable the layout when hide it
+        if (_selectedButton)
+        {
+            _selectedButton.interactable = true;
+            _selectedButton = null;
+        }
+        for (int i = 0; i < _featuresManagers.Length; i++)
+            _featuresManagers[i].SetActive(false);
+
+        _animator.SetBool("Hide", false);
+        this.gameObject.SetActive(false);
+    }
+
+    public bool IsCursorOverRenderUI(RectTransform[] _extraRects = null)
     {   // Check if the mouse is not in the UI
-        return _canvasManager.IsCursorOverUICanvas(_layoutRects);
+        if (_extraRects == null)
+            return _canvasManager.IsCursorOverUICanvas(_layoutRects);
+        else
+        {
+            List<RectTransform> _rects = new List<RectTransform>(_layoutRects);
+            _rects.AddRange(_extraRects);
+            return _canvasManager.IsCursorOverUICanvas(_rects.ToArray());
+        }
     }
 
     public void OnRenderButtonSelected(Button _button)

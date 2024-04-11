@@ -5,12 +5,16 @@ using UnityEngine.UI;
 using ZXing.QrCode;
 using ZXing;
 using System;
+using Unity.VisualScripting;
 
 public class QRCodeController : MonoBehaviour
 {
     public String codeLabel;
     private Texture2D _encodedTexture;
     private Animator _markerAnimator;
+
+    private Vector3 _QRDirection;
+    private float _markerHeight = 0.6f;
 
     void Start()
     {
@@ -24,11 +28,29 @@ public class QRCodeController : MonoBehaviour
 
     public void GenerateQRCode(RawImage _rawImage)
     {   // Generate a QR code from marker position and direction
-        string _textForEncoding = $"{codeLabel}:x({transform.position.x})y({transform.position.y})";
+        Vector3 _position3D = CalculateQRCodePosition();
+        string _textForEncoding = $"{codeLabel}:pos:x{_position3D.x}y{_position3D.y}z{_position3D.z}:dir:x{_QRDirection.x}y{_QRDirection.y}z{_QRDirection.z}";
         GenerateQRCodeFromText(_textForEncoding, _rawImage);
     }
 
-    public void GenerateQRCodeFromText(string _textForEncoding, RawImage _rawImage)
+    public void CalculateQRCodeDirection()
+    {   // Calculate the direction to look at the QR code
+        if (Camera.main.orthographic)
+            _QRDirection = new Vector3(transform.forward.x, 0, transform.forward.y);
+        else _QRDirection = transform.forward;
+
+        Debug.DrawRay(transform.position, _QRDirection, Color.red, 10f);
+        print(_QRDirection);
+    }
+
+    private Vector3 CalculateQRCodePosition()
+    {   // Calculate the 3D position from the 2D position
+        if (Camera.main.orthographic)
+            return new Vector3(transform.position.x, _markerHeight, transform.position.y);
+        else return transform.position;
+    }
+
+    private void GenerateQRCodeFromText(string _textForEncoding, RawImage _rawImage)
     {   // Generate a QR code from the given text
         Color32[] _pixels = EncodeQRCode(_textForEncoding);
         _encodedTexture.SetPixels32(_pixels);
@@ -49,5 +71,14 @@ public class QRCodeController : MonoBehaviour
             }
         };
         return _qrCodeWriter.Write(_textForEncoding);
+    }
+
+    public void RotateMarkerUp()
+    {   // Rotate the marker up (only for perspective view)
+        this.transform.rotation = Quaternion.Euler(
+            -90,
+            this.transform.rotation.eulerAngles.y,
+            this.transform.rotation.eulerAngles.z
+        );
     }
 }

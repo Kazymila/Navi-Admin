@@ -77,7 +77,7 @@ public class MapEditorCanvasManager : MonoBehaviour
         foreach (RectTransform _rect in _rects)
         {
             bool _isOverUI = RectTransformUtility.RectangleContainsScreenPoint(
-                _rect, _input.MapEditor.Position.ReadValue<Vector2>(), null);
+                _rect, GetCursorPosition(), null);
 
             if (_isOverUI && _rect.gameObject.activeSelf) return true;
         }

@@ -7,7 +7,7 @@ public class EditorLayoutController : MonoBehaviour
 {
 
     [Header("Required Stuff")]
-    [SerializeField] private GameObject[] _toolManagers;
+    [SerializeField] private GameObject[] _featuresManagers;
 
     private MapEditorCanvasManager _canvasManager;
     private RectTransform[] _layoutRects;
@@ -39,8 +39,8 @@ public class EditorLayoutController : MonoBehaviour
             _selectedButton = null;
         }
 
-        for (int i = 0; i < _toolManagers.Length; i++)
-            _toolManagers[i].SetActive(false);
+        for (int i = 0; i < _featuresManagers.Length; i++)
+            _featuresManagers[i].SetActive(false);
 
         _animator.SetBool("Hide", false);
         this.gameObject.SetActive(false);
