@@ -255,6 +255,7 @@ public class PolygonsManager : MonoBehaviour
     {   // Update the position of the labels to follow the camera
         for (int i = 0; i < _labelsParent.childCount; i++)
         {
+            if (i >= polygons.Count) break;
             Transform _label = _labelsParent.GetChild(i);
             _label.position = Camera.main.WorldToScreenPoint(polygons[i].GetPolygonCenter());
         }

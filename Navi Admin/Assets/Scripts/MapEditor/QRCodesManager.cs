@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using SFB;
-using Unity.VisualScripting;
 
 public class QRCodesManager : MonoBehaviour
 {
@@ -14,6 +13,7 @@ public class QRCodesManager : MonoBehaviour
     [SerializeField] private RenderLayoutController _UIRenderController;
     [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private MapViewManager _mapViewManager;
+    private NavMeshManager _navMeshManager;
 
     [Header("QR Code Settings")]
     [SerializeField] private GameObject _QRCodePrefab;
@@ -55,7 +55,7 @@ public class QRCodesManager : MonoBehaviour
                     _child.rotation = Quaternion.Euler(_child.rotation.eulerAngles.y, -90, _child.rotation.eulerAngles.z);
                 }
             }
-            _mapViewManager.ShowMapView();
+            _mapViewManager.ShowMapView(false);
         }
         else
         {   // Enable the input map for the 3D render view
@@ -76,13 +76,14 @@ public class QRCodesManager : MonoBehaviour
     {
         _input.MapEditor.Disable();
         _input.RenderView.Disable();
-        _mapViewManager.ShowMapView();
         _QRCodeSettingsPanel.SetActive(false);
+        if (_mapViewManager.isMapViewActive) _mapViewManager.ShowMapView();
     }
 
     void Start()
     {
         _QRCodePanelRect = new RectTransform[] { _QRCodeSettingsPanel.GetComponent<RectTransform>() };
+        _navMeshManager = GameObject.Find("NavMeshManager").GetComponent<NavMeshManager>();
     }
 
     private Vector3 GetCursorPosition()
@@ -102,7 +103,7 @@ public class QRCodesManager : MonoBehaviour
                 _position.y = _markerHeight;
                 return _position;
             }
-            else return _currentQRCode.transform.position;
+            else return new Vector3(9999, 9999, 9999);
         }
     }
 
@@ -157,9 +158,10 @@ public class QRCodesManager : MonoBehaviour
             }
             else
             {   // If not select an existing QR code, create a new one
+                if (_navMeshManager.isNavigationEnabled) return;
                 if (_currentQRCode != null)
                 {
-                    if (_cursorPosition == _currentQRCode.transform.position) return;
+                    if (_cursorPosition == new Vector3(9999, 9999, 9999)) return;
                     if (!Camera.main.orthographic) _currentQRCode.RotateMarkerUp();
                     _QRCodeSettingsPanel.SetActive(false);
                 }
@@ -254,7 +256,8 @@ public class QRCodesManager : MonoBehaviour
     public void MoveQRCode()
     {   // Move the current QR code
         if (_currentQRCode == null) return;
-        _currentQRCode.RotateMarkerUp();
+        if (!Camera.main.orthographic)
+            _currentQRCode.RotateMarkerUp();
         _isMoving = true;
         _isRotating = false;
     }

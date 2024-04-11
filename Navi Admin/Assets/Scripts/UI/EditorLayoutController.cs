@@ -7,6 +7,7 @@ public class EditorLayoutController : MonoBehaviour
 {
 
     [Header("Required Stuff")]
+    [SerializeField] private MapViewManager _mapViewManager;
     [SerializeField] private GameObject[] _featuresManagers;
 
     private MapEditorCanvasManager _canvasManager;
@@ -65,5 +66,15 @@ public class EditorLayoutController : MonoBehaviour
 
         if (_button.name != "Hand") // Disable the hand tool when select other tool
             Camera.main.GetComponent<MapEditorCameraManager>().DisableHandTool();
+
+        if (_button.name == "MapView") _button.interactable = true;
+    }
+
+    public void ActivateFeature(GameObject _selectedFeature)
+    {   // Activate the selected feature and disable the others
+        if (_mapViewManager.isMapViewActive) _mapViewManager.ShowMapView();
+
+        _selectedFeature.SetActive(!_selectedFeature.activeSelf);
+        _canvasManager.DisableOtherFeatures(_selectedFeature, _featuresManagers);
     }
 }

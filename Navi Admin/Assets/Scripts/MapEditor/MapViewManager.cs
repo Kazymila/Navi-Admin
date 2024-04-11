@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class MapViewManager : MonoBehaviour
@@ -11,7 +10,7 @@ public class MapViewManager : MonoBehaviour
     private GameObject _entrances;
     private GameObject _polygons;
     public bool editDotsActive;
-    private bool _mapViewActive = false;
+    public bool isMapViewActive = false;
 
     void Start()
     {
@@ -23,23 +22,23 @@ public class MapViewManager : MonoBehaviour
 
     void Update()
     {
-        if (_mapViewActive) _polygonRender.UpdateLabelsPosition();
+        if (isMapViewActive) _polygonRender.UpdateLabelsPosition();
     }
 
-    public void ShowMapView()
+    public void ShowMapView(bool _showPolygons = true)
     {   // Show the map view
-        if (!_mapViewActive)
+        if (!isMapViewActive)
         {
             _polygonRender.Generate2DPolygons();
             _polygonRender.ShowPolygonsLabels();
-            _polygons.SetActive(true);
-            _mapViewActive = true;
+            _polygons.SetActive(_showPolygons);
+            isMapViewActive = true;
         }
         else
         {   // Hide the map view
             _polygonRender.RemovePolygonsLabels();
             if (!_selectTool.activeSelf) _polygons.SetActive(false);
-            _mapViewActive = false;
+            isMapViewActive = false;
         }
 
         ViewEditDots();

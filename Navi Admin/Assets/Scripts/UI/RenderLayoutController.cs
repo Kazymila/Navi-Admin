@@ -64,4 +64,10 @@ public class RenderLayoutController : MonoBehaviour
         if (_button.name != "Hand") // Disable the hand tool when select other tool
             Camera.main.GetComponent<MapEditorCameraManager>().DisableHandTool();
     }
+
+    public void ActivateFeature(GameObject _selectedFeature)
+    {   // Activate the selected feature and disable the others
+        if (_selectedFeature != null) _selectedFeature.SetActive(true);
+        _canvasManager.DisableOtherFeatures(_selectedFeature, _featuresManagers);
+    }
 }

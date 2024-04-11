@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 
 public class MapEditorCanvasManager : MonoBehaviour
 {
@@ -25,6 +24,15 @@ public class MapEditorCanvasManager : MonoBehaviour
     {   // Get the cursor position in the canvas
         if (Camera.main.orthographic) return _input.MapEditor.Position.ReadValue<Vector2>();
         else return _input.RenderView.Position.ReadValue<Vector2>();
+    }
+
+    public void DisableOtherFeatures(GameObject _selectedFeature, GameObject[] _features)
+    {   // Disable the other features when one is selected (like the drawing tools)
+        for (int i = 0; i < _features.Length; i++)
+        {
+            if (_selectedFeature == null || _features[i] != _selectedFeature)
+                _features[i].SetActive(false);
+        }
     }
 
     #region --- Button Managment ---

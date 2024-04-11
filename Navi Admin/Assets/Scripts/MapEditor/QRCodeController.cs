@@ -1,11 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using ZXing.QrCode;
 using ZXing;
-using System;
-using Unity.VisualScripting;
 
 public class QRCodeController : MonoBehaviour
 {
@@ -38,9 +37,6 @@ public class QRCodeController : MonoBehaviour
         if (Camera.main.orthographic)
             _QRDirection = new Vector3(transform.forward.x, 0, transform.forward.y);
         else _QRDirection = transform.forward;
-
-        Debug.DrawRay(transform.position, _QRDirection, Color.red, 10f);
-        print(_QRDirection);
     }
 
     private Vector3 CalculateQRCodePosition()

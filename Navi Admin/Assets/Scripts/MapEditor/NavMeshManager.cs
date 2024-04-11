@@ -7,6 +7,8 @@ using TMPro;
 
 public class NavMeshManager : MonoBehaviour
 {
+    public bool isNavigationEnabled = false;
+
     [Header("Required Stuff")]
     [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private PolygonsManager _polygonsManager;
@@ -71,6 +73,7 @@ public class NavMeshManager : MonoBehaviour
         _placingAgent = true;
         _pathLine.gameObject.SetActive(false);
         _placeMarker.SetActive(false);
+        isNavigationEnabled = true;
     }
 
     private void SetAgentPosition()
@@ -119,5 +122,6 @@ public class NavMeshManager : MonoBehaviour
         _navAgent.SetActive(false);
         _pathLine.gameObject.SetActive(false);
         _placeMarker.SetActive(false);
+        isNavigationEnabled = false;
     }
 }
