@@ -13,7 +13,7 @@ public class QRCodesManager : MonoBehaviour
     [SerializeField] private RenderLayoutController _UIRenderController;
     [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private MapViewManager _mapViewManager;
-    private NavMeshManager _navMeshManager;
+    [SerializeField] private NavMeshManager _navMeshManager;
 
     [Header("QR Code Settings")]
     [SerializeField] private GameObject _QRCodePrefab;
@@ -80,10 +80,9 @@ public class QRCodesManager : MonoBehaviour
         if (_mapViewManager.isMapViewActive) _mapViewManager.ShowMapView();
     }
 
-    void Start()
+    private void Awake()
     {
         _QRCodePanelRect = new RectTransform[] { _QRCodeSettingsPanel.GetComponent<RectTransform>() };
-        _navMeshManager = GameObject.Find("NavMeshManager").GetComponent<NavMeshManager>();
     }
 
     private Vector3 GetCursorPosition()
@@ -156,9 +155,10 @@ public class QRCodesManager : MonoBehaviour
                 _QRCodeDisplayImage.texture = _currentQRCode.GetQRCodeTexture();
                 _QRCodeSettingsPanel.SetActive(true);
             }
+            else if (Physics.Raycast(_ray, out RaycastHit _navhit) &&
+                    _navhit.collider.CompareTag("NavAgent") || _navMeshManager.isPlacingAgent) return;
             else
             {   // If not select an existing QR code, create a new one
-                if (_navMeshManager.isNavigationEnabled) return;
                 if (_currentQRCode != null)
                 {
                     if (_cursorPosition == new Vector3(9999, 9999, 9999)) return;

@@ -7,8 +7,6 @@ using TMPro;
 
 public class NavMeshManager : MonoBehaviour
 {
-    public bool isNavigationEnabled = false;
-
     [Header("Required Stuff")]
     [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private PolygonsManager _polygonsManager;
@@ -21,9 +19,18 @@ public class NavMeshManager : MonoBehaviour
     private GameObject _navAgent;
     private LineRenderer _pathLine;
     private InputMap _input;
-    private bool _placingAgent = false;
+    public bool isPlacingAgent = false;
 
-    private void Start()
+    private void OnEnable()
+    {
+        _input.RenderView.Enable();
+        _input.RenderView.Click.started += ctx => OnClick();
+        PlaceAgentPosition();
+    }
+
+    private void OnDisable() => _input.RenderView.Disable();
+
+    private void Awake()
     {
         _input = new InputMap();
         _navMeshSurface = this.GetComponent<NavMeshSurface>();
@@ -34,7 +41,7 @@ public class NavMeshManager : MonoBehaviour
     }
     private void Update()
     {
-        if (_placingAgent) _navAgent.transform.position = GetCursorPositionOnPlane();
+        if (isPlacingAgent) _navAgent.transform.position = GetCursorPositionOnPlane();
         if (_pathLine.gameObject.activeSelf) // Move the path line texture
             _pathLine.material.mainTextureOffset = new Vector2(-Time.time, 0);
     }
@@ -52,6 +59,7 @@ public class NavMeshManager : MonoBehaviour
         }
         else return _navAgent.transform.position;
     }
+
     public void SetDropdownOptions()
     {   // Set the dropdown options
         List<string> _rooms = new List<string>();
@@ -64,23 +72,29 @@ public class NavMeshManager : MonoBehaviour
 
     public void GenerateNavMesh() => _navMeshSurface.BuildNavMesh();
 
+    public void OnClick()
+    {   // On click set the agent position or start move it
+        if (isPlacingAgent) SetAgentPosition();
+        else
+        {   // If the agent is not moving, check if is clicked to move it
+            Ray ray = Camera.main.ScreenPointToRay(_input.RenderView.Position.ReadValue<Vector2>());
+            if (Physics.Raycast(ray, out RaycastHit hit) && hit.collider.CompareTag("NavAgent"))
+                PlaceAgentPosition();
+        }
+    }
+
     public void PlaceAgentPosition()
     {   // Place the agent in the clicked position
-        _input.RenderView.Enable();
-        _input.RenderView.Click.started += ctx => SetAgentPosition();
-
+        isPlacingAgent = true;
         _navAgent.SetActive(true);
-        _placingAgent = true;
         _pathLine.gameObject.SetActive(false);
         _placeMarker.SetActive(false);
-        isNavigationEnabled = true;
     }
 
     private void SetAgentPosition()
     {   // Set the agent position to the clicked position
         _navAgent.transform.position = GetCursorPositionOnPlane();
-        _input.RenderView.Disable();
-        _placingAgent = false;
+        isPlacingAgent = false;
         GeneratePath();
     }
 
@@ -93,7 +107,7 @@ public class NavMeshManager : MonoBehaviour
         // Get the destination point of the selected room
         string _roomName = _roomsDropdown.options[_roomsDropdown.value].text;
         PolygonController _room = _polygonsManager.polygons.Find(polygon => polygon.polygonLabel == _roomName);
-        Vector3 _destinationPoint = _room.GetPolygonCenter(true);
+        Vector3 _destinationPoint = _room.GetPolygonCentroid(true);
         _destinationPoint.y = 0.4f;
 
         // Calculate the path to the destination point and show it
@@ -117,11 +131,9 @@ public class NavMeshManager : MonoBehaviour
         _placeMarker.SetActive(true);
     }
 
-    public void HideNavigation()
-    {   // Hide the agent position and the path line
-        _navAgent.SetActive(false);
-        _pathLine.gameObject.SetActive(false);
-        _placeMarker.SetActive(false);
-        isNavigationEnabled = false;
+    public void ActivateNavigation()
+    {   // Activate or deactivate the navigation agent
+        if (this.gameObject.activeSelf) this.gameObject.SetActive(false);
+        else this.gameObject.SetActive(true);
     }
 }

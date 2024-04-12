@@ -247,7 +247,7 @@ public class PolygonsManager : MonoBehaviour
         foreach (PolygonController _polygon in polygons)
         {
             GameObject _label = Instantiate(_textlabelPrefab, Vector3.zero, Quaternion.identity, _labelsParent);
-            _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCenter());
+            _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCentroid());
             _label.GetComponent<TextMeshProUGUI>().text = _polygon.polygonLabel;
         }
     }
@@ -257,7 +257,7 @@ public class PolygonsManager : MonoBehaviour
         {
             if (i >= polygons.Count) break;
             Transform _label = _labelsParent.GetChild(i);
-            _label.position = Camera.main.WorldToScreenPoint(polygons[i].GetPolygonCenter());
+            _label.position = Camera.main.WorldToScreenPoint(polygons[i].GetPolygonCentroid());
         }
     }
     public void RemovePolygonsLabels()

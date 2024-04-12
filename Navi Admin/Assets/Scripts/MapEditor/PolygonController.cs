@@ -10,12 +10,11 @@ public class PolygonController : MonoBehaviour
     public List<WallDotController> nodes = new List<WallDotController>();
     [SerializeField] private List<Vector2> _polygonPoints2D;
 
-    [Header("Required Components")]
-    [SerializeField] private PolygonCollider2D _polygonCollider;
-    [SerializeField] private MeshFilter _meshFilter;
+    private PolygonCollider2D _polygonCollider;
+    private MeshFilter _meshFilter;
     public Material colorMaterial;
 
-    private void Start()
+    private void Awake()
     {
         colorMaterial = this.GetComponent<MeshRenderer>().material;
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
@@ -58,12 +57,29 @@ public class PolygonController : MonoBehaviour
         SetPolygonCollider();
     }
 
-    public Vector3 GetPolygonCenter(bool _3Dpolygon = false)
-    {   // Get the center of the polygon
-        Vector3 _center = Vector3.zero;
-        nodes.ForEach(node => _center += node.transform.position);
-        if (_3Dpolygon) _center = Quaternion.Euler(90, 0, 0) * _center;
-        _center /= nodes.Count;
-        return _center;
+    public Vector3 GetPolygonCentroid(bool _3Dpolygon = false)
+    {   // Get the centroid of the polygon
+        List<Vector2> _points2D = GetPoints2D();
+        if (_points2D.Count <= 4)
+        {   // If the polygon has less than 4 points, use the mesh center
+            Vector3 _centroid = _meshFilter.mesh.bounds.center;
+            if (_3Dpolygon) return Quaternion.Euler(90, 0, 0) * _centroid;
+            else return _centroid;
+        }
+        Vector3 centroid = Vector3.zero;
+        float signedArea = 0.0f;
+        for (int i = 0; i < _points2D.Count; i++)
+        {
+            int nextIndex = (i + 1) % _points2D.Count;
+            float a = _points2D[i].x * _points2D[nextIndex].y - _points2D[nextIndex].x * _points2D[i].y;
+            signedArea += a;
+            centroid.x += (_points2D[i].x + _points2D[nextIndex].x) * a;
+            centroid.y += (_points2D[i].y + _points2D[nextIndex].y) * a;
+        }
+        signedArea *= 0.3f;
+        centroid.x /= (6.0f * signedArea);
+        centroid.y /= (6.0f * signedArea);
+        if (_3Dpolygon) centroid = Quaternion.Euler(90, 0, 0) * centroid;
+        return centroid;
     }
 }

@@ -10,18 +10,14 @@ public class WallLineController : MonoBehaviour
     #region --- Public & Required Variables ---
     [Header("Wall Stuff")]
     public List<EntrancesController> entrancesList = new List<EntrancesController>();
-    public float length;
     public bool isDrawing = false;
+    public float length;
 
     [Header("Dots")]
     public WallDotController startDot;
     public WallDotController endDot;
     [SerializeField] private GameObject _dotPrefab;
     [SerializeField] private Transform _dotsParent;
-
-    [Header("Required Components")]
-    [SerializeField] private LineRenderer _lineRenderer;
-    [SerializeField] private PolygonCollider2D _polygonCollider;
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
@@ -49,11 +45,14 @@ public class WallLineController : MonoBehaviour
     private WallLineController _intersectionLine; // Moving line that is colliding with the static line
     #endregion
 
-    void Start()
+    private LineRenderer _lineRenderer;
+    private PolygonCollider2D _polygonCollider;
+
+    private void Awake()
     {
         _lineRenderer = this.GetComponent<LineRenderer>();
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
-        _dotsParent = GameObject.Find("LineDots").transform;
+        _dotsParent = GameObject.Find("WallDots").transform;
 
         Transform _renderParent = GameObject.Find("MapRenderView").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
@@ -198,6 +197,7 @@ public class WallLineController : MonoBehaviour
         _renderWall.transform.localRotation = Quaternion.Euler(90, 0, 0);
         _renderWall.transform.localPosition = new Vector3(0, _wallHeight, 0);
     }
+
     public Mesh GenerateMesh(Vector3[] _positions)
     {   // Generate the 3D mesh from line points
         Vector2[] _points = CalculateMeshPoints(_positions).ToArray();

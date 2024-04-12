@@ -44,6 +44,7 @@ public class RenderViewManager : MonoBehaviour
         _navMeshManager.gameObject.SetActive(true);
         _navMeshManager.SetDropdownOptions();
         _navMeshManager.GenerateNavMesh();
+        _navMeshManager.gameObject.SetActive(false);
     }
 
     public void BackToEditor()
@@ -58,7 +59,6 @@ public class RenderViewManager : MonoBehaviour
         _3DViewLayout.HideRenderInterface();
         ShowRenderElements(false);
 
-        _navMeshManager.HideNavigation();
         _navMeshManager.gameObject.SetActive(false);
     }
 

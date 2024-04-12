@@ -6,11 +6,14 @@ using UnityEngine;
 [RequireComponent(typeof(CircleCollider2D))]
 public class WallDotController : MonoBehaviour
 {
+    [Header("Related Stuff")]
     public List<WallDotController> neighborsDots = new List<WallDotController>();
     public List<PolygonController> polygons = new List<PolygonController>();
     public List<GameObject> lines = new List<GameObject>();
     public List<int> linesType = new List<int>();
     public int linesCount = 0;
+
+    [Header("Dot Settings")]
     public int dotIndex;
     public Vector3 position;
     public bool isOnEntranceDot;
@@ -20,7 +23,7 @@ public class WallDotController : MonoBehaviour
 
     private PolygonsManager _polygonsManager;
 
-    private void Start()
+    private void Awake()
     {
         _polygonsManager = FindObjectOfType<PolygonsManager>();
         _dotAnimator = GetComponent<Animator>();
@@ -34,7 +37,7 @@ public class WallDotController : MonoBehaviour
         name = "Dot_" + dotIndex;
     }
 
-    private void Update()
+    private void LateUpdate()
     {   // Delete the dot if it has no lines
         if (lines.Count == 0) DeleteDot();
         position = this.transform.position;

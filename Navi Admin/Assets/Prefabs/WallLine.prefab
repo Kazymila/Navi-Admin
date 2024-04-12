@@ -50,13 +50,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entrancesList: []
+  isDrawing: 0
   length: 0
   startDot: {fileID: 0}
   endDot: {fileID: 0}
   _dotPrefab: {fileID: 861134584662478616, guid: 07951ab49c3df4f4aa2749a6966e4947, type: 3}
   _dotsParent: {fileID: 0}
-  _lineRenderer: {fileID: 2168909941902409299}
-  _polygonCollider: {fileID: 605030445936951089}
   _renderPrefab: {fileID: 1181623390597465360, guid: 6e599d3fb571c0e428bc68b21f1a07a6, type: 3}
 --- !u!120 &2168909941902409299
 LineRenderer:
@@ -105,13 +104,13 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.3
+    widthMultiplier: 0.15
     widthCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.50000066
+        value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0

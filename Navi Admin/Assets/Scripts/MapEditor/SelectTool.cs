@@ -84,7 +84,7 @@ public class SelectTool : MonoBehaviour
         _polygonSettingsPanel.SetActive(false);
     }
 
-    private void Start()
+    private void Awake()
     {
         _wallSizeInput = _wallSettingsPanel.GetComponentInChildren<TMP_InputField>();
         _entranceSizeInput = _entranceSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();

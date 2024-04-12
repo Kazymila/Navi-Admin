@@ -2,9 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 using TMPro;
 
 public class WallDrawer : MonoBehaviour
@@ -14,7 +11,7 @@ public class WallDrawer : MonoBehaviour
     [SerializeField] private EditorLayoutController _UIEditorController;
     [SerializeField] private ErrorMessageController _errorMessageBox;
     [SerializeField] private MapEditorGridManager _gridManager;
-    [SerializeField] private GameObject _wallSizeLabel;
+    [SerializeField] private GameObject _sizeLabel;
 
     [Header("Dots settings")]
     [SerializeField] private GameObject _dotPrefab;
@@ -24,15 +21,13 @@ public class WallDrawer : MonoBehaviour
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
     #endregion
-
-    private RectTransform[] _UIRects;
     private GameObject _lineObject;
     private WallLineController _lineController;
     private WallDotController _startWallDot;
     private WallDotController _endWallDot;
     private float _wallWidth = 0.15f;
     private int _linesCount = 0;
-    private bool _drawingWall;
+    private bool _isDrawing;
 
     private InputMap _input;
 
@@ -60,12 +55,12 @@ public class WallDrawer : MonoBehaviour
 
     private void Update()
     {
-        if (_drawingWall && _UIEditorController.IsCursorOverEditorUI())
+        if (_isDrawing && _UIEditorController.IsCursorOverEditorUI())
         {   // Cancel the drawing if the cursor is outside the canvas
             CancelDraw();
             return;
         }
-        else if (_drawingWall && _lineObject != null)
+        else if (_isDrawing && _lineObject != null)
         {   // Drag the line updating the end dot position
             _endWallDot.SetPosition(GetCursorPosition());
             _endWallDot.dotCollider.enabled = false;
@@ -73,7 +68,7 @@ public class WallDrawer : MonoBehaviour
             _lineController.gameObject.GetComponent<LineRenderer>().endWidth = _wallWidth;
             WallSizeOnGUI();
         }
-        else _wallSizeLabel.SetActive(false);
+        else _sizeLabel.SetActive(false);
     }
 
     #region --- Wall Creation ---
@@ -87,15 +82,15 @@ public class WallDrawer : MonoBehaviour
         // If the cursor is over a dot, wall is created or finished here
         if (_raycastDot) OnSelectDot(_raycastDot);
 
-        else if (_lineObject == null && !_drawingWall)
+        else if (_lineObject == null && !_isDrawing)
         {   // Create the first dot and line
             _startWallDot = InstantiateWallDot(_cursorPosition);
             _endWallDot = InstantiateWallDot(_cursorPosition);
             _lineObject = CreateLine(_cursorPosition);
-            _drawingWall = true;
+            _isDrawing = true;
             _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
-        else if (_lineObject != null && _drawingWall)
+        else if (_lineObject != null && _isDrawing)
         {   // Set dot and add line from this last dot
             _endWallDot.SetPosition(GetCursorPosition());
 
@@ -144,7 +139,7 @@ public class WallDrawer : MonoBehaviour
             _endWallDot.DeleteDot(true);
         }
         _lineObject.GetComponent<WallLineController>().isDrawing = true;
-        _drawingWall = false;
+        _isDrawing = false;
         _endWallDot = null;
         _lineObject = null;
         _linesCount--;
@@ -154,13 +149,13 @@ public class WallDrawer : MonoBehaviour
     #region --- Dots Raycasting ---
     private void OnSelectDot(WallDotController _raycastDot)
     {
-        if (!_drawingWall)
+        if (!_isDrawing)
         {   // Create a line from the selected dot
             _startWallDot = _raycastDot;
             _raycastDot.PlaySelectAnimation();
             _endWallDot = InstantiateWallDot(_raycastDot.position);
             _lineObject = CreateLine(_raycastDot.position);
-            _drawingWall = true;
+            _isDrawing = true;
             _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
         else
@@ -210,15 +205,15 @@ public class WallDrawer : MonoBehaviour
         float _wallSize = _lineController.CalculateLength();
 
         if (_wallSize < 0.0001f)
-            _wallSizeLabel.SetActive(false);
+            _sizeLabel.SetActive(false);
         else
         {
             Vector3 _labelPosition = (_endWallDot.position + _startWallDot.position) / 2;
             _labelPosition = _labelPosition + new Vector3(0, 0.5f, 0);
 
-            _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
-            _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
-            _wallSizeLabel.SetActive(true);
+            _sizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
+            _sizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
+            _sizeLabel.SetActive(true);
         }
     }
     #endregion
