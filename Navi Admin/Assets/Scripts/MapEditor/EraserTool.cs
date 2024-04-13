@@ -37,6 +37,21 @@ public class EraserTool : MonoBehaviour
                 WallLineController _selectedLine = _hit.collider.GetComponent<WallLineController>();
                 _selectedLine.DestroyLine();
             }
+            else if (_hit.collider.CompareTag("ShapeDot"))
+            {   // Delete the selected shape
+                ShapeController _selectedShape = _hit.collider.transform.parent.GetComponent<ShapeController>();
+                _selectedShape.DestroyShape();
+            }
+            else if (_hit.collider.CompareTag("ShapeLine"))
+            {   // Delete the selected shape
+                ShapeController _selectedShape = _hit.collider.GetComponent<ShapeController>();
+                _selectedShape.DestroyShape();
+            }
+            else if (_hit.collider.CompareTag("ShapeMesh"))
+            {   // Delete the selected shape
+                GameObject _selectedShape = GameObject.Find("Shape_" + _hit.collider.name.Split("_")[1]);
+                _selectedShape.GetComponent<ShapeController>().DestroyShape();
+            }
         }
     }
 

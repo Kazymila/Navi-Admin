@@ -19,9 +19,10 @@ public class ShapeTool : MonoBehaviour
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
 
-    [Header("3D Render")]
+    [Header("Mesh settings")]
     [SerializeField] private GameObject _shapeMeshPrefab;
     [SerializeField] private Transform _shapesMeshParent;
+    [SerializeField] private Color _meshColor = new Color(0.26f, 0, 0.68f, 0.5f);
     #endregion
     private ShapeController _currentShape;
     private int _shapesCount = 0;
@@ -42,7 +43,7 @@ public class ShapeTool : MonoBehaviour
     private Vector3 GetCursorPosition(bool _considerSnap = true)
     {   // Get the cursor position in the world
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
-        _cursorPosition.z = 0;
+        _cursorPosition.z = -0.2f;
 
         if (_gridManager.snapToGrid && _considerSnap)
         {
@@ -74,15 +75,19 @@ public class ShapeTool : MonoBehaviour
             GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _linesParent);
             _currentShape = _newShape.GetComponent<ShapeController>();
             _newShape.name = "Shape_" + _shapesCount;
+            InstantiateDot(_cursorPosition);
             _shapesCount++;
-
-            GameObject _startDot = Instantiate(_dotPrefab, _cursorPosition, Quaternion.Euler(-90, 0, 0), _currentShape.transform);
-            _currentShape.AddPoint(_startDot.transform);
         }
-
-        GameObject _newDot = Instantiate(_dotPrefab, _cursorPosition, Quaternion.Euler(-90, 0, 0), _currentShape.transform);
-        _currentShape.AddPoint(_newDot.transform);
+        InstantiateDot(_cursorPosition);
         _isDrawing = true;
+    }
+
+    private void InstantiateDot(Vector3 _position)
+    {   // Instantiate a new dot in the current shape
+        GameObject _newDot = Instantiate(_dotPrefab, _position + _currentShape.dotOffset,
+                            Quaternion.Euler(-90, 0, 0), _currentShape.transform);
+        _newDot.name = "ShapeDot_" + _currentShape.GetPointsCount();
+        _currentShape.AddPoint(_newDot.transform);
     }
 
     private void EndShape()
@@ -91,9 +96,12 @@ public class ShapeTool : MonoBehaviour
         _currentShape.RemoveLastPoint();
         _currentShape.EndShape();
 
-        GameObject _newShapeMesh = Instantiate(_shapeMeshPrefab, Vector3.zero, Quaternion.identity, _shapesMeshParent);
-        _newShapeMesh.name = "ShapeMesh_" + (_shapesCount - 1);
-        _currentShape.CreateShapeMesh(_newShapeMesh);
+        // Create the mesh (polygon) of the shape
+        GameObject _newShapeMesh = Instantiate(_shapeMeshPrefab,
+            Vector3.zero + new Vector3(0, 0, -0.1f), Quaternion.identity, _shapesMeshParent);
+        _newShapeMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _meshColor);
+        _newShapeMesh.name = "ShapePolygon_" + (_shapesCount - 1);
+        _currentShape.CreatePolygonMesh(_newShapeMesh);
         _currentShape = null;
         _isDrawing = false;
     }

@@ -77,7 +77,7 @@ public class PolygonsManager : MonoBehaviour
     {   // Create a polygon from the given cycle nodes
         GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
         PolygonController _polygonController = _polygon.GetComponent<PolygonController>();
-        _polygonController.colorMaterial.SetColor("_Color1", new Color(0.5f, 0.5f, 0.5f, 0.5f));
+
         _cycleNodes.ForEach(nodeIndex =>
         {   // Add the nodes to the polygon and the polygon to the nodes
             WallDotController _dot = _nodesParent.transform.GetChild(nodeIndex).GetComponent<WallDotController>();

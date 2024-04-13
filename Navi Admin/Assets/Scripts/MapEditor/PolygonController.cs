@@ -21,6 +21,7 @@ public class PolygonController : MonoBehaviour
         _meshFilter = this.GetComponent<MeshFilter>();
 
         colorMaterial.SetColor("_Color1", new Color(0.5f, 0.5f, 0.5f, 0.5f));
+        transform.position = new Vector3(0, 0, 0.1f);
     }
     public List<Vector2> GetPoints2D()
     {   // Get the 2D points of the polygon

@@ -14,13 +14,17 @@ public class RenderViewManager : MonoBehaviour
     [SerializeField] private PolygonsManager _polygonsManager;
     [SerializeField] private NavMeshManager _navMeshManager;
 
+    [Header("Render Elements")]
+    [SerializeField] private Transform _wallParent;
+    [SerializeField] private Transform _shapesParent;
+    [SerializeField] private Transform _shapeRenderParent;
+    [SerializeField] private Material _shapeRenderMaterial;
+
     private MapEditorCameraManager _cameraManager;
-    private GameObject _wallLines;
 
     void Start()
     {
         _cameraManager = Camera.main.GetComponent<MapEditorCameraManager>();
-        _wallLines = _mapDrawLayout.transform.GetChild(0).gameObject;
     }
 
     private void ShowRenderElements(bool show)
@@ -63,11 +67,13 @@ public class RenderViewManager : MonoBehaviour
     }
 
     private void GenerateMapRender()
-    {   // Generate the map render elements (walls, polygons)
-        for (int i = 0; i < _wallLines.transform.childCount; i++)
-        {
-            _wallLines.transform.GetChild(i).GetComponent<WallLineController>().GenerateWallMesh();
-        }
+    {   // Generate the map render elements (walls, polygons, shapes)
+        for (int i = 0; i < _wallParent.childCount; i++)
+            _wallParent.GetChild(i).GetComponent<WallLineController>().GenerateWallMesh();
+        for (int i = 0; i < _shapesParent.childCount; i++)
+            _shapesParent.GetChild(i).GetComponent<ShapeController>().GenerateShapeMesh(
+                _shapeRenderParent, _shapeRenderMaterial);
+
         _polygonsManager.Generate2DPolygons();
         _polygonsManager.RemovePolygonsLabels();
         _polygonsManager.Generate3DPolygons();
