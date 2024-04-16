@@ -65,20 +65,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\UI\MapEditorCanvasManager.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\BoyerMyrvold.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\PlanarFaceTraversal\BasePlanarFaceTraversalVisitor.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Tools\EraserTool.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserWindows.cs" />
     <Compile Include="Assets\Input\InputMap.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\Internal\LinkedListExtensions.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\PlanarFaceTraversal\PlanarFaceTraversal.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\Algorithms\DFSTraversal.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\Algorithms\IDFSTraversalVisitor.cs" />
     <Compile Include="Assets\Scripts\Utils\JsonDataService.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\Internal\DFSTraversalVisitor.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\PlanarFaces.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\PlanarEmbedding.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorCameraManager.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Controllers\WallDotController.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\Internal\Vertex.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowser.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Render3DManager.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\Internal\BucketSort.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleSaveFileText.cs" />
     <Compile Include="Assets\Scripts\UI\EditorLayoutController.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\GetPlanarFacesVisitor.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Controllers\WallLineController.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapViewManager.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\BoyerMyrvold\Internal\FaceHandle.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserEditor.cs" />
     <Compile Include="Assets\Scripts\UI\ErrorMessageController.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\Algorithms\BaseDFSTraversalVisitor.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Controllers\PolygonsManager.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileTextMultiple.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapEditorGridManager.cs" />
@@ -89,8 +103,12 @@
     <Compile Include="Assets\Scripts\MapEditor\Tools\NavMeshManager.cs" />
     <Compile Include="Assets\Scripts\Utils\Triangulator.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Tools\EntrancesTool.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\PlanarityTesting\PlanarFaceTraversal\IPlanarFaceTraversalVisitor.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\DataStructures\IEdge.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Tools\SelectTool.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\DataStructures\IGraph.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Tools\ShapeTool.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\DataStructures\UndirectedAdjacencyListGraph.cs" />
     <Compile Include="Assets\Scripts\MapEditor\MapDataModel.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleSaveFileImage.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\IStandaloneFileBrowser.cs" />
@@ -99,6 +117,7 @@
     <Compile Include="Assets\Scripts\MapEditor\Tools\QRCodesManager.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileText.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\BasicSample.cs" />
+    <Compile Include="Assets\Scripts\Utils\GraphPlanarityTesting\Graphs\DataStructures\Edge.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\Sample\CanvasSampleOpenFileImage.cs" />
     <Compile Include="Assets\StandaloneFileBrowser\StandaloneFileBrowserMac.cs" />
     <Compile Include="Assets\Scripts\MapEditor\Controllers\ShapeController.cs" />

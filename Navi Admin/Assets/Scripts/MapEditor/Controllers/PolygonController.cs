@@ -9,13 +9,14 @@ public class PolygonController : MonoBehaviour
     public string polygonLabel;
     public List<WallDotController> nodes = new List<WallDotController>();
     [SerializeField] private List<Vector2> _polygonPoints2D;
-
+    private PolygonsManager _polygonsManager;
     private PolygonCollider2D _polygonCollider;
     private MeshFilter _meshFilter;
     public Material colorMaterial;
 
     private void Awake()
     {
+        _polygonsManager = GameObject.Find("PolygonsManager").GetComponent<PolygonsManager>();
         colorMaterial = this.GetComponent<MeshRenderer>().material;
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
         _meshFilter = this.GetComponent<MeshFilter>();
@@ -33,7 +34,14 @@ public class PolygonController : MonoBehaviour
 
     public void SetPolygonCollider()
     {   // Set the polygon collider points
-        _polygonCollider.points = _polygonPoints2D.ToArray();
+        Vector2[] _points = GetPoints2D().ToArray();
+        Vector2 _centroid = GetPolygonCentroid();
+
+        for (int i = 0; i < _points.Length; i++)
+        {   // reduce the area to center of the collider to avoid overlapping
+            _points[i] = Vector2.Lerp(_points[i], _centroid, 0.015f);
+        }
+        _polygonCollider.points = _points;
     }
 
     public void CreatePolygonMesh()
@@ -82,5 +90,31 @@ public class PolygonController : MonoBehaviour
         centroid.y /= (6.0f * signedArea);
         if (_3Dpolygon) centroid = Quaternion.Euler(90, 0, 0) * centroid;
         return centroid;
+    }
+
+    public float GetPolygonArea()
+    {   // Get the area of the polygon
+        List<Vector2> _points2D = GetPoints2D();
+        float _area = 0;
+        int j = _points2D.Count - 1;
+        for (int i = 0; i < _points2D.Count; i++)
+        {
+            _area += (_points2D[j].x + _points2D[i].x) * (_points2D[j].y - _points2D[i].y);
+            j = i;
+        }
+        return Mathf.Abs(_area / 2);
+    }
+
+    private void OnTriggerEnter2D(Collider2D _collision)
+    {   // Check if the polygon is colliding with another polygon
+        if (_collision.gameObject.tag == "Polygon")
+        {   // If the polygon has more nodes than the collided polygon, destroy it
+            PolygonController _polygon = _collision.gameObject.GetComponent<PolygonController>();
+            if (GetPolygonArea() > _polygon.GetPolygonArea())
+            {
+                _polygonsManager.polygons.Remove(this);
+                Destroy(this.gameObject);
+            }
+        }
     }
 }

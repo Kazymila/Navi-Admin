@@ -70,7 +70,7 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
 
         // Enable the polygons manager
-        _polygonsManager.Generate2DPolygons();
+        _polygonsManager.GeneratePolygons();
         _polygonsParent.SetActive(true);
     }
     private void OnDisable()

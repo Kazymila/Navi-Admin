@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7619371669937802832}
   - component: {fileID: 4863921709624461580}
   - component: {fileID: 8451595172386609970}
+  - component: {fileID: 5293338484555012315}
   m_Layer: 0
   m_Name: Polygon
   m_TagString: Polygon
@@ -50,8 +51,6 @@ MonoBehaviour:
   polygonLabel: 
   nodes: []
   _polygonPoints2D: []
-  _polygonCollider: {fileID: 8451595172386609970}
-  _meshFilter: {fileID: 7619371669937802832}
   colorMaterial: {fileID: 2100000, guid: 2b51e65e1855282478b3e7a92df5d3b8, type: 2}
 --- !u!33 &7619371669937802832
 MeshFilter:
@@ -132,7 +131,7 @@ PolygonCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -153,3 +152,30 @@ PolygonCollider2D:
       - {x: 0.58778536, y: -0.80901694}
       - {x: 0.9510565, y: 0.30901712}
   m_UseDelaunayMesh: 0
+--- !u!50 &5293338484555012315
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5038396249938817196}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

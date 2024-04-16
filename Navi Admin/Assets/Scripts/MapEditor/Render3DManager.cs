@@ -75,7 +75,7 @@ public class Render3DManager : MonoBehaviour
             _shapesParent.GetChild(i).GetComponent<ShapeController>().GenerateShapeMesh(
                 _shapeRenderParent, _shapeRenderMaterial);
 
-        _polygonsManager.Generate2DPolygons();
+        _polygonsManager.GeneratePolygons();
         _polygonsManager.RemovePolygonsLabels();
         _polygonsManager.Generate3DPolygons();
     }
