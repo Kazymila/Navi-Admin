@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using GraphPlanarityTesting.Graphs.DataStructures;
@@ -99,12 +100,12 @@ public class PolygonsManager : MonoBehaviour
         }
     }
 
-    public void CreatePolygon(List<int> _cycleNodes)
+    public void CreatePolygon(List<int> _faceNodes)
     {   // Create a polygon from the given cycle nodes
         GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
         PolygonController _polygonController = _polygon.GetComponent<PolygonController>();
 
-        _cycleNodes.ForEach(nodeIndex =>
+        _faceNodes.ForEach(nodeIndex =>
         {   // Add the nodes to the polygon and the polygon to the nodes
             WallDotController _dot = _nodesParent.transform.GetChild(nodeIndex).GetComponent<WallDotController>();
             _dot.polygons.Add(_polygonController);
@@ -126,8 +127,25 @@ public class PolygonsManager : MonoBehaviour
 
         var _faces = boyerMyrvold.TryGetPlanarFaces(_graph, out var planarFaces);
 
-        // If the graph is planar, get the faces
-        if (_faces) return planarFaces.Faces;
+        if (_faces)
+        {   // If the graph is planar, return the faces (with no duplicates)
+            List<List<int>> _uniqueFaces = new List<List<int>>();
+            foreach (var face in planarFaces.Faces)
+            {
+                bool _faceEqual = false;
+                foreach (var anotherFace in _uniqueFaces)
+                {
+                    if (face == anotherFace) continue;
+                    if (new HashSet<int>(face).SetEquals(anotherFace))
+                    {
+                        _faceEqual = true;
+                        break;
+                    }
+                }
+                if (!_faceEqual) _uniqueFaces.Add(face);
+            }
+            return _uniqueFaces;
+        }
         else return null; // If the graph is not planar, return null
     }
 

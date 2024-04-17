@@ -179,9 +179,6 @@ public class WallDrawer : MonoBehaviour
                 _endWallDot = InstantiateWallDot(_cursorPosition);
                 _lineObject = CreateLine(_cursorPosition);
                 _startWallDot.SetPosition(_raycastDot.position);
-
-                if (_startWallDot.GetComponent<WallDotController>().CheckForCycle())
-                    print("Cycle detected");
             }
         }
     }

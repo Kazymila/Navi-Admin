@@ -20,11 +20,8 @@ public class WallDotController : MonoBehaviour
     public CircleCollider2D dotCollider;
     private Animator _dotAnimator;
 
-    private PolygonsManager _polygonsManager;
-
     private void Awake()
     {
-        _polygonsManager = FindObjectOfType<PolygonsManager>();
         _dotAnimator = GetComponent<Animator>();
         dotCollider = GetComponent<CircleCollider2D>();
         transform.localRotation = Quaternion.Euler(-90, 0, 0);
@@ -113,12 +110,6 @@ public class WallDotController : MonoBehaviour
     {   // Find a neighbor dot in the list
         if (neighborsDots.Contains(_neighborDot)) return true;
         else return false;
-    }
-
-    public bool CheckForCycle()
-    {   // Check if the dots are creating a cycle
-        // TODO
-        return true;
     }
 
     #region --- Trigger Events ---
