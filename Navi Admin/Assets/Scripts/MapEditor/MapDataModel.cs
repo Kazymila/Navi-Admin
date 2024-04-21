@@ -21,7 +21,7 @@ namespace MapDataModel
         public string floorName;
         public NodeData[] nodes;
         public WallData[] walls;
-        public PolygonData[] polygons;
+        public RoomData[] rooms;
         public ShapeData[] shapes;
         public QRCodeData[] qrCodes;
     }
@@ -29,20 +29,20 @@ namespace MapDataModel
     [Serializable]
     public class NodeData
     {
-        public string nodeName;
+        public int nodeID;
         public SerializableVector3 nodePosition;
-        public string[] neighborsNodes;
-        public string[] polygons;
-        public string[] walls;
-        public int[] linesType;
+        public int[] neighborsNodes;
+        public int[] polygons;
+        public int[] walls;
     }
     [Serializable]
     public class WallData
     {
-        public string wallName;
+        public int wallID;
         public float wallLenght;
-        public string startNode;
-        public string endNode;
+        public int startNode;
+        public int endNode;
+        public int[] polygons;
         public EntranceData[] entrances;
     }
     [Serializable]
@@ -50,21 +50,28 @@ namespace MapDataModel
     {
         public string entranceName;
         public float entranceWidth;
-        public SerializableVector3 startPosition;
-        public SerializableVector3 endPosition;
+        public SerializableVector3 entrancePosition;
+        public SerializableVector3 startNodePosition;
+        public SerializableVector3 endNodePosition;
     }
     [Serializable]
-    public class PolygonData
+    public class RoomData
     {
-        public string polygonName;
+        public int roomID;
+        public string roomName;
+        public int[] nodes;
+        public int[] walls;
         public SerializableColor polygonColor;
         public SerializableVector3[] vertices;
+        public int[] triangles;
     }
     [Serializable]
     public class ShapeData
     {
+        public int shapeID;
         public string shapeName;
         public SerializableVector3[] vertices;
+        public int[] triangles;
     }
     [Serializable]
     public class QRCodeData
@@ -92,21 +99,32 @@ namespace MapDataModel
     public class ARFloorData
     {
         public string floorName;
-        public WallModelData[] walls;
-        public PolygonData[] polygons;
-        public ShapeModelData[] shapes;
+        public WallRenderData[] walls;
+        public RoomRenderData[] rooms;
+        public ShapeRenderData[] shapes;
     }
 
     [Serializable]
-    public class WallModelData
+    public class WallRenderData
     {
-        public string wallName;
+        public int wallID;
         public SerializableVector3[] vertices;
         public int[] triangles;
     }
-    [Serializable]
-    public class ShapeModelData
+    public class RoomRenderData
     {
+        public int roomID;
+        public string roomName;
+        public SerializableVector3[] entrancesPoints;
+        public SerializableColor polygonColor;
+        public SerializableVector3[] vertices;
+        public int[] triangles;
+    }
+
+    [Serializable]
+    public class ShapeRenderData
+    {
+        public int shapeID;
         public string shapeName;
         public SerializableVector3[] vertices;
         public int[] triangles;

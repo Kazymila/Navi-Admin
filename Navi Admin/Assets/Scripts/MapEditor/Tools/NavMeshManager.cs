@@ -9,17 +9,20 @@ public class NavMeshManager : MonoBehaviour
 {
     [Header("Required Stuff")]
     [SerializeField] private ErrorMessageController _errorMessageBox;
-    [SerializeField] private PolygonsManager _polygonsManager;
+    [SerializeField] private RoomsManager _polygonsManager;
     [SerializeField] private TMP_Dropdown _roomsDropdown;
 
     [Header("Navigation Settings")]
     [SerializeField] private LayerMask _navLayerMask;
+    [SerializeField] private bool _navToDoor = true;
     private NavMeshSurface _navMeshSurface;
     private GameObject _placeMarker;
     private GameObject _navAgent;
     private LineRenderer _pathLine;
     private InputMap _input;
+
     public bool isPlacingAgent = false;
+    public string inAgentRoom;
 
     private void OnEnable()
     {
@@ -62,9 +65,8 @@ public class NavMeshManager : MonoBehaviour
 
     public void SetDropdownOptions()
     {   // Set the dropdown options
-        List<string> _rooms = new List<string>();
-        _rooms.Add("Select a room");
-        _polygonsManager.polygons.ForEach(polygon => _rooms.Add(polygon.polygonLabel));
+        List<string> _rooms = new List<string> { "Select a room" };
+        _polygonsManager.rooms.ForEach(polygon => _rooms.Add(polygon.roomName));
 
         _roomsDropdown.ClearOptions();
         _roomsDropdown.AddOptions(_rooms);
@@ -94,8 +96,20 @@ public class NavMeshManager : MonoBehaviour
     private void SetAgentPosition()
     {   // Set the agent position to the clicked position
         _navAgent.transform.position = GetCursorPositionOnPlane();
+        inAgentRoom = GetAgentRoom();
         isPlacingAgent = false;
         GeneratePath();
+    }
+
+    private string GetAgentRoom()
+    {   // Get the room where the agent is placed
+        Ray ray = new Ray(_navAgent.transform.position + new Vector3(0, 0.5f, 0), Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _navLayerMask))
+        {   // If the ray hits the navigation layer, return the room name
+            return hit.collider.name;
+        }
+        else return "";
     }
 
     public void GeneratePath()
@@ -106,8 +120,16 @@ public class NavMeshManager : MonoBehaviour
 
         // Get the destination point of the selected room
         string _roomName = _roomsDropdown.options[_roomsDropdown.value].text;
-        PolygonController _room = _polygonsManager.polygons.Find(polygon => polygon.polygonLabel == _roomName);
-        Vector3 _destinationPoint = _room.GetPolygonCentroid(true);
+        RoomController _room = _polygonsManager.rooms.Find(polygon => polygon.roomName == _roomName);
+        Vector3 _destinationPoint = Vector3.zero;
+
+        if (inAgentRoom == _roomName) _navToDoor = false;
+        else _navToDoor = false; // If the agent is not in the selected room, navigate to the door
+
+        // TOOD: Fix the destination point when are more than one door in the path
+
+        if (_navToDoor) _destinationPoint = _room.GetClosestDoor(_navAgent.transform.position);
+        if (!_navToDoor || _destinationPoint == Vector3.zero) _destinationPoint = _room.GetPolygonCentroid(true);
         _destinationPoint.y = 0.4f;
 
         // Calculate the path to the destination point and show it
@@ -125,7 +147,6 @@ public class NavMeshManager : MonoBehaviour
             _pathLine.SetPositions(_path.corners);
             _pathLine.gameObject.SetActive(true);
         }
-
         // Place the marker in the destination point
         _placeMarker.transform.position = _destinationPoint + new Vector3(0, 0.1f, 0);
         _placeMarker.SetActive(true);

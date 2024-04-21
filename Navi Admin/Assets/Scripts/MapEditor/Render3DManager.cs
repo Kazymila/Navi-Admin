@@ -11,7 +11,7 @@ public class Render3DManager : MonoBehaviour
 
     [Header("Managers")]
     [SerializeField] private MapEditorGridManager _gridManager;
-    [SerializeField] private PolygonsManager _polygonsManager;
+    [SerializeField] private RoomsManager _roomsManager;
     [SerializeField] private NavMeshManager _navMeshManager;
 
     [Header("Render Elements")]
@@ -75,9 +75,8 @@ public class Render3DManager : MonoBehaviour
             _shapesParent.GetChild(i).GetComponent<ShapeController>().GenerateShapeMesh(
                 _shapeRenderParent, _shapeRenderMaterial);
 
-        _polygonsManager.GeneratePolygons();
-        _polygonsManager.RemovePolygonsLabels();
-        _polygonsManager.Generate3DPolygons();
+        _roomsManager.RemoveRoomsLabels();
+        _roomsManager.Generate3DPolygons();
     }
 
     public ARFloorData GetRenderData()
@@ -87,9 +86,9 @@ public class Render3DManager : MonoBehaviour
 
         ARFloorData _floorData = new ARFloorData();
         _floorData.floorName = "Floor 1";
-        _floorData.walls = new WallModelData[_wallParent.childCount];
-        _floorData.polygons = new PolygonData[_polygonsManager.polygons.Count];
-        _floorData.shapes = new ShapeModelData[_shapesParent.childCount];
+        _floorData.walls = new WallRenderData[_wallParent.childCount];
+        _floorData.rooms = new RoomRenderData[_roomsManager.rooms.Count];
+        _floorData.shapes = new ShapeRenderData[_shapesParent.childCount];
 
         for (int i = 0; i < _wallParent.childCount; i++)
             _floorData.walls[i] = _wallParent.GetChild(i).GetComponent<WallLineController>().GetWallRenderData();
@@ -97,7 +96,7 @@ public class Render3DManager : MonoBehaviour
         for (int i = 0; i < _shapesParent.childCount; i++)
             _floorData.shapes[i] = _shapesParent.GetChild(i).GetComponent<ShapeController>().GetShapeRenderData();
 
-        _floorData.polygons = _polygonsManager.GetPolygonsData(true);
+        _floorData.rooms = _roomsManager.GetRoomsRenderData();
         return _floorData;
     }
 }

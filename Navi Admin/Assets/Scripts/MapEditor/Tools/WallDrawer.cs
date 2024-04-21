@@ -23,8 +23,8 @@ public class WallDrawer : MonoBehaviour
     #endregion
     private GameObject _lineObject;
     private WallLineController _lineController;
-    private WallDotController _startWallDot;
-    private WallDotController _endWallDot;
+    private WallNodeController _startWallDot;
+    private WallNodeController _endWallDot;
     private float _wallWidth = 0.15f;
     private int _linesCount = 0;
     private bool _isDrawing;
@@ -75,7 +75,7 @@ public class WallDrawer : MonoBehaviour
     private void NewWall()
     {   // Create a new wall with the line and the start and end dots
         if (_UIEditorController.IsCursorOverEditorUI()) return;
-        WallDotController _raycastDot = RaycastToDot();
+        WallNodeController _raycastDot = RaycastToDot();
         Vector3 _cursorPosition = GetCursorPosition(true);
         if (_endWallDot) _endWallDot.dotCollider.enabled = true;
 
@@ -118,25 +118,25 @@ public class WallDrawer : MonoBehaviour
         return _newLine;
     }
 
-    private void SetLineDots(GameObject _line, WallDotController _startDot, WallDotController _endDot)
+    private void SetLineDots(GameObject _line, WallNodeController _startDot, WallNodeController _endDot)
     {   // Set the dots of a line and add the line to the dots
-        _lineController.startDot = _startDot;
-        _lineController.endDot = _endDot;
+        _lineController.startNode = _startDot;
+        _lineController.endNode = _endDot;
         _startDot.AddLine(_line, 0, _endDot);
         _endDot.AddLine(_line, 1, _startDot);
     }
-    private WallDotController InstantiateWallDot(Vector3 _position)
+    private WallNodeController InstantiateWallDot(Vector3 _position)
     {   // Instantiate a wall dot and atach it to a line
         GameObject _wallDot = Instantiate(_dotPrefab, _position, Quaternion.identity, _dotsParent);
-        return _wallDot.GetComponent<WallDotController>();
+        return _wallDot.GetComponent<WallNodeController>();
     }
 
     private void CancelDraw()
     {   // Cancel the current line drawing
         if (_endWallDot != null)
         {
-            _startWallDot.DeleteLine(_startWallDot.lines.IndexOf(_lineObject));
-            _endWallDot.DeleteDot(true);
+            _startWallDot.DeleteLine(_startWallDot.walls.IndexOf(_lineObject));
+            _endWallDot.DeleteNode(true);
         }
         _lineObject.GetComponent<WallLineController>().isDrawing = true;
         _isDrawing = false;
@@ -147,7 +147,7 @@ public class WallDrawer : MonoBehaviour
     #endregion
 
     #region --- Dots Raycasting ---
-    private void OnSelectDot(WallDotController _raycastDot)
+    private void OnSelectDot(WallNodeController _raycastDot)
     {
         if (!_isDrawing)
         {   // Create a line from the selected dot
@@ -160,7 +160,7 @@ public class WallDrawer : MonoBehaviour
         }
         else
         {   // If was already drawing, the selected dot is setted as the end dot
-            if (_raycastDot.FindNeighborDot(_startWallDot))
+            if (_raycastDot.FindNeighborNode(_startWallDot))
             {   // Iif the dots are already connected, cannot set the dot here
                 _errorMessageBox.ShowTimedMessage("DotsAlreadyConnected", 2);
                 _raycastDot.PlayDeniedAnimation();
@@ -172,7 +172,7 @@ public class WallDrawer : MonoBehaviour
 
                 _endWallDot.SetPosition(_raycastDot.position);
                 SetLineDots(_lineObject, _startWallDot, _raycastDot);
-                _endWallDot.DeleteDot(false);
+                _endWallDot.DeleteNode(false);
                 _endWallDot = _raycastDot;
 
                 _startWallDot = _endWallDot;
@@ -183,13 +183,13 @@ public class WallDrawer : MonoBehaviour
         }
     }
 
-    private WallDotController RaycastToDot()
+    private WallNodeController RaycastToDot()
     {   // Raycast to the dots to check if the mouse is over one of them
         RaycastHit2D _hit = Physics2D.Raycast(GetCursorPosition(), Vector2.zero);
 
         if (_hit.collider != null && _hit.collider.CompareTag("WallDot"))
         {
-            WallDotController _dot = _hit.collider.GetComponent<WallDotController>();
+            WallNodeController _dot = _hit.collider.GetComponent<WallNodeController>();
             return _dot;
         }
         else return null;

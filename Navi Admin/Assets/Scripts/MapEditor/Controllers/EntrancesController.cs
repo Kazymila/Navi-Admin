@@ -30,7 +30,7 @@ public class EntrancesController : MonoBehaviour
         this.transform.localPosition = new Vector3(
             this.transform.localPosition.x,
             this.transform.localPosition.y,
-            -0.25f);
+            0.0f);
         PlayMovingAnimation();
     }
 
@@ -51,13 +51,20 @@ public class EntrancesController : MonoBehaviour
         return lenght;
     }
 
+    public Vector3 GetEntranceCenter(bool _in3DRender = false)
+    {   // Get the center point of the entrance
+        if (_in3DRender)
+            return Quaternion.Euler(90, 0, 0) * (transform.position + new Vector3(0, 0, 0.25f));
+        else return transform.position;
+    }
+
     public void DestroyEntrance()
     {   // Delete the entrance and its references
-        entranceWall.entrancesList.Remove(this);
+        entranceWall.entrances.Remove(this);
         Destroy(this.gameObject);
     }
 
-    #region --- Entrance Position ---
+    #region --- Entrance Manipulation ---
     private Vector3 GetProjectedPointOnWall(Vector3 _cursorPosition, Vector3 _startWallDot, Vector3 _endWallDot)
     {   // Project the cursor position on the wall line and return the projected point
         _cursorPosition.z = 0;
@@ -89,26 +96,26 @@ public class EntrancesController : MonoBehaviour
 
     public void SetFullWallEntrance()
     {   // Set the entrance on the wall limits
-        _lineRenderer.SetPosition(0, entranceWall.startDot.position + new Vector3(0, 0, -0.25f));
-        _lineRenderer.SetPosition(1, entranceWall.endDot.position + new Vector3(0, 0, -0.25f));
+        _lineRenderer.SetPosition(0, entranceWall.startNode.position + new Vector3(0, 0, -0.25f));
+        _lineRenderer.SetPosition(1, entranceWall.endNode.position + new Vector3(0, 0, -0.25f));
 
-        startDot.transform.position = entranceWall.startDot.position + new Vector3(0, 0, -0.5f);
-        endDot.transform.position = entranceWall.endDot.position + new Vector3(0, 0, -0.5f);
+        startDot.transform.position = entranceWall.startNode.position + new Vector3(0, 0, -0.5f);
+        endDot.transform.position = entranceWall.endNode.position + new Vector3(0, 0, -0.5f);
 
         SetLineCollider();
     }
 
     public void SetEntrancePositionFromCursor(Vector3 _position, WallLineController _wall)
     {   // Set the entrance by cursor distance to wall
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startDot.position, _wall.endDot.position);
-        Vector3 _direction = (_wall.endDot.position - _wall.startDot.position).normalized;
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.position, _wall.endNode.position);
+        Vector3 _direction = (_wall.endNode.position - _wall.startNode.position).normalized;
 
         // Check if the entrance is out of the wall limits and re position it
-        if (Vector3.Distance(_projectedPos, _wall.startDot.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.startDot.position + _direction * ((lenght / 2));
+        if (Vector3.Distance(_projectedPos, _wall.startNode.position) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.startNode.position + _direction * ((lenght / 2));
 
-        else if (Vector3.Distance(_projectedPos, _wall.endDot.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.endDot.position - _direction * ((lenght / 2));
+        else if (Vector3.Distance(_projectedPos, _wall.endNode.position) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.endNode.position - _direction * ((lenght / 2));
 
         SetEntrancePosition(_projectedPos, _direction);
         entranceWall = _wall;
@@ -116,8 +123,8 @@ public class EntrancesController : MonoBehaviour
 
     public void RepositionEntranceOnWall(Vector3 _position, WallLineController _wall)
     {   // Reposition the entrance on wall
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startDot.position, _wall.endDot.position);
-        Vector3 _direction = (_wall.endDot.position - _wall.startDot.position).normalized;
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.position, _wall.endNode.position);
+        Vector3 _direction = (_wall.endNode.position - _wall.startNode.position).normalized;
 
         if (lenght >= _wall.length)
         {   // If the entrance is bigger than the wall, set entrance to same size
@@ -126,20 +133,19 @@ public class EntrancesController : MonoBehaviour
             SetFullWallEntrance();
             return;
         }
-        if (Vector3.Distance(_projectedPos, _wall.startDot.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.startDot.position + _direction * ((lenght / 2));
+        if (Vector3.Distance(_projectedPos, _wall.startNode.position) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.startNode.position + _direction * ((lenght / 2));
 
-        else if (Vector3.Distance(_projectedPos, _wall.endDot.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.endDot.position - _direction * ((lenght / 2));
+        else if (Vector3.Distance(_projectedPos, _wall.endNode.position) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.endNode.position - _direction * ((lenght / 2));
 
         SetEntrancePosition(_projectedPos, _direction);
         entranceWall = _wall;
     }
-    #endregion
 
     public void MoveEntranceDot(Vector3 _position, GameObject _dot)
     {   // Move the entrance dot to the cursor position resizing the entrance
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, entranceWall.startDot.position, entranceWall.endDot.position);
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, entranceWall.startNode.position, entranceWall.endNode.position);
         Vector3 _otherDotPosition = _dot == startDot ? endDot.transform.position : startDot.transform.position;
         _otherDotPosition.z = 0;
 
@@ -167,6 +173,7 @@ public class EntrancesController : MonoBehaviour
         lenght = _newLenght;
         RepositionEntranceOnWall(this.transform.localPosition, entranceWall);
     }
+    #endregion
 
     #region --- Line Collider ---
     public void SetLineCollider()

@@ -24,8 +24,8 @@ public class EraserTool : MonoBehaviour
         {
             if (_hit.collider.CompareTag("WallDot"))
             {  // Delete the selected dot
-                WallDotController _selectedDot = _hit.collider.GetComponent<WallDotController>();
-                _selectedDot.DeleteDot();
+                WallNodeController _selectedDot = _hit.collider.GetComponent<WallNodeController>();
+                _selectedDot.DeleteNode();
             }
             else if (_hit.collider.CompareTag("Entrance"))
             {   // Delete the selected entrance

@@ -10,15 +10,15 @@ public class WallLineController : MonoBehaviour
 {
     #region --- Public & Required Variables ---
     [Header("Wall Stuff")]
-    public List<EntrancesController> entrancesList = new List<EntrancesController>();
+    public List<EntrancesController> entrances = new List<EntrancesController>();
+    public List<RoomController> rooms = new List<RoomController>();
     public bool isDrawing = false;
     public float length;
 
-    [Header("Dots")]
-    public WallDotController startDot;
-    public WallDotController endDot;
+    [Header("Nodes")]
+    public WallNodeController startNode;
+    public WallNodeController endNode;
     [SerializeField] private GameObject _dotPrefab;
-    [SerializeField] private Transform _dotsParent;
 
     [Header("3D Render")]
     [SerializeField] private GameObject _renderPrefab;
@@ -41,8 +41,8 @@ public class WallLineController : MonoBehaviour
     #endregion
 
     #region --- Lines intersection Variables ---
-    private List<WallDotController> _intersectionDots = new List<WallDotController>();
-    private WallDotController _intersectionDot;   // Dot at the intersection on static line
+    private List<WallNodeController> _intersectionDots = new List<WallNodeController>();
+    private WallNodeController _intersectionDot;   // Dot at the intersection on static line
     private WallLineController _intersectionLine; // Moving line that is colliding with the static line
     #endregion
 
@@ -53,7 +53,6 @@ public class WallLineController : MonoBehaviour
     {
         _lineRenderer = this.GetComponent<LineRenderer>();
         _polygonCollider = this.GetComponent<PolygonCollider2D>();
-        _dotsParent = GameObject.Find("WallDots").transform;
 
         Transform _renderParent = GameObject.Find("MapRenderView").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
@@ -63,21 +62,21 @@ public class WallLineController : MonoBehaviour
 
     public float CalculateLength()
     {   // Calculate the line lenght
-        length = Vector3.Distance(startDot.position, endDot.position);
+        length = Vector3.Distance(startNode.position, endNode.position);
         return length;
     }
 
     public void ResizeWall(float _newLenght)
     {   // Resize the wall line and update the dots position
-        Vector3 _direction = (endDot.position - startDot.position).normalized;
-        Vector3 _midPosition = (endDot.position + startDot.position) / 2;
+        Vector3 _direction = (endNode.position - startNode.position).normalized;
+        Vector3 _midPosition = (endNode.position + startNode.position) / 2;
 
         length = _newLenght;
         Vector3 _startPosition = _midPosition - _direction * (length / 2);
         Vector3 _endPosition = _midPosition + _direction * (length / 2);
 
-        startDot.SetPosition(_startPosition);
-        endDot.SetPosition(_endPosition);
+        startNode.SetPosition(_startPosition);
+        endNode.SetPosition(_endPosition);
 
         SetLineCollider();
     }
@@ -86,21 +85,31 @@ public class WallLineController : MonoBehaviour
     {   // Delete the line and its references
         if (_fromDots)
         {
-            startDot.DeleteLine(startDot.lines.IndexOf(this.gameObject));
-            endDot.DeleteLine(endDot.lines.IndexOf(this.gameObject));
+            startNode.DeleteLine(startNode.walls.IndexOf(this.gameObject));
+            endNode.DeleteLine(endNode.walls.IndexOf(this.gameObject));
         }
-        foreach (EntrancesController _entrance in entrancesList) Destroy(_entrance.gameObject);
+        foreach (EntrancesController _entrance in entrances) Destroy(_entrance.gameObject);
         Destroy(_renderWall);
         Destroy(this.gameObject);
     }
 
     public void SetLineCollider()
     {   // Generate the line collider
-        Vector3[] _positions = { startDot.position, endDot.position };
+        Vector3[] _positions = { startNode.position, endNode.position };
         List<Vector2> _colliderPoints = CalculateMeshPoints(_positions);
         _polygonCollider.SetPath(0,
             _colliderPoints.ConvertAll(
                 p => (Vector2)transform.InverseTransformPoint(p)));
+    }
+
+    private void OnTriggerEnter2D(Collider2D _collision)
+    {
+        if (_collision.gameObject.CompareTag("Polygon"))
+        {   // Check if the line is colliding with a polygon and add it to the list
+            RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
+            if (!rooms.Contains(_polygon)) rooms.Add(_polygon);
+            if (!_polygon.walls.Contains(this)) _polygon.walls.Add(this);
+        }
     }
 
     #region --- Wall segments ---
@@ -139,10 +148,6 @@ public class WallLineController : MonoBehaviour
             }
             else _segmentsType.RemoveAt(i);
         }
-        /*for (int i = 0; i < _segmentsPoints.Count; i++)
-        {   // Print the segments points and distances
-            print(" Segment " + i + " | ditance: " + _segmentsLengths[i] + " | type: " + _segmentsType[i]);
-        }*/
         return Tuple.Create(_segmentsPoints, _segmentsLengths);
     }
 
@@ -151,8 +156,8 @@ public class WallLineController : MonoBehaviour
         List<Vector3> _points = new List<Vector3>();
         _segmentsType.Clear();
 
-        _points.Add(startDot.position);
-        foreach (EntrancesController _entrance in entrancesList)
+        _points.Add(startNode.position);
+        foreach (EntrancesController _entrance in entrances)
         {   // Save the entrance points and the segment type between them
             Vector3 _entranceStart = _entrance.startDot.transform.position;
             Vector3 _entranceEnd = _entrance.endDot.transform.position;
@@ -164,19 +169,19 @@ public class WallLineController : MonoBehaviour
             _points.Add(_entranceEnd);
             _segmentsType.Add(1);
         }
-        _points.Add(endDot.position);
+        _points.Add(endNode.position);
         _segmentsType.Add(0);
 
-        _points.Sort((p1, p2) => Vector3.Distance(p1, startDot.position).CompareTo(Vector3.Distance(p2, startDot.position)));
+        _points.Sort((p1, p2) => Vector3.Distance(p1, startNode.position).CompareTo(Vector3.Distance(p2, startNode.position)));
         return _points;
     }
     #endregion
 
     #region --- 3D Render ---
-    public WallModelData GetWallRenderData()
+    public WallRenderData GetWallRenderData()
     {   // Get the wall render data for save
-        WallModelData _wallData = new WallModelData();
-        _wallData.wallName = this.gameObject.name;
+        WallRenderData _wallData = new WallRenderData();
+        _wallData.wallID = this.transform.GetSiblingIndex();
         _wallData.vertices = SerializableVector3.GetSerializableArray(_meshFilter.mesh.vertices);
         _wallData.triangles = _meshFilter.mesh.triangles;
         return _wallData;

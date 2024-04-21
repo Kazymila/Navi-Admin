@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MapDataModel;
-using Haze;
-using System;
+using Game.Utils.Math;
+using Game.Utils.Triangulation;
 
 public class ShapeController : MonoBehaviour
 {
@@ -72,10 +72,11 @@ public class ShapeController : MonoBehaviour
         Destroy(this.gameObject);
     }
 
-    public ShapeModelData GetShapeRenderData()
+    public ShapeRenderData GetShapeRenderData()
     {   // Get the shape render data
         Mesh _renderMesh = _shapeRenderMesh.GetComponent<MeshFilter>().mesh;
-        ShapeModelData _shapeData = new ShapeModelData();
+        ShapeRenderData _shapeData = new ShapeRenderData();
+        _shapeData.shapeID = this.transform.GetSiblingIndex();
         _shapeData.shapeName = this.name;
         _shapeData.vertices = SerializableVector3.GetSerializableArray(_renderMesh.vertices);
         _shapeData.triangles = _renderMesh.triangles;
@@ -167,23 +168,42 @@ public class ShapeController : MonoBehaviour
 
     public void CreatePolygonMesh(GameObject _shapeMesh)
     {   // Create a mesh from shape points
-        _shapePolygonMesh = _shapeMesh;
-        SetShapeCollider(_shapeMesh.GetComponent<PolygonCollider2D>());
+        List<Vector2> _points2D = _points.ConvertAll(
+            point => new Vector2(point.position.x, point.position.y));
+        List<Triangle2D> _outputTriangles = new List<Triangle2D>();
+        List<List<Vector2>> _constrainedPoints = new List<List<Vector2>> { _points2D };
 
-        List<Triangulator.Triangle> _triangles = Triangulator.Triangulate(
-            _points.ConvertAll(point => new Vector2(point.position.x, point.position.y)));
-        List<Vector3> _vertices = new List<Vector3>();
-        List<int> _indices = new List<int>();
+        DelaunayTriangulation _triangulation = new DelaunayTriangulation();
+        _triangulation.Triangulate(_points2D, 0.0f, _constrainedPoints);
+        _triangulation.GetTrianglesDiscardingHoles(_outputTriangles);
 
-        Triangulator.AddTrianglesToMesh(ref _vertices, ref _indices, _triangles, 0.01f, true);
-
-        // Create the mesh
-        Mesh _mesh = new Mesh();
-        _mesh.vertices = _vertices.ToArray();
-        _mesh.triangles = _indices.ToArray();
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateBounds();
+        // Create the mesh from the triangles
+        Mesh _mesh = CreateMeshFromTriangles(_outputTriangles);
         _shapeMesh.GetComponent<MeshFilter>().mesh = _mesh;
+
+        SetShapeCollider(_shapeMesh.GetComponent<PolygonCollider2D>());
+    }
+
+    private Mesh CreateMeshFromTriangles(List<Triangle2D> triangles)
+    {   // Create a mesh from a list of triangles
+        List<Vector3> vertices = new List<Vector3>(triangles.Count * 3);
+        List<int> indices = new List<int>(triangles.Count * 3);
+
+        for (int i = 0; i < triangles.Count; ++i)
+        {
+            vertices.Add(triangles[i].p0);
+            vertices.Add(triangles[i].p1);
+            vertices.Add(triangles[i].p2);
+            indices.Add(i * 3 + 2); // Changes order
+            indices.Add(i * 3 + 1);
+            indices.Add(i * 3);
+        }
+
+        Mesh mesh = new Mesh();
+        mesh.subMeshCount = 1;
+        mesh.SetVertices(vertices);
+        mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+        return mesh;
     }
     #endregion
 

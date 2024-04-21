@@ -28,7 +28,7 @@ public class SelectTool : MonoBehaviour
     [SerializeField] private Material _colorAlphaPreview;
 
     [Header("Map Editor Components")]
-    [SerializeField] private PolygonsManager _polygonsManager;
+    [SerializeField] private RoomsManager _polygonsManager;
     [SerializeField] private GameObject _polygonsParent;
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _wallLabelPrefab;
@@ -40,9 +40,9 @@ public class SelectTool : MonoBehaviour
     private List<GameObject> _segmentsLabels = new List<GameObject>();
     private EntrancesController _selectedEntrance;
     private WallLineController _selectedWall;
-    private WallDotController _selectedDot;
+    private WallNodeController _selectedDot;
     private GameObject _selectedEntranceDot;
-    private PolygonController _selectedPolygon;
+    private RoomController _selectedPolygon;
 
     // Remember the old values
     private Vector3 _oldEntranceDotPos;
@@ -70,7 +70,7 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
 
         // Enable the polygons manager
-        _polygonsManager.GeneratePolygons();
+        _polygonsManager.GenerateRooms();
         _polygonsParent.SetActive(true);
     }
     private void OnDisable()
@@ -208,7 +208,7 @@ public class SelectTool : MonoBehaviour
                 _colorPicker.gameObject.SetActive(false);
                 _wallSizeLabel.SetActive(false);
 
-                _selectedDot = _hit.collider.GetComponent<WallDotController>();
+                _selectedDot = _hit.collider.GetComponent<WallNodeController>();
                 _selectedDot.PlaySelectAnimation();
                 _movingDot = true;
 
@@ -253,8 +253,8 @@ public class SelectTool : MonoBehaviour
 
                 if (_editingEntrance) CancelEntranceEdit();
                 _selectedWall = _hit.collider.GetComponent<WallLineController>();
-                _selectedWall.startDot.PlaySelectAnimation();
-                _selectedWall.endDot.PlaySelectAnimation();
+                _selectedWall.startNode.PlaySelectAnimation();
+                _selectedWall.endNode.PlaySelectAnimation();
 
                 _wallSizeInput.text = _selectedWall.length.ToString("F5");
                 _oldWallSize = _selectedWall.length;
@@ -271,7 +271,7 @@ public class SelectTool : MonoBehaviour
                 _wallSizeLabel.SetActive(false);
                 RemoveSegmentsSizeLabel();
 
-                _selectedPolygon = _hit.collider.GetComponent<PolygonController>();
+                _selectedPolygon = _hit.collider.GetComponent<RoomController>();
                 _oldPolygonColor = _selectedPolygon.colorMaterial.GetColor("_Color1");
                 _colorOpaquePreview.SetColor("_Color1", _oldPolygonColor);
                 _colorOpaquePreview.SetColor("_Color2", _oldPolygonColor);
@@ -280,7 +280,7 @@ public class SelectTool : MonoBehaviour
                 _colorPicker.color = _oldPolygonColor;
 
                 _selectedPolygon.nodes.ForEach(node => node.PlaySelectAnimation());
-                _polygonLabelInput.text = _selectedPolygon.polygonLabel;
+                _polygonLabelInput.text = _selectedPolygon.roomName;
                 _polygonSettingsPanel.SetActive(true);
             }
         }
@@ -410,7 +410,7 @@ public class SelectTool : MonoBehaviour
     public void SetPolygonSettings()
     {   // Set the polygon changes on confirmation
         if (_polygonLabelInput.text != "") // Set label
-            _selectedPolygon.polygonLabel = _polygonLabelInput.text;
+            _selectedPolygon.roomName = _polygonLabelInput.text;
 
         _colorPicker.gameObject.SetActive(false);
         _polygonSettingsPanel.SetActive(false);
@@ -452,7 +452,7 @@ public class SelectTool : MonoBehaviour
     private void ShowWallSize()
     {   // Show the wall size label
         float _wallSize = _selectedWall.CalculateLength();
-        Vector3 _labelPosition = (_selectedWall.endDot.position + _selectedWall.startDot.position) / 2;
+        Vector3 _labelPosition = (_selectedWall.endNode.position + _selectedWall.startNode.position) / 2;
         _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
         _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
         _wallSizeLabel.SetActive(true);
@@ -468,8 +468,8 @@ public class SelectTool : MonoBehaviour
                 _label.name = "WallLabel_" + i.ToString();
                 _wallLabels.Add(_label);
             }
-            WallLineController _line = _selectedDot.lines[i].GetComponent<WallLineController>();
-            Vector3 _labelPosition = (_line.endDot.position + _line.startDot.position) / 2;
+            WallLineController _line = _selectedDot.walls[i].GetComponent<WallLineController>();
+            Vector3 _labelPosition = (_line.endNode.position + _line.startNode.position) / 2;
 
             _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _line.length.ToString("F2") + "m";
             _wallLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
