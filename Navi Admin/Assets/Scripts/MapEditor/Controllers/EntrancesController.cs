@@ -80,14 +80,20 @@ public class EntrancesController : MonoBehaviour
         else return _startWallDot + _d * _wallVector;
     }
 
+    public void SetLineRenderer(Vector3 _startPosition, Vector3 _endPosition)
+    {   // Set the line renderer positions and width
+        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.25f));
+        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.25f));
+        _lineRenderer.startWidth = entranceWall.width;
+        _lineRenderer.endWidth = entranceWall.width;
+    }
+
     public void SetEntrancePosition(Vector3 _position, Vector3 _direction)
     {   // Set the entrance line and dots position snap to the wall
         Vector3 _startPosition = _position - _direction * (lenght / 2);
         Vector3 _endPosition = _position + _direction * (lenght / 2);
 
-        _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.25f));
-        _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.25f));
-
+        SetLineRenderer(_startPosition, _endPosition);
         startDot.transform.position = _startPosition + new Vector3(0, 0, -0.5f);
         endDot.transform.position = _endPosition + new Vector3(0, 0, -0.5f);
 
@@ -96,35 +102,31 @@ public class EntrancesController : MonoBehaviour
 
     public void SetFullWallEntrance()
     {   // Set the entrance on the wall limits
-        _lineRenderer.SetPosition(0, entranceWall.startNode.position + new Vector3(0, 0, -0.25f));
-        _lineRenderer.SetPosition(1, entranceWall.endNode.position + new Vector3(0, 0, -0.25f));
-
-        startDot.transform.position = entranceWall.startNode.position + new Vector3(0, 0, -0.5f);
-        endDot.transform.position = entranceWall.endNode.position + new Vector3(0, 0, -0.5f);
-
+        SetLineRenderer(entranceWall.startNode.GetNodePosition(), entranceWall.endNode.GetNodePosition());
+        startDot.transform.position = entranceWall.startNode.GetNodePosition() + new Vector3(0, 0, -0.5f);
+        endDot.transform.position = entranceWall.endNode.GetNodePosition() + new Vector3(0, 0, -0.5f);
         SetLineCollider();
     }
 
     public void SetEntrancePositionFromCursor(Vector3 _position, WallLineController _wall)
     {   // Set the entrance by cursor distance to wall
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.position, _wall.endNode.position);
-        Vector3 _direction = (_wall.endNode.position - _wall.startNode.position).normalized;
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.GetNodePosition(), _wall.endNode.GetNodePosition());
+        Vector3 _direction = (_wall.endNode.GetNodePosition() - _wall.startNode.GetNodePosition()).normalized;
 
         // Check if the entrance is out of the wall limits and re position it
-        if (Vector3.Distance(_projectedPos, _wall.startNode.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.startNode.position + _direction * ((lenght / 2));
+        if (Vector3.Distance(_projectedPos, _wall.startNode.GetNodePosition()) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.startNode.GetNodePosition() + _direction * ((lenght / 2));
 
-        else if (Vector3.Distance(_projectedPos, _wall.endNode.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.endNode.position - _direction * ((lenght / 2));
+        else if (Vector3.Distance(_projectedPos, _wall.endNode.GetNodePosition()) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.endNode.GetNodePosition() - _direction * ((lenght / 2));
 
         SetEntrancePosition(_projectedPos, _direction);
-        entranceWall = _wall;
     }
 
     public void RepositionEntranceOnWall(Vector3 _position, WallLineController _wall)
     {   // Reposition the entrance on wall
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.position, _wall.endNode.position);
-        Vector3 _direction = (_wall.endNode.position - _wall.startNode.position).normalized;
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, _wall.startNode.GetNodePosition(), _wall.endNode.GetNodePosition());
+        Vector3 _direction = (_wall.endNode.GetNodePosition() - _wall.startNode.GetNodePosition()).normalized;
 
         if (lenght >= _wall.length)
         {   // If the entrance is bigger than the wall, set entrance to same size
@@ -133,11 +135,11 @@ public class EntrancesController : MonoBehaviour
             SetFullWallEntrance();
             return;
         }
-        if (Vector3.Distance(_projectedPos, _wall.startNode.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.startNode.position + _direction * ((lenght / 2));
+        if (Vector3.Distance(_projectedPos, _wall.startNode.GetNodePosition()) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.startNode.GetNodePosition() + _direction * ((lenght / 2));
 
-        else if (Vector3.Distance(_projectedPos, _wall.endNode.position) < (lenght / 2) + 0.15f)
-            _projectedPos = _wall.endNode.position - _direction * ((lenght / 2));
+        else if (Vector3.Distance(_projectedPos, _wall.endNode.GetNodePosition()) < (lenght / 2) + 0.15f)
+            _projectedPos = _wall.endNode.GetNodePosition() - _direction * ((lenght / 2));
 
         SetEntrancePosition(_projectedPos, _direction);
         entranceWall = _wall;
@@ -145,7 +147,7 @@ public class EntrancesController : MonoBehaviour
 
     public void MoveEntranceDot(Vector3 _position, GameObject _dot)
     {   // Move the entrance dot to the cursor position resizing the entrance
-        Vector3 _projectedPos = GetProjectedPointOnWall(_position, entranceWall.startNode.position, entranceWall.endNode.position);
+        Vector3 _projectedPos = GetProjectedPointOnWall(_position, entranceWall.startNode.GetNodePosition(), entranceWall.endNode.GetNodePosition());
         Vector3 _otherDotPosition = _dot == startDot ? endDot.transform.position : startDot.transform.position;
         _otherDotPosition.z = 0;
 
@@ -187,7 +189,7 @@ public class EntrancesController : MonoBehaviour
     public List<Vector2> CalculateColliderPoints()
     {   // Calculate the points of the line collider
         Vector3[] _positions = { startDot.transform.position, endDot.transform.position };
-        float _width = _lineRenderer.startWidth;
+        float _width = entranceWall.width;
 
         //Calculate the gradient (m) of the line
         float _m = (_positions[1].y - _positions[0].y) / (_positions[1].x - _positions[0].x);

@@ -8,7 +8,7 @@ using ZXing;
 
 public class QRCodeController : MonoBehaviour
 {
-    public String codeLabel;
+    public string qrCodeName;
     private Texture2D _encodedTexture;
     private Animator _markerAnimator;
 
@@ -27,8 +27,9 @@ public class QRCodeController : MonoBehaviour
 
     public void GenerateQRCode(RawImage _rawImage)
     {   // Generate a QR code from marker position and direction
+        CalculateQRCodeDirection();
         Vector3 _position3D = CalculateQRCodePosition();
-        string _textForEncoding = $"{codeLabel}:pos:x{_position3D.x}y{_position3D.y}z{_position3D.z}:dir:x{_QRDirection.x}y{_QRDirection.y}z{_QRDirection.z}";
+        string _textForEncoding = $"{qrCodeName}:pos:x{_position3D.x}y{_position3D.y}z{_position3D.z}:dir:x{_QRDirection.x}y{_QRDirection.y}z{_QRDirection.z}";
         GenerateQRCodeFromText(_textForEncoding, _rawImage);
     }
 

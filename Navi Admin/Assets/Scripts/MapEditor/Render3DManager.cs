@@ -17,8 +17,6 @@ public class Render3DManager : MonoBehaviour
     [Header("Render Elements")]
     [SerializeField] private Transform _wallParent;
     [SerializeField] private Transform _shapesParent;
-    [SerializeField] private Transform _shapeRenderParent;
-    [SerializeField] private Material _shapeRenderMaterial;
     #endregion
 
     private MapEditorCameraManager _cameraManager;
@@ -72,31 +70,9 @@ public class Render3DManager : MonoBehaviour
         for (int i = 0; i < _wallParent.childCount; i++)
             _wallParent.GetChild(i).GetComponent<WallLineController>().GenerateWallMesh();
         for (int i = 0; i < _shapesParent.childCount; i++)
-            _shapesParent.GetChild(i).GetComponent<ShapeController>().GenerateShapeMesh(
-                _shapeRenderParent, _shapeRenderMaterial);
+            _shapesParent.GetChild(i).GetComponent<ShapeController>().GenerateShapeMesh();
 
         _roomsManager.RemoveRoomsLabels();
         _roomsManager.Generate3DPolygons();
-    }
-
-    public ARFloorData GetRenderData()
-    {   // Get the render data from the map
-        GenerateMapRender();
-        ShowRenderElements(false);
-
-        ARFloorData _floorData = new ARFloorData();
-        _floorData.floorName = "Floor 1";
-        _floorData.walls = new WallRenderData[_wallParent.childCount];
-        _floorData.rooms = new RoomRenderData[_roomsManager.rooms.Count];
-        _floorData.shapes = new ShapeRenderData[_shapesParent.childCount];
-
-        for (int i = 0; i < _wallParent.childCount; i++)
-            _floorData.walls[i] = _wallParent.GetChild(i).GetComponent<WallLineController>().GetWallRenderData();
-
-        for (int i = 0; i < _shapesParent.childCount; i++)
-            _floorData.shapes[i] = _shapesParent.GetChild(i).GetComponent<ShapeController>().GetShapeRenderData();
-
-        _floorData.rooms = _roomsManager.GetRoomsRenderData();
-        return _floorData;
     }
 }

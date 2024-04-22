@@ -12,8 +12,9 @@ public class WallLineController : MonoBehaviour
     [Header("Wall Stuff")]
     public List<EntrancesController> entrances = new List<EntrancesController>();
     public List<RoomController> rooms = new List<RoomController>();
-    public bool isDrawing = false;
     public float length;
+    public float width = 0.15f;
+    public bool isDrawing = false;
 
     [Header("Nodes")]
     public WallNodeController startNode;
@@ -56,20 +57,29 @@ public class WallLineController : MonoBehaviour
 
         Transform _renderParent = GameObject.Find("MapRenderView").transform.GetChild(0);
         _renderWall = Instantiate(_renderPrefab, Vector3.zero, Quaternion.identity, _renderParent);
-        _renderWall.name = "Render_" + this.gameObject.name;
+        _renderWall.name = "WallRender_" + transform.GetSiblingIndex();
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
     }
 
     public float CalculateLength()
     {   // Calculate the line lenght
-        length = Vector3.Distance(startNode.position, endNode.position);
+        length = Vector3.Distance(startNode.GetNodePosition(), endNode.GetNodePosition());
         return length;
+    }
+
+    public void SetLineRenderer(Vector3 _startPosition, Vector3 _endPosition, float _width)
+    {   // Set the line renderer positions and width
+        _lineRenderer.SetPosition(0, _startPosition);
+        _lineRenderer.SetPosition(1, _endPosition);
+        _lineRenderer.startWidth = _width;
+        _lineRenderer.endWidth = _width;
+        width = _width;
     }
 
     public void ResizeWall(float _newLenght)
     {   // Resize the wall line and update the dots position
-        Vector3 _direction = (endNode.position - startNode.position).normalized;
-        Vector3 _midPosition = (endNode.position + startNode.position) / 2;
+        Vector3 _direction = (endNode.GetNodePosition() - startNode.GetNodePosition()).normalized;
+        Vector3 _midPosition = (endNode.GetNodePosition() + startNode.GetNodePosition()) / 2;
 
         length = _newLenght;
         Vector3 _startPosition = _midPosition - _direction * (length / 2);
@@ -95,7 +105,7 @@ public class WallLineController : MonoBehaviour
 
     public void SetLineCollider()
     {   // Generate the line collider
-        Vector3[] _positions = { startNode.position, endNode.position };
+        Vector3[] _positions = { startNode.GetNodePosition(), endNode.GetNodePosition() };
         List<Vector2> _colliderPoints = CalculateMeshPoints(_positions);
         _polygonCollider.SetPath(0,
             _colliderPoints.ConvertAll(
@@ -156,7 +166,7 @@ public class WallLineController : MonoBehaviour
         List<Vector3> _points = new List<Vector3>();
         _segmentsType.Clear();
 
-        _points.Add(startNode.position);
+        _points.Add(startNode.GetNodePosition());
         foreach (EntrancesController _entrance in entrances)
         {   // Save the entrance points and the segment type between them
             Vector3 _entranceStart = _entrance.startDot.transform.position;
@@ -169,19 +179,20 @@ public class WallLineController : MonoBehaviour
             _points.Add(_entranceEnd);
             _segmentsType.Add(1);
         }
-        _points.Add(endNode.position);
+        _points.Add(endNode.GetNodePosition());
         _segmentsType.Add(0);
 
-        _points.Sort((p1, p2) => Vector3.Distance(p1, startNode.position).CompareTo(Vector3.Distance(p2, startNode.position)));
+        _points.Sort((p1, p2) => Vector3.Distance(p1, startNode.GetNodePosition())
+            .CompareTo(Vector3.Distance(p2, startNode.GetNodePosition())));
         return _points;
     }
     #endregion
 
     #region --- 3D Render ---
-    public WallRenderData GetWallRenderData()
+    public MeshData GetWallRenderData()
     {   // Get the wall render data for save
-        WallRenderData _wallData = new WallRenderData();
-        _wallData.wallID = this.transform.GetSiblingIndex();
+        GenerateWallMesh();
+        MeshData _wallData = new MeshData();
         _wallData.vertices = SerializableVector3.GetSerializableArray(_meshFilter.mesh.vertices);
         _wallData.triangles = _meshFilter.mesh.triangles;
         return _wallData;

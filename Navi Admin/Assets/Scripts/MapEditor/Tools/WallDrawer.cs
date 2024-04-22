@@ -14,8 +14,8 @@ public class WallDrawer : MonoBehaviour
     [SerializeField] private GameObject _sizeLabel;
 
     [Header("Dots settings")]
-    [SerializeField] private GameObject _dotPrefab;
-    [SerializeField] private Transform _dotsParent;
+    [SerializeField] private GameObject _nodePrefab;
+    [SerializeField] private Transform _nodesParent;
 
     [Header("Line settings")]
     [SerializeField] private GameObject _linePrefab;
@@ -23,10 +23,9 @@ public class WallDrawer : MonoBehaviour
     #endregion
     private GameObject _lineObject;
     private WallLineController _lineController;
-    private WallNodeController _startWallDot;
-    private WallNodeController _endWallDot;
+    private WallNodeController _startWallNode;
+    private WallNodeController _endWallNode;
     private float _wallWidth = 0.15f;
-    private int _linesCount = 0;
     private bool _isDrawing;
 
     private InputMap _input;
@@ -62,8 +61,8 @@ public class WallDrawer : MonoBehaviour
         }
         else if (_isDrawing && _lineObject != null)
         {   // Drag the line updating the end dot position
-            _endWallDot.SetPosition(GetCursorPosition());
-            _endWallDot.dotCollider.enabled = false;
+            _endWallNode.SetPosition(GetCursorPosition());
+            _endWallNode.dotCollider.enabled = false;
             _lineController.gameObject.GetComponent<LineRenderer>().startWidth = _wallWidth;
             _lineController.gameObject.GetComponent<LineRenderer>().endWidth = _wallWidth;
             WallSizeOnGUI();
@@ -77,25 +76,25 @@ public class WallDrawer : MonoBehaviour
         if (_UIEditorController.IsCursorOverEditorUI()) return;
         WallNodeController _raycastDot = RaycastToDot();
         Vector3 _cursorPosition = GetCursorPosition(true);
-        if (_endWallDot) _endWallDot.dotCollider.enabled = true;
+        if (_endWallNode) _endWallNode.dotCollider.enabled = true;
 
         // If the cursor is over a dot, wall is created or finished here
         if (_raycastDot) OnSelectDot(_raycastDot);
 
         else if (_lineObject == null && !_isDrawing)
         {   // Create the first dot and line
-            _startWallDot = InstantiateWallDot(_cursorPosition);
-            _endWallDot = InstantiateWallDot(_cursorPosition);
+            _startWallNode = InstantiateWallDot(_cursorPosition);
+            _endWallNode = InstantiateWallDot(_cursorPosition);
             _lineObject = CreateLine(_cursorPosition);
             _isDrawing = true;
             _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
         else if (_lineObject != null && _isDrawing)
         {   // Set dot and add line from this last dot
-            _endWallDot.SetPosition(GetCursorPosition());
+            _endWallNode.SetPosition(GetCursorPosition());
 
-            _startWallDot = _endWallDot;
-            _endWallDot = InstantiateWallDot(_cursorPosition);
+            _startWallNode = _endWallNode;
+            _endWallNode = InstantiateWallDot(_cursorPosition);
             _lineObject = CreateLine(_cursorPosition);
         }
     }
@@ -103,18 +102,10 @@ public class WallDrawer : MonoBehaviour
     private GameObject CreateLine(Vector3 _position)
     {   // Create a new line renderer and set the start and end dots
         GameObject _newLine = Instantiate(_linePrefab, _position, Quaternion.identity, _linesParent);
-        _newLine.name = "Wall_" + _linesCount;
-
-        LineRenderer _line = _newLine.GetComponent<LineRenderer>();
-        _line.SetPosition(0, _position);
-        _line.SetPosition(1, _position);
-        _line.startWidth = _wallWidth;
-        _line.endWidth = _wallWidth;
-
+        _newLine.name = "Wall_" + _newLine.transform.GetSiblingIndex();
         _lineController = _newLine.GetComponent<WallLineController>();
-        SetLineDots(_newLine, _startWallDot, _endWallDot);
-        _linesCount++;
-
+        _lineController.SetLineRenderer(_position, _position, _wallWidth);
+        SetLineDots(_newLine, _startWallNode, _endWallNode);
         return _newLine;
     }
 
@@ -127,22 +118,21 @@ public class WallDrawer : MonoBehaviour
     }
     private WallNodeController InstantiateWallDot(Vector3 _position)
     {   // Instantiate a wall dot and atach it to a line
-        GameObject _wallDot = Instantiate(_dotPrefab, _position, Quaternion.identity, _dotsParent);
+        GameObject _wallDot = Instantiate(_nodePrefab, _position, Quaternion.identity, _nodesParent);
         return _wallDot.GetComponent<WallNodeController>();
     }
 
     private void CancelDraw()
     {   // Cancel the current line drawing
-        if (_endWallDot != null)
+        if (_endWallNode != null)
         {
-            _startWallDot.DeleteLine(_startWallDot.walls.IndexOf(_lineObject));
-            _endWallDot.DeleteNode(true);
+            _startWallNode.DeleteLine(_startWallNode.walls.IndexOf(_lineObject));
+            _endWallNode.DeleteNode(true);
         }
         _lineObject.GetComponent<WallLineController>().isDrawing = true;
         _isDrawing = false;
-        _endWallDot = null;
+        _endWallNode = null;
         _lineObject = null;
-        _linesCount--;
     }
     #endregion
 
@@ -151,16 +141,16 @@ public class WallDrawer : MonoBehaviour
     {
         if (!_isDrawing)
         {   // Create a line from the selected dot
-            _startWallDot = _raycastDot;
+            _startWallNode = _raycastDot;
             _raycastDot.PlaySelectAnimation();
-            _endWallDot = InstantiateWallDot(_raycastDot.position);
-            _lineObject = CreateLine(_raycastDot.position);
+            _endWallNode = InstantiateWallDot(_raycastDot.GetNodePosition());
+            _lineObject = CreateLine(_raycastDot.GetNodePosition());
             _isDrawing = true;
             _lineObject.GetComponent<WallLineController>().isDrawing = true;
         }
         else
         {   // If was already drawing, the selected dot is setted as the end dot
-            if (_raycastDot.FindNeighborNode(_startWallDot))
+            if (_raycastDot.FindNeighborNode(_startWallNode))
             {   // Iif the dots are already connected, cannot set the dot here
                 _errorMessageBox.ShowTimedMessage("DotsAlreadyConnected", 2);
                 _raycastDot.PlayDeniedAnimation();
@@ -170,15 +160,15 @@ public class WallDrawer : MonoBehaviour
                 _raycastDot.PlaySelectAnimation();
                 Vector3 _cursorPosition = GetCursorPosition(true);
 
-                _endWallDot.SetPosition(_raycastDot.position);
-                SetLineDots(_lineObject, _startWallDot, _raycastDot);
-                _endWallDot.DeleteNode(false);
-                _endWallDot = _raycastDot;
+                _endWallNode.SetPosition(_raycastDot.GetNodePosition());
+                SetLineDots(_lineObject, _startWallNode, _raycastDot);
+                _endWallNode.DeleteNode(false);
+                _endWallNode = _raycastDot;
 
-                _startWallDot = _endWallDot;
-                _endWallDot = InstantiateWallDot(_cursorPosition);
+                _startWallNode = _endWallNode;
+                _endWallNode = InstantiateWallDot(_cursorPosition);
                 _lineObject = CreateLine(_cursorPosition);
-                _startWallDot.SetPosition(_raycastDot.position);
+                _startWallNode.SetPosition(_raycastDot.GetNodePosition());
             }
         }
     }
@@ -205,7 +195,7 @@ public class WallDrawer : MonoBehaviour
             _sizeLabel.SetActive(false);
         else
         {
-            Vector3 _labelPosition = (_endWallDot.position + _startWallDot.position) / 2;
+            Vector3 _labelPosition = (_endWallNode.GetNodePosition() + _startWallNode.GetNodePosition()) / 2;
             _labelPosition = _labelPosition + new Vector3(0, 0.5f, 0);
 
             _sizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);

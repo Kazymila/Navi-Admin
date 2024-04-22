@@ -1,17 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using Game.Utils.Math;
 using Game.Utils.Triangulation;
+using Game.Utils.Math;
+using UnityEngine;
+using MapDataModel;
+using System.Linq;
 
 public class RoomController : MonoBehaviour
 {
     public string roomName;
+    public string roomType = "Room";
     public List<WallNodeController> nodes = new List<WallNodeController>();
     public List<WallLineController> walls = new List<WallLineController>();
-    public Vector3[] polygonVertices;
-    public int[] polygonTriangles;
     public Material colorMaterial;
 
     private RoomsManager _roomsManager;
@@ -60,6 +61,19 @@ public class RoomController : MonoBehaviour
         }
         else return Vector3.zero;
     }
+    private void OnTriggerEnter2D(Collider2D _collision)
+    {   // Check if the polygon is colliding with another polygon
+        if (_collision.gameObject.tag == "Polygon")
+        {   // If the polygon is bigger than the collided polygon, destroy it
+            RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
+            if (GetPolygonArea() > _polygon.GetPolygonArea())
+            {
+                // TODO: Manage the overlapping polygons and the holes
+
+                _roomsManager.DestroyPolygon(this);
+            }
+        }
+    }
 
     #region --- Polygon Operations ---
     public void SetPolygonCollider()
@@ -87,8 +101,6 @@ public class RoomController : MonoBehaviour
         _triangulation.Triangulate(_points2D, 0.0f, _constrainedPoints);
         _triangulation.GetTrianglesDiscardingHoles(_outputTriangles);
         _meshFilter.mesh = CreateMeshFromTriangles(_outputTriangles);
-        polygonTriangles = _meshFilter.mesh.triangles;
-        polygonVertices = _meshFilter.mesh.vertices;
         SetPolygonCollider();
     }
 
@@ -154,17 +166,36 @@ public class RoomController : MonoBehaviour
     }
     #endregion
 
-    private void OnTriggerEnter2D(Collider2D _collision)
-    {   // Check if the polygon is colliding with another polygon
-        if (_collision.gameObject.tag == "Polygon")
-        {   // If the polygon is bigger than the collided polygon, destroy it
-            RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
-            if (GetPolygonArea() > _polygon.GetPolygonArea())
-            {
-                // TODO: Manage the overlapping polygons and the holes
-
-                _roomsManager.DestroyPolygon(this);
-            }
-        }
+    #region --- Data managment ---
+    public PolygonData GetPolygonData()
+    {   // Get the polygon data
+        PolygonData _polygonData = new PolygonData();
+        _polygonData.materialColor = new SerializableColor(colorMaterial.GetColor("_Color1"));
+        _polygonData.vertices = SerializableVector3.GetSerializableArray(_meshFilter.mesh.vertices);
+        _polygonData.triangles = _meshFilter.mesh.triangles;
+        return _polygonData;
     }
+
+    public MeshData GetRenderData()
+    {   // Get the mesh data of the polygon
+        MeshData _meshData = new MeshData();
+        _meshData.vertices = SerializableVector3.GetSerializableArray(
+            _meshFilter.mesh.vertices.ToList().ConvertAll(v => Quaternion.Euler(90, 0, 0) * v).ToArray());
+        _meshData.triangles = _meshFilter.mesh.triangles;
+        return _meshData;
+    }
+
+    public void SetPolygonData(PolygonData _polygonData)
+    {   // Set the polygon data
+        colorMaterial.SetColor("_Color1", _polygonData.materialColor.GetColor);
+
+        Mesh _mesh = new Mesh();
+        _mesh.vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);
+        _mesh.triangles = _polygonData.triangles;
+        _mesh.RecalculateNormals();
+        _mesh.RecalculateBounds();
+        _meshFilter.mesh = _mesh;
+        SetPolygonCollider();
+    }
+    #endregion
 }

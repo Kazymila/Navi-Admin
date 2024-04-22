@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using SFB;
+using System;
+using MapDataModel;
 
 public class QRCodesManager : MonoBehaviour
 {
@@ -130,7 +132,7 @@ public class QRCodesManager : MonoBehaviour
         {   // If the QR code is rotating, stop rotating it
             _isRotating = false;
             _isMoving = false;
-            _QRCodeLabelInput.text = _currentQRCode.codeLabel;
+            _QRCodeLabelInput.text = _currentQRCode.qrCodeName;
             _currentQRCode.GenerateQRCode(_QRCodeDisplayImage);
             _QRCodeSettingsPanel.SetActive(true);
         }
@@ -147,11 +149,11 @@ public class QRCodesManager : MonoBehaviour
             {   // If select an existing QR code, select it
                 _currentQRCode = _hit.collider.GetComponent<QRCodeController>();
                 _currentQRCode.PlaySelectAnimation();
-                _initialQRCodeLabel = _currentQRCode.codeLabel;
+                _initialQRCodeLabel = _currentQRCode.qrCodeName;
                 _initialQRCodePosition = _currentQRCode.transform.position;
                 _initialQRCodeRotation = _currentQRCode.transform.rotation;
 
-                _QRCodeLabelInput.text = _currentQRCode.codeLabel;
+                _QRCodeLabelInput.text = _currentQRCode.qrCodeName;
                 _QRCodeDisplayImage.texture = _currentQRCode.GetQRCodeTexture();
                 _QRCodeSettingsPanel.SetActive(true);
             }
@@ -168,13 +170,14 @@ public class QRCodesManager : MonoBehaviour
                 GameObject _newQRCode = Instantiate(_QRCodePrefab, _cursorPosition, Quaternion.Euler(-90, -90, 0), this.transform);
                 _currentQRCode = _newQRCode.GetComponent<QRCodeController>();
                 _newQRCode.name = "QRCode_" + this.transform.childCount;
-                _currentQRCode.codeLabel = _newQRCode.name;
+                _currentQRCode.qrCodeName = _newQRCode.name;
                 _isRotating = true;
                 UpdatePositionInputFields();
             }
         }
     }
 
+    #region --- GUI Methods ---
     private void UpdatePositionInputFields()
     {   // Update the input fields for the QR code settings
         if (Camera.main.orthographic)
@@ -196,7 +199,7 @@ public class QRCodesManager : MonoBehaviour
         if (_QRCodeLabelInput.text.Contains(":"))
             _errorMessageBox.ShowMessage("QRLabelCharactersAllowed");
 
-        _currentQRCode.codeLabel = _QRCodeLabelInput.text;
+        _currentQRCode.qrCodeName = _QRCodeLabelInput.text;
         UpdateQRCode();
     }
 
@@ -233,7 +236,7 @@ public class QRCodesManager : MonoBehaviour
         if (_initialQRCodeLabel == null) DeleteQRCode();
         else
         {   // Reset the current QR code to the initial settings
-            _currentQRCode.codeLabel = _initialQRCodeLabel;
+            _currentQRCode.qrCodeName = _initialQRCodeLabel;
             _currentQRCode.transform.position = _initialQRCodePosition;
             _currentQRCode.transform.rotation = _initialQRCodeRotation;
 
@@ -244,7 +247,9 @@ public class QRCodesManager : MonoBehaviour
             _initialQRCodeLabel = null;
         }
     }
+    #endregion
 
+    #region --- QRCode Operations  ---
     public void DeleteQRCode()
     {   // Delete the current QR code
         if (_currentQRCode == null) return;
@@ -283,10 +288,44 @@ public class QRCodesManager : MonoBehaviour
             new ExtensionFilter("Image Files", "png", "jpg", "jpeg" ),
             new ExtensionFilter("All Files", "*" )
         };
-        string _path = StandaloneFileBrowser.SaveFilePanel("Save QRCode", "", _currentQRCode.codeLabel, extensionList);
+        string _path = StandaloneFileBrowser.SaveFilePanel("Save QRCode", "", _currentQRCode.qrCodeName, extensionList);
         if (_path == "") return;
         byte[] _bytes = _currentQRCode.GetQRCodeTexture().EncodeToPNG();
         System.IO.File.WriteAllBytes(_path, _bytes);
         print(_path);
     }
+    #endregion
+
+    #region --- Data Managment ---
+    public QRCodeData[] GetQRCodesData()
+    {   // Save the QR codes data to the map data
+        QRCodeData[] _qrCodesData = new QRCodeData[this.transform.childCount];
+        for (int i = 0; i < this.transform.childCount; i++)
+        {
+            Transform _qrCode = this.transform.GetChild(i);
+            QRCodeData _qrCodeData = new QRCodeData
+            {
+                qrCodeID = _qrCode.GetSiblingIndex(),
+                qrCodeName = _qrCode.GetComponent<QRCodeController>().qrCodeName,
+                qrCodePosition = new SerializableVector3(_qrCode.position),
+                qrCodeRotation = new SerializableQuaternionEuler(_qrCode.rotation)
+            };
+            _qrCodesData[i] = _qrCodeData;
+        }
+        return _qrCodesData;
+    }
+
+    public void LoadQRCodesData(QRCodeData[] qrCodesData)
+    {   // Load the QR codes data from the map data
+        foreach (QRCodeData qrCodeData in qrCodesData)
+        {
+            GameObject _newQRCode = Instantiate(_QRCodePrefab,
+                qrCodeData.qrCodePosition.GetVector3, qrCodeData.qrCodeRotation.GetQuaternion, this.transform);
+            QRCodeController _qrController = _newQRCode.GetComponent<QRCodeController>();
+            _newQRCode.name = "QRCode_" + qrCodeData.qrCodeID;
+            _qrController.qrCodeName = qrCodeData.qrCodeName;
+            _qrController.GenerateQRCode(_QRCodeDisplayImage);
+        }
+    }
+    #endregion
 }

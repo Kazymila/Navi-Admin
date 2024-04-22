@@ -9,6 +9,7 @@ public class RoomsManager : MonoBehaviour
 {
     #region --- Variables ---
     public List<RoomController> rooms = new List<RoomController>();
+    public List<string> roomsTypes = new List<string>();
 
     [Header("Polygons Elements")]
     [SerializeField] private Transform _2DPolygonsParent;
@@ -23,7 +24,6 @@ public class RoomsManager : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private GameObject _textlabelPrefab;
     [SerializeField] private Transform _labelsParent;
-    private int _polygonsCount = 0;
     #endregion
 
     public void UpdatePolygons()
@@ -42,29 +42,6 @@ public class RoomsManager : MonoBehaviour
         rooms.Remove(_polygon);
         Destroy(_polygon.gameObject);
     }
-
-    #region -- Rooms Data Management --
-    public RoomRenderData[] GetRoomsRenderData()
-    {   // Get the rooms render data to save it
-        RoomRenderData[] _roomsRenderData = new RoomRenderData[rooms.Count];
-
-        for (int i = 0; i < rooms.Count; i++)
-        {   // Get the data of each room
-            RoomRenderData _roomData = new RoomRenderData
-            {
-                roomID = i,
-                roomName = rooms[i].roomName,
-                polygonColor = new SerializableColor(rooms[i].colorMaterial.GetColor("_Color1")),
-                vertices = SerializableVector3.GetSerializableArray(rooms[i].polygonVertices),
-                triangles = rooms[i].polygonTriangles,
-
-                //entrancePoints = TODO: Add the entrance points
-            };
-            _roomsRenderData[i] = _roomData;
-        }
-        return _roomsRenderData;
-    }
-    #endregion
 
     #region --- Generate Rooms/Polygons ---
     public void GenerateRooms()
@@ -101,13 +78,16 @@ public class RoomsManager : MonoBehaviour
     {   // Generate the 3D polygons from the 2D polygons
         foreach (Transform _3Dpolygon in _3DPolygonsParent) Destroy(_3Dpolygon.gameObject);
 
-        foreach (RoomController _polygon in rooms)
-        {
+        for (int i = 0; i < _2DPolygonsParent.childCount; i++)
+        {   // Create the 3D polygons from the 2D polygons
+            RoomController _polygon = _2DPolygonsParent.GetChild(i).GetComponent<RoomController>();
+            if (_polygon.nodes.Count < 3) continue; // Skip the polygon if it has less than 3 nodes
+
             GameObject _3Dpolygon = Instantiate(_3DPolygonPrefab, Vector3.zero, Quaternion.Euler(90, 0, 0), _3DPolygonsParent);
             _3Dpolygon.GetComponent<MeshCollider>().sharedMesh = _polygon.GetComponent<MeshFilter>().mesh;
             _3Dpolygon.GetComponent<MeshFilter>().mesh = _polygon.GetComponent<MeshFilter>().mesh;
             _3Dpolygon.GetComponent<MeshRenderer>().material = _polygon.colorMaterial;
-            _3Dpolygon.name = _polygon.roomName;
+            _3Dpolygon.name = "RoomRender_" + i;
         }
     }
 
@@ -122,11 +102,10 @@ public class RoomsManager : MonoBehaviour
             _dot.rooms.Add(_polygonController);
             _polygonController.nodes.Add(_dot);
         });
-        _polygon.name = "Polygon_" + _polygonsCount;
-        _polygonController.roomName = "Room_" + _polygonsCount;
+        _polygon.name = "Room_" + (rooms.Count > 0 ? (rooms.Count - 1) : 0);
+        _polygonController.roomName = _polygon.name;
         _polygonController.CreatePolygonMesh();
         rooms.Add(_polygonController);
-        _polygonsCount++;
     }
     #endregion
 
@@ -212,6 +191,57 @@ public class RoomsManager : MonoBehaviour
     {   // Remove the labels of the polygons
         foreach (Transform _label in _labelsParent)
             Destroy(_label.gameObject);
+    }
+    #endregion
+
+    #region -- Rooms Data Management --
+    public RoomData[] GetRoomsData()
+    {   // Get the rooms data to save it
+        RoomData[] _roomsData = new RoomData[rooms.Count];
+
+        for (int i = 0; i < rooms.Count; i++)
+        {   // Get the data of each room
+            RoomData _data = new RoomData
+            {
+                roomID = i,
+                roomName = rooms[i].roomName,
+                roomType = rooms[i].roomType,
+                nodes = rooms[i].nodes.ConvertAll(node => node.transform.GetSiblingIndex()).ToArray(),
+                walls = rooms[i].walls.ConvertAll(wall => wall.transform.GetSiblingIndex()).ToArray(),
+                polygonData = rooms[i].GetPolygonData(),
+                renderData = rooms[i].GetRenderData(),
+                // TODO: Add the entrance points
+            };
+            _roomsData[i] = _data;
+        }
+        return _roomsData;
+    }
+
+    public void LoadRoomsData(RoomData[] _roomsData)
+    {   // Load the rooms data to the map
+        foreach (RoomData _roomData in _roomsData)
+        {   // Create the room from the data
+            GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
+            RoomController _polygonController = _polygon.GetComponent<RoomController>();
+
+            _polygonController.roomName = _roomData.roomName;
+            _polygonController.roomType = _roomData.roomType;
+
+            foreach (int _nodeIndex in _roomData.nodes)
+            {   // Add the nodes to the polygon and the polygon to the nodes
+                WallNodeController _node = _nodesParent.transform.GetChild(_nodeIndex).GetComponent<WallNodeController>();
+                _node.rooms.Add(_polygonController);
+                _polygonController.nodes.Add(_node);
+            }
+            foreach (int _wallIndex in _roomData.walls)
+            {   // Add the walls to the polygon and the polygon to the walls
+                WallLineController _wall = _wallsParent.transform.GetChild(_wallIndex).GetComponent<WallLineController>();
+                _wall.rooms.Add(_polygonController);
+                _polygonController.walls.Add(_wall);
+            }
+            _polygonController.SetPolygonData(_roomData.polygonData);
+            rooms.Add(_polygonController);
+        }
     }
     #endregion
 }

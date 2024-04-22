@@ -19,15 +19,9 @@ public class ShapeTool : MonoBehaviour
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
 
-    [Header("Mesh settings")]
-    [SerializeField] private GameObject _shapeMeshPrefab;
-    [SerializeField] private Transform _shapesMeshParent;
-    [SerializeField] private Color _meshColor = new Color(0.26f, 0, 0.68f, 0.5f);
     #endregion
     private ShapeController _currentShape;
-    private int _shapesCount = 0;
     private bool _isDrawing;
-
 
     private InputMap _input;
 
@@ -74,9 +68,8 @@ public class ShapeTool : MonoBehaviour
         {   // Create a new shape
             GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _linesParent);
             _currentShape = _newShape.GetComponent<ShapeController>();
-            _newShape.name = "Shape_" + _shapesCount;
+            _newShape.name = "Shape_" + (_linesParent.childCount > 0 ? (_linesParent.childCount - 1) : 0);
             InstantiateDot(_cursorPosition);
-            _shapesCount++;
         }
         InstantiateDot(_cursorPosition);
         _isDrawing = true;
@@ -84,7 +77,7 @@ public class ShapeTool : MonoBehaviour
 
     private void InstantiateDot(Vector3 _position)
     {   // Instantiate a new dot in the current shape
-        GameObject _newDot = Instantiate(_dotPrefab, _position + _currentShape.dotOffset,
+        GameObject _newDot = Instantiate(_dotPrefab, _position + _currentShape.shapeDotsOffset,
                             Quaternion.Euler(-90, 0, 0), _currentShape.transform);
         _newDot.name = "ShapeDot_" + _currentShape.GetPointsCount();
         _currentShape.AddPoint(_newDot.transform);
@@ -97,11 +90,7 @@ public class ShapeTool : MonoBehaviour
         _currentShape.EndShape();
 
         // Create the mesh (polygon) of the shape
-        GameObject _newShapeMesh = Instantiate(_shapeMeshPrefab,
-            Vector3.zero + new Vector3(0, 0, -0.1f), Quaternion.identity, _shapesMeshParent);
-        _newShapeMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _meshColor);
-        _newShapeMesh.name = "ShapePolygon_" + (_shapesCount - 1);
-        _currentShape.CreatePolygonMesh(_newShapeMesh);
+        _currentShape.GenerateShapePolygon();
         _currentShape = null;
         _isDrawing = false;
     }
@@ -115,7 +104,6 @@ public class ShapeTool : MonoBehaviour
             Destroy(_currentShape.gameObject);
             _currentShape = null;
             _isDrawing = false;
-            _shapesCount--;
         }
         else EndShape();
         _sizeLabel.SetActive(false);

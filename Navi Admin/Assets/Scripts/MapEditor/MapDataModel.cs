@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace MapDataModel
 {
-    #region --- Map Data Structures ---
+    #region --- Map Data Classes ---
     // -------------------------------------------
     // ----------------- Map Data ----------------
     // -------------------------------------------
@@ -18,12 +18,14 @@ namespace MapDataModel
     [Serializable]
     public class FloorData
     {
+        public int floorLevel;
         public string floorName;
         public NodeData[] nodes;
         public WallData[] walls;
         public RoomData[] rooms;
         public ShapeData[] shapes;
         public QRCodeData[] qrCodes;
+        public EventData[] events;
     }
 
     [Serializable]
@@ -32,24 +34,27 @@ namespace MapDataModel
         public int nodeID;
         public SerializableVector3 nodePosition;
         public int[] neighborsNodes;
-        public int[] polygons;
         public int[] walls;
+        public int[] rooms;
     }
     [Serializable]
     public class WallData
     {
         public int wallID;
         public float wallLenght;
+        public float wallWidth;
         public int startNode;
         public int endNode;
-        public int[] polygons;
+        public int[] rooms;
+        public SerializableVector3 wallPosition;
         public EntranceData[] entrances;
+        public MeshData renderData;
     }
     [Serializable]
     public class EntranceData
     {
-        public string entranceName;
-        public float entranceWidth;
+        public int entranceID;
+        public float entranceLenght;
         public SerializableVector3 entrancePosition;
         public SerializableVector3 startNodePosition;
         public SerializableVector3 endNodePosition;
@@ -59,27 +64,55 @@ namespace MapDataModel
     {
         public int roomID;
         public string roomName;
+        public string roomType;
         public int[] nodes;
         public int[] walls;
-        public SerializableColor polygonColor;
-        public SerializableVector3[] vertices;
-        public int[] triangles;
+        public PolygonData polygonData;
+        public MeshData renderData;
+        public SerializableVector3[] entrancesPoints;
     }
     [Serializable]
     public class ShapeData
     {
         public int shapeID;
         public string shapeName;
+        public SerializableVector3 shapePosition;
+        public PolygonData polygonData;
+        public MeshData renderData;
+    }
+
+    [Serializable]
+    public class PolygonData
+    {
+        public SerializableColor materialColor;
         public SerializableVector3[] vertices;
         public int[] triangles;
     }
+
+    [Serializable]
+    public class MeshData
+    {
+        public SerializableVector3[] vertices;
+        public int[] triangles;
+    }
+
     [Serializable]
     public class QRCodeData
     {
+        public int qrCodeID;
         public string qrCodeName;
         public SerializableVector3 qrCodePosition;
         public SerializableQuaternionEuler qrCodeRotation;
-        public string qrCodeText;
+    }
+
+    [Serializable]
+    public class EventData
+    {
+        public string eventName;
+        public string eventDescription;
+        public string[] eventDialogues;
+        public SerializableVector3 eventPosition;
+        public SerializableQuaternionEuler eventRotation;
     }
     #endregion
 

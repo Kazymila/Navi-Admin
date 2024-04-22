@@ -13,7 +13,6 @@ public class EntrancesTool : MonoBehaviour
 
     private EntrancesController _currentEntrance;
     private WallLineController _currentWall;
-    private int _entrancesCount = 0;
     private bool _movingEntrance;
 
     private InputMap _input;
@@ -82,10 +81,10 @@ public class EntrancesTool : MonoBehaviour
     {   // Instantiate a new entrance on the given position
         GameObject _newEntrance = Instantiate(_entrancePrefab, _position, Quaternion.identity, _entranceParent);
         _currentEntrance = _newEntrance.GetComponent<EntrancesController>();
+        _currentEntrance.entranceWall = _wall;
         _currentEntrance.SetEntrancePositionFromCursor(_position, _wall);
-        _currentEntrance.name = "Entrance_" + _entrancesCount;
+        _currentEntrance.name = "Entrance_" + _newEntrance.transform.GetSiblingIndex();
         _movingEntrance = true;
-        _entrancesCount++;
     }
 
     private void CancelDraw()

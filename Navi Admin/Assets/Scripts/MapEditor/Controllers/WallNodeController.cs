@@ -13,8 +13,6 @@ public class WallNodeController : MonoBehaviour
     public int linesCount = 0;
 
     [Header("Dot Settings")]
-    public int nodeIndex;
-    public Vector3 position;
     public bool isOnEntranceDot;
 
     public CircleCollider2D dotCollider;
@@ -29,19 +27,23 @@ public class WallNodeController : MonoBehaviour
             transform.localPosition.x,
             transform.localPosition.y,
             0.0f);
-        nodeIndex = transform.GetSiblingIndex();
-        name = "Dot_" + nodeIndex;
+        name = "Node_" + transform.GetSiblingIndex();
     }
 
     private void LateUpdate()
     {   // Delete the dot if it has no lines
         if (walls.Count == 0) DeleteNode();
-        position = this.transform.position;
-        position.z = 0.0f;
     }
 
     public void PlaySelectAnimation() => _dotAnimator.Play("Selected", 0, 0);
     public void PlayDeniedAnimation() => _dotAnimator.Play("Denied", 0, 0);
+
+    public Vector3 GetNodePosition()
+    {   // Get the position of the dot
+        Vector3 _position = this.transform.position;
+        _position.z = 0.0f;
+        return _position;
+    }
 
     public void SetPosition(Vector3 _position)
     {   // Set the position of the dot and update the lines

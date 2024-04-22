@@ -452,7 +452,7 @@ public class SelectTool : MonoBehaviour
     private void ShowWallSize()
     {   // Show the wall size label
         float _wallSize = _selectedWall.CalculateLength();
-        Vector3 _labelPosition = (_selectedWall.endNode.position + _selectedWall.startNode.position) / 2;
+        Vector3 _labelPosition = (_selectedWall.endNode.GetNodePosition() + _selectedWall.startNode.GetNodePosition()) / 2;
         _wallSizeLabel.transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
         _wallSizeLabel.GetComponentInChildren<TextMeshProUGUI>().text = _wallSize.ToString("F2") + "m";
         _wallSizeLabel.SetActive(true);
@@ -469,7 +469,7 @@ public class SelectTool : MonoBehaviour
                 _wallLabels.Add(_label);
             }
             WallLineController _line = _selectedDot.walls[i].GetComponent<WallLineController>();
-            Vector3 _labelPosition = (_line.endNode.position + _line.startNode.position) / 2;
+            Vector3 _labelPosition = (_line.endNode.GetNodePosition() + _line.startNode.GetNodePosition()) / 2;
 
             _wallLabels[i].GetComponentInChildren<TextMeshProUGUI>().text = _line.length.ToString("F2") + "m";
             _wallLabels[i].transform.position = Camera.main.WorldToScreenPoint(_labelPosition);
