@@ -12,9 +12,6 @@ public class ShapeTool : MonoBehaviour
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _sizeLabel;
 
-    [Header("Dots settings")]
-    [SerializeField] private GameObject _dotPrefab;
-
     [Header("Line settings")]
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
@@ -69,18 +66,10 @@ public class ShapeTool : MonoBehaviour
             GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _linesParent);
             _currentShape = _newShape.GetComponent<ShapeController>();
             _newShape.name = "Shape_" + (_linesParent.childCount > 0 ? (_linesParent.childCount - 1) : 0);
-            InstantiateDot(_cursorPosition);
+            _currentShape.InstantiateDot(_cursorPosition);
         }
-        InstantiateDot(_cursorPosition);
+        _currentShape.InstantiateDot(_cursorPosition);
         _isDrawing = true;
-    }
-
-    private void InstantiateDot(Vector3 _position)
-    {   // Instantiate a new dot in the current shape
-        GameObject _newDot = Instantiate(_dotPrefab, _position + _currentShape.shapeDotsOffset,
-                            Quaternion.Euler(-90, 0, 0), _currentShape.transform);
-        _newDot.name = "ShapeDot_" + _currentShape.GetPointsCount();
-        _currentShape.AddPoint(_newDot.transform);
     }
 
     private void EndShape()

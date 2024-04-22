@@ -1,17 +1,22 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MapDataModel;
 using SFB;
-using System.Linq;
+using System.IO;
 
 public class SaveLoadMapSystem : MonoBehaviour
 {
     #region --- Variables ---
+    [Header("UI")]
+    [SerializeField] private EditorLayoutController _editorLayoutController;
+    [SerializeField] private GameObject _NonePlaceholder;
     [Header("Managers")]
     [SerializeField] private RoomsManager _roomsManager;
     [SerializeField] private QRCodesManager _qrCodesManager;
+    [SerializeField] private Render3DManager _render3DManager;
 
     [Header("Parents")]
     [SerializeField] private Transform _nodesParent;
@@ -42,27 +47,33 @@ public class SaveLoadMapSystem : MonoBehaviour
 
     public void LoadMapData()
     {   // Load the map data from a JSON file
-        string _path = StandaloneFileBrowser.OpenFilePanel("Load Map", "", _extensionList, false)[0];
+
+        // TODO: Pop-up message to save or discard the current map
+
+        // Disable all the features and tools and clear the map
+        _editorLayoutController.ActivateFeature(_NonePlaceholder);
+        ClearMapData();
+
+        string[] _paths = StandaloneFileBrowser.OpenFilePanel("Load Map", "", _extensionList, false);
+        string _path = _paths.Length > 0 ? _paths[0] : "";
         if (_path == "") return; // If the path is empty, return
 
         MapData _mapData = JsonDataService.LoadData<MapData>(_path);
         LoadFloorData(_mapData, 0); // Load the first floor map
     }
 
-    /*public void SaveRenderMapData()
-    {   // Save the render map data to a JSON file
-        ARFloorData _renderData = _renderViewManager.GetRenderData();
-        ARMapData = new ARMapData
-        {
-            mapName = mapData.mapName,
-            buildingName = mapData.buildingName,
-            floors = new ARFloorData[] { _renderData }
-        };
+    public void ClearMapData()
+    {   // Clear the map data from the map editor
+        _roomsManager.ClearRooms();
 
-        string _path = StandaloneFileBrowser.SaveFilePanel("Save AR Map", "", ARMapData.mapName + "ARMapData", _extensionList);
-        if (_path == "") return; // If the path is empty, return
-        JsonDataService.SaveData(_path, ARMapData);
-    }*/
+        foreach (Transform _node in _nodesParent)
+            _node.GetComponent<WallNodeController>().DeleteNode(true);
+
+        foreach (Transform _shape in _shapesParent)
+            _shape.GetComponent<ShapeController>().DestroyShape();
+
+        _qrCodesManager.ClearQRCodes();
+    }
 
     #region --- Generate Map Data ---
     // -------------------------------------------
@@ -70,6 +81,7 @@ public class SaveLoadMapSystem : MonoBehaviour
     // -------------------------------------------
     public MapData GetMapData()
     {   // Get the map data from the map editor
+        _render3DManager.ShowRenderElements(false); // Disable the 3D render
         MapData _mapData = new MapData
         {
             mapName = "ExampleMap",           // Default map name
@@ -162,6 +174,8 @@ public class SaveLoadMapSystem : MonoBehaviour
             {
                 shapeID = i,
                 shapeName = _shape.shapeName,
+                shapePoints = SerializableVector3.GetSerializableArray(
+                    _shape.shapePoints.ConvertAll(point => point.position).ToArray()),
                 shapePosition = new SerializableVector3(_shape.transform.position),
                 polygonData = _shape.GetPolygonData(),
                 renderData = _shape.GetRenderData()
@@ -209,6 +223,13 @@ public class SaveLoadMapSystem : MonoBehaviour
                 node => _nodesParent.GetChild(node).GetComponent<WallNodeController>());
             _node.walls = _nodeData.walls.ToList().ConvertAll(
                 wall => _wallsParent.GetChild(wall).gameObject);
+
+            foreach (GameObject _wall in _node.walls)
+            {   // Add the line types to the node
+                WallLineController _wallController = _wall.GetComponent<WallLineController>();
+                if (_node == _wallController.startNode) _node.linesType.Add(0);
+                else _node.linesType.Add(1);
+            }
         };
     }
 
@@ -247,16 +268,16 @@ public class SaveLoadMapSystem : MonoBehaviour
             _entranceController.lenght = _entranceData.entranceLenght;
             _entranceController.entranceWall = _wall;
 
-            _entranceController.startDot.transform.position =
-                _entranceData.startNodePosition.GetVector3;
-            _entranceController.endDot.transform.position =
-                _entranceData.endNodePosition.GetVector3;
+            _entranceController.startDot.transform.position = _entranceData.startNodePosition.GetVector3;
+            _entranceController.endDot.transform.position = _entranceData.endNodePosition.GetVector3;
 
             _entranceController.SetLineRenderer(
                 _entranceController.startDot.transform.position + new Vector3(0, 0, 0.5f),
                 _entranceController.endDot.transform.position + new Vector3(0, 0, 0.5f)
                 );
             _entranceController.SetLineCollider();
+            _entranceController.PlaySettedAnimation();
+            _wall.entrances.Add(_entranceController);
         };
     }
 
@@ -271,8 +292,9 @@ public class SaveLoadMapSystem : MonoBehaviour
 
             ShapeController _shapeController = _shape.GetComponent<ShapeController>();
             _shapeController.shapeName = _shapeData.shapeName;
-            _shapeController.LoadShapeFromData(_shapeData.polygonData);
+            _shapeController.LoadShapeFromData(_shapeData);
         };
     }
+
     #endregion
 }

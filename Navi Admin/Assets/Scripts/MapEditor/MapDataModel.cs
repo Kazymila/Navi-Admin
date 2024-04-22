@@ -4,9 +4,8 @@ using Newtonsoft.Json;
 
 namespace MapDataModel
 {
-    #region --- Map Data Classes ---
     // -------------------------------------------
-    // ----------------- Map Data ----------------
+    // ------------- Map Data Model --------------
     // -------------------------------------------
     [Serializable]
     public class MapData
@@ -27,7 +26,7 @@ namespace MapDataModel
         public QRCodeData[] qrCodes;
         public EventData[] events;
     }
-
+    #region --- Map Components ---
     [Serializable]
     public class NodeData
     {
@@ -69,18 +68,20 @@ namespace MapDataModel
         public int[] walls;
         public PolygonData polygonData;
         public MeshData renderData;
-        public SerializableVector3[] entrancesPoints;
     }
     [Serializable]
     public class ShapeData
     {
         public int shapeID;
         public string shapeName;
+        public SerializableVector3[] shapePoints;
         public SerializableVector3 shapePosition;
         public PolygonData polygonData;
         public MeshData renderData;
     }
+    #endregion
 
+    #region --- Polygon & Mesh ---
     [Serializable]
     public class PolygonData
     {
@@ -95,7 +96,9 @@ namespace MapDataModel
         public SerializableVector3[] vertices;
         public int[] triangles;
     }
+    #endregion
 
+    #region --- AR Features ---
     [Serializable]
     public class QRCodeData
     {
@@ -113,54 +116,6 @@ namespace MapDataModel
         public string[] eventDialogues;
         public SerializableVector3 eventPosition;
         public SerializableQuaternionEuler eventRotation;
-    }
-    #endregion
-
-    #region --- 3D Map Data Structures ---
-    // ----------------------------------------------
-    // ----------------- AR Map Data ----------------
-    // ----------------------------------------------
-
-    [Serializable]
-    public class ARMapData
-    {
-        public string mapName;
-        public string buildingName;
-        public ARFloorData[] floors;
-    }
-    [Serializable]
-    public class ARFloorData
-    {
-        public string floorName;
-        public WallRenderData[] walls;
-        public RoomRenderData[] rooms;
-        public ShapeRenderData[] shapes;
-    }
-
-    [Serializable]
-    public class WallRenderData
-    {
-        public int wallID;
-        public SerializableVector3[] vertices;
-        public int[] triangles;
-    }
-    public class RoomRenderData
-    {
-        public int roomID;
-        public string roomName;
-        public SerializableVector3[] entrancesPoints;
-        public SerializableColor polygonColor;
-        public SerializableVector3[] vertices;
-        public int[] triangles;
-    }
-
-    [Serializable]
-    public class ShapeRenderData
-    {
-        public int shapeID;
-        public string shapeName;
-        public SerializableVector3[] vertices;
-        public int[] triangles;
     }
     #endregion
 

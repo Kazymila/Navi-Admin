@@ -31,18 +31,6 @@ public class RoomsManager : MonoBehaviour
         rooms.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
-    public void DestroyPolygon(RoomController _polygon)
-    {   // Destroy the given polygon and remove it from references
-        foreach (WallNodeController _node in _polygon.nodes)
-            _node.rooms.Remove(_polygon);
-
-        foreach (WallLineController _wall in _polygon.walls)
-            _wall.rooms.Remove(_polygon);
-
-        rooms.Remove(_polygon);
-        Destroy(_polygon.gameObject);
-    }
-
     #region --- Generate Rooms/Polygons ---
     public void GenerateRooms()
     {   // Generate the rooms from the graph
@@ -210,7 +198,6 @@ public class RoomsManager : MonoBehaviour
                 walls = rooms[i].walls.ConvertAll(wall => wall.transform.GetSiblingIndex()).ToArray(),
                 polygonData = rooms[i].GetPolygonData(),
                 renderData = rooms[i].GetRenderData(),
-                // TODO: Add the entrance points
             };
             _roomsData[i] = _data;
         }
@@ -242,6 +229,14 @@ public class RoomsManager : MonoBehaviour
             _polygonController.SetPolygonData(_roomData.polygonData);
             rooms.Add(_polygonController);
         }
+    }
+
+    public void ClearRooms()
+    {   // Clear the rooms data
+        foreach (RoomController _room in rooms)
+            Destroy(_room.gameObject);
+        roomsTypes.Clear();
+        rooms.Clear();
     }
     #endregion
 }

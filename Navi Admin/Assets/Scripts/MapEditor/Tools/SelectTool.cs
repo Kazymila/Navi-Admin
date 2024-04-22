@@ -460,9 +460,9 @@ public class SelectTool : MonoBehaviour
 
     private void ShowWallsSizeLabel()
     {   // Show the walls labels connected to the selected dot
-        for (int i = 0; i < _selectedDot.linesCount; i++)
+        for (int i = 0; i < _selectedDot.walls.Count; i++)
         {
-            if (_wallLabels.Count < _selectedDot.linesCount)
+            if (_wallLabels.Count < _selectedDot.walls.Count)
             {   // Create the label if not exists
                 GameObject _label = Instantiate(_wallLabelPrefab, new Vector3(0, 0, 0), Quaternion.identity, _UIItems);
                 _label.name = "WallLabel_" + i.ToString();

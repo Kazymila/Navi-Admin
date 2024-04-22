@@ -12,8 +12,12 @@ public class ShapeController : MonoBehaviour
     [Header("Shape Settings")]
     public string shapeName;
     public float shapeHeight = 0.5f;
-    public Vector3 shapeDotsOffset = new Vector3(0, 0, -0.5f);
     [SerializeField] private Color _polygonColor = new Color(0.26f, 0, 0.68f, 0.5f);
+    public List<Transform> shapePoints;
+
+    [Header("Dots settings")]
+    [SerializeField] private GameObject _shapeDotPrefab;
+    public Vector3 shapeDotsOffset = new Vector3(0, 0, -0.5f);
 
     [Header("Shape Mesh")]
     [SerializeField] private GameObject _shapePolygonPrefab;
@@ -25,7 +29,6 @@ public class ShapeController : MonoBehaviour
     #endregion
     private PolygonCollider2D _linePolygonCollider;
     private LineRenderer _lineRenderer;
-    private List<Transform> _points;
 
     private void Awake()
     {
@@ -34,47 +37,55 @@ public class ShapeController : MonoBehaviour
         _linePolygonCollider = GetComponent<PolygonCollider2D>();
         _lineRenderer = GetComponent<LineRenderer>();
         _lineRenderer.positionCount = 0;
-        _points = new List<Transform>();
+        shapePoints = new List<Transform>();
     }
 
     private void OnDestroy()
     {   // Destroy all the points when shape is destroyed
-        foreach (Transform point in _points)
+        foreach (Transform point in shapePoints)
             Destroy(point.gameObject);
     }
 
     #region --- Shape Operations ---
     public int GetPointsCount() => _lineRenderer.positionCount;
 
+    public void InstantiateDot(Vector3 _position)
+    {   // Instantiate a new dot in the current shape
+        GameObject _newDot = Instantiate(_shapeDotPrefab, _position + shapeDotsOffset,
+                            Quaternion.Euler(-90, 0, 0), this.transform);
+        _newDot.name = "ShapeDot_" + GetPointsCount();
+        AddPoint(_newDot.transform);
+    }
+
     public void AddPoint(Transform point)
     {   // Add a new point to the line
-        _points.Add(point);
+        shapePoints.Add(point);
         _lineRenderer.positionCount++;
-        _lineRenderer.SetPosition(_points.Count - 1, point.position);
+        _lineRenderer.SetPosition(shapePoints.Count - 1, point.position);
     }
 
     public void UpdateLastPoint(Vector3 _position)
     {   // Update the last point of the line
-        if (_points.Count > 0)
+        if (shapePoints.Count > 0)
         {
-            _lineRenderer.SetPosition(_points.Count - 1, _position);
-            _points[_points.Count - 1].position = _position + shapeDotsOffset;
+            _lineRenderer.SetPosition(shapePoints.Count - 1, _position);
+            shapePoints[shapePoints.Count - 1].position = _position + shapeDotsOffset;
         }
     }
 
     public void EndShape()
     {   // Close the shape
-        if (_points.Count > 2)
+        if (shapePoints.Count > 2)
             _lineRenderer.loop = true;
         SetLineCollider();
     }
 
     public void RemoveLastPoint()
     {   // Remove the last point of the line
-        if (_points.Count > 0)
+        if (shapePoints.Count > 0)
         {
-            Destroy(_points[_points.Count - 1].gameObject);
-            _points.RemoveAt(_points.Count - 1);
+            Destroy(shapePoints[shapePoints.Count - 1].gameObject);
+            shapePoints.RemoveAt(shapePoints.Count - 1);
             _lineRenderer.positionCount--;
         }
     }
@@ -88,10 +99,10 @@ public class ShapeController : MonoBehaviour
 
     public float GetLastSegmentLength()
     {   // Get the length of the last segment of the line
-        if (_points.Count > 0)
+        if (shapePoints.Count > 0)
         {
-            Vector3 _lastPoint = _points[_points.Count - 1].position;
-            Vector3 _previousPoint = _points[_points.Count - 2].position;
+            Vector3 _lastPoint = shapePoints[shapePoints.Count - 1].position;
+            Vector3 _previousPoint = shapePoints[shapePoints.Count - 2].position;
             return Vector3.Distance(_lastPoint, _previousPoint);
         }
         else return 0;
@@ -99,10 +110,10 @@ public class ShapeController : MonoBehaviour
 
     public Vector3 GetLastSegmentCenter()
     {   // Get the center of the last segment of the line
-        if (_points.Count > 0)
+        if (shapePoints.Count > 0)
         {
-            Vector3 _lastPoint = _points[_points.Count - 1].position;
-            Vector3 _previousPoint = _points[_points.Count - 2].position;
+            Vector3 _lastPoint = shapePoints[shapePoints.Count - 1].position;
+            Vector3 _previousPoint = shapePoints[shapePoints.Count - 2].position;
             return (_lastPoint + _previousPoint) / 2;
         }
         else return Vector3.zero;
@@ -112,7 +123,7 @@ public class ShapeController : MonoBehaviour
     #region --- Line Collider ---
     public void SetLineCollider()
     {   // Set the collider points of the line
-        Vector3[] _positions = _points.ConvertAll(point => point.position).ToArray();
+        Vector3[] _positions = shapePoints.ConvertAll(point => point.position).ToArray();
         _positions = _positions.Concat(new Vector3[] { _positions[0] }).ToArray();
 
         if (_positions.Count() >= 2)
@@ -164,12 +175,12 @@ public class ShapeController : MonoBehaviour
     #region --- Shape Mesh Polygon ---
     public void SetShapeCollider(PolygonCollider2D _collider)
     {   // Set the collider points of shape polygon
-        _collider.points = _points.ConvertAll(point => new Vector2(point.position.x, point.position.y)).ToArray();
+        _collider.points = shapePoints.ConvertAll(point => new Vector2(point.position.x, point.position.y)).ToArray();
     }
 
     public void GenerateShapePolygon()
     {   // Create a mesh from shape points
-        List<Vector2> _points2D = _points.ConvertAll(
+        List<Vector2> _points2D = shapePoints.ConvertAll(
             point => new Vector2(point.position.x, point.position.y));
         List<Triangle2D> _outputTriangles = new List<Triangle2D>();
         List<List<Vector2>> _constrainedPoints = new List<List<Vector2>> { _points2D };
@@ -236,7 +247,7 @@ public class ShapeController : MonoBehaviour
         _shapeFaces = _shapeFaces.Concat(GenerateShapeFaces()).ToArray();
 
         _shape3D.GetComponent<MeshFilter>().mesh = CombineFaces(_shapeFaces, _shape3D.transform);
-        _shapeRenderMesh = GetComponent<MeshFilter>();
+        _shapeRenderMesh = _shape3D.GetComponent<MeshFilter>();
     }
 
     private Mesh CombineFaces(Mesh[] _meshes, Transform shapeTransform)
@@ -254,7 +265,7 @@ public class ShapeController : MonoBehaviour
 
     private Mesh[] GenerateShapeFaces()
     {   // Rotate points to 3D and generate the faces
-        List<Vector3> _polygonPoints = _points.ConvertAll(point => point.position);
+        List<Vector3> _polygonPoints = shapePoints.ConvertAll(point => point.position);
         _polygonPoints = _polygonPoints.ConvertAll(point => new Vector3(point.x, 0, point.y));
 
         Mesh[] _meshes = new Mesh[_polygonPoints.Count];
@@ -306,16 +317,16 @@ public class ShapeController : MonoBehaviour
         return _shapeData;
     }
 
-    public void LoadShapeFromData(PolygonData _polygonData)
+    public void LoadShapeFromData(ShapeData _shapeData)
     {   // Set the shape data from load data
-        Vector3[] vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);
+        Vector3[] _points = SerializableVector3.GetVector3Array(_shapeData.shapePoints);
+        foreach (Vector3 _point in _points) InstantiateDot(_point - shapeDotsOffset); // Instantiate the points
+        EndShape(); // Close the shape
 
-        // TODO: Set the shape points from vertices
-
-        // Create the shape polygon
         CreateShapePolygon();
+        PolygonData _polygonData = _shapeData.polygonData;
         _shapePolygonMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonData.materialColor.GetColor);
-        _shapePolygonMesh.mesh.vertices = vertices;
+        _shapePolygonMesh.mesh.vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);
         _shapePolygonMesh.mesh.triangles = _polygonData.triangles;
     }
     #endregion

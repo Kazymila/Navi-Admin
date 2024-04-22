@@ -10,7 +10,6 @@ public class WallNodeController : MonoBehaviour
     public List<RoomController> rooms = new List<RoomController>();
     public List<GameObject> walls = new List<GameObject>();
     public List<int> linesType = new List<int>();
-    public int linesCount = 0;
 
     [Header("Dot Settings")]
     public bool isOnEntranceDot;
@@ -47,7 +46,7 @@ public class WallNodeController : MonoBehaviour
 
     public void SetPosition(Vector3 _position)
     {   // Set the position of the dot and update the lines
-        for (int i = 0; i < linesCount; i++)
+        for (int i = 0; i < walls.Count; i++)
         {
             if (isOnEntranceDot)
             {
@@ -74,7 +73,6 @@ public class WallNodeController : MonoBehaviour
         walls.Add(_line);
         linesType.Add(_type);
         neighborsNodes.Add(_neighborDot);
-        linesCount++;
     }
 
     public void DeleteLine(int _index)
@@ -84,30 +82,19 @@ public class WallNodeController : MonoBehaviour
             walls.RemoveAt(_index);
             linesType.RemoveAt(_index);
             neighborsNodes.RemoveAt(_index);
-            linesCount--;
         }
     }
 
     public void DeleteNode(bool _destroyLines = true)
     {   // Delete the dot and its lines
-
-        // TODO: Fix some issues when delete the dot after create the polygons
-
-        for (int i = 0; i < linesCount; i++)
+        for (int i = 0; i < walls.Count; i++)
         {
             if (_destroyLines) walls[i].GetComponent<WallLineController>().DestroyLine(false);
             neighborsNodes[i].DeleteLine(neighborsNodes[i].neighborsNodes.IndexOf(this));
-            if (neighborsNodes[i].linesCount == 0) neighborsNodes[i].DeleteNode();
+            if (neighborsNodes[i].walls.Count == 0) neighborsNodes[i].DeleteNode();
         }
-        foreach (RoomController _room in rooms)
-        {   // Remove the dot from the polygon and regenerate the mesh
-            foreach (WallNodeController _node in _room.nodes)
-                if (_node != this) _node.rooms.Remove(_room);
-
-            //_polygon.transform.parent.GetComponent<PolygonsManager>().UpdatePolygons();
-            _room.transform.parent.GetComponent<RoomsManager>().DestroyPolygon(_room);
-        }
-        Destroy(gameObject);
+        foreach (RoomController _room in rooms) _room.DestroyRoom(this);
+        Destroy(this.gameObject);
     }
 
     public bool FindNeighborNode(WallNodeController _neighborDot)

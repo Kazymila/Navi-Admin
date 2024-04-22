@@ -61,6 +61,16 @@ public class RoomController : MonoBehaviour
         }
         else return Vector3.zero;
     }
+    public void DestroyRoom(WallNodeController _nodeCalled = null)
+    {   // Destroy the room and remove it from references
+        foreach (WallNodeController _node in nodes)
+            if (!_node == _nodeCalled) _node.rooms.Remove(this);
+        foreach (WallLineController _wall in walls) _wall.rooms.Remove(this);
+
+        _roomsManager.rooms.Remove(this);
+        Destroy(this.gameObject);
+    }
+
     private void OnTriggerEnter2D(Collider2D _collision)
     {   // Check if the polygon is colliding with another polygon
         if (_collision.gameObject.tag == "Polygon")
@@ -70,7 +80,7 @@ public class RoomController : MonoBehaviour
             {
                 // TODO: Manage the overlapping polygons and the holes
 
-                _roomsManager.DestroyPolygon(this);
+                DestroyRoom();
             }
         }
     }
@@ -188,6 +198,7 @@ public class RoomController : MonoBehaviour
     public void SetPolygonData(PolygonData _polygonData)
     {   // Set the polygon data
         colorMaterial.SetColor("_Color1", _polygonData.materialColor.GetColor);
+        if (_meshFilter == null) _meshFilter = this.GetComponent<MeshFilter>();
 
         Mesh _mesh = new Mesh();
         _mesh.vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);

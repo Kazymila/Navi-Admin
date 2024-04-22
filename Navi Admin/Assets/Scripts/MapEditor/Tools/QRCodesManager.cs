@@ -324,8 +324,14 @@ public class QRCodesManager : MonoBehaviour
             QRCodeController _qrController = _newQRCode.GetComponent<QRCodeController>();
             _newQRCode.name = "QRCode_" + qrCodeData.qrCodeID;
             _qrController.qrCodeName = qrCodeData.qrCodeName;
-            _qrController.GenerateQRCode(_QRCodeDisplayImage);
         }
+    }
+
+    public void ClearQRCodes()
+    {   // Clear all the QR codes
+        DeleteQRCode();
+        foreach (Transform _child in this.transform)
+            Destroy(_child.gameObject);
     }
     #endregion
 }

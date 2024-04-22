@@ -26,7 +26,7 @@ public class Render3DManager : MonoBehaviour
         _cameraManager = Camera.main.GetComponent<MapEditorCameraManager>();
     }
 
-    private void ShowRenderElements(bool show)
+    public void ShowRenderElements(bool show)
     {   // Show or hide the render elements
         foreach (Transform _child in this.transform)
             _child.gameObject.SetActive(show);

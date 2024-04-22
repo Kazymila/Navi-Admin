@@ -29,7 +29,7 @@ public class MapViewManager : MonoBehaviour
     {   // Show the map view
         if (!isMapViewActive)
         {
-            _polygonRender.GenerateRooms();
+            //_polygonRender.GenerateRooms();
             _polygonRender.ShowRoomsLabels();
             _polygons.SetActive(_showPolygons);
             isMapViewActive = true;
