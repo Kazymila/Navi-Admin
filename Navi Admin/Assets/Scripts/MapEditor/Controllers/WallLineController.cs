@@ -13,7 +13,7 @@ public class WallLineController : MonoBehaviour
     public List<EntrancesController> entrances = new List<EntrancesController>();
     public List<RoomController> rooms = new List<RoomController>();
     public float length;
-    public float width = 0.15f;
+    public float width = 0.10f;
     public bool isDrawing = false;
 
     [Header("Nodes")]
@@ -61,6 +61,11 @@ public class WallLineController : MonoBehaviour
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
     }
 
+    private void Update()
+    {
+        rooms.RemoveAll(room => room == null);
+    }
+
     public float CalculateLength()
     {   // Calculate the line lenght
         length = Vector3.Distance(startNode.GetNodePosition(), endNode.GetNodePosition());
@@ -99,6 +104,7 @@ public class WallLineController : MonoBehaviour
             endNode.DeleteLine(endNode.walls.IndexOf(this.gameObject));
         }
         foreach (EntrancesController _entrance in entrances) Destroy(_entrance.gameObject);
+        foreach (RoomController _room in rooms) _room.walls.Remove(this);
         Destroy(_renderWall);
         Destroy(this.gameObject);
     }

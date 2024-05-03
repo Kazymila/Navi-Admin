@@ -25,7 +25,7 @@ public class WallDrawer : MonoBehaviour
     private WallLineController _lineController;
     private WallNodeController _startWallNode;
     private WallNodeController _endWallNode;
-    private float _wallWidth = 0.15f;
+    private float _wallWidth = 0.10f;
     private bool _isDrawing;
 
     private InputMap _input;

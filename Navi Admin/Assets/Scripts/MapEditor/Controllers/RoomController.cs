@@ -148,8 +148,14 @@ public class RoomController : MonoBehaviour
         }
         return Mathf.Abs(_area / 2);
     }
-
     public Vector3 GetPolygonCentroid(bool _3Dpolygon = false)
+    {   // If the polygon has less than 4 points, use the mesh center
+        Vector3 _centroid = _meshFilter.mesh.bounds.center;
+        if (_3Dpolygon) return Quaternion.Euler(90, 0, 0) * _centroid;
+        else return _centroid;
+    }
+
+    public Vector3 GetPolygonCentroid2(bool _3Dpolygon = false)
     {   // Get the centroid of the polygon
         List<Vector2> _points2D = GetPoints2D();
         if (_points2D.Count <= 4)

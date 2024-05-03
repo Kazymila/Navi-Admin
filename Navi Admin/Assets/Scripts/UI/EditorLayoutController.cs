@@ -14,6 +14,7 @@ public class EditorLayoutController : MonoBehaviour
     private RectTransform[] _layoutRects;
     private Button[] _buttons;
 
+    private GameObject _selectedFeature;
     private Button _selectedButton;
     private Animator _animator;
 
@@ -70,11 +71,22 @@ public class EditorLayoutController : MonoBehaviour
         if (_button.name == "MapView") _button.interactable = true;
     }
 
-    public void ActivateFeature(GameObject _selectedFeature)
+    public void ActivateFeature(GameObject _feature)
     {   // Activate the selected feature and disable the others
         if (_mapViewManager.isMapViewActive) _mapViewManager.ShowMapView();
 
-        _selectedFeature.SetActive(!_selectedFeature.activeSelf);
-        _canvasManager.DisableOtherFeatures(_selectedFeature, _featuresManagers);
+        _feature.SetActive(!_feature.activeSelf);
+        _canvasManager.DisableOtherFeatures(_feature, _featuresManagers);
+        _selectedFeature = _feature;
+    }
+
+    public void DisableSelectedButton()
+    {   // Disable the selected button
+        if (_selectedButton && _selectedFeature)
+        {
+            _selectedFeature.SetActive(false);
+            _selectedButton.interactable = true;
+            _selectedButton = null;
+        }
     }
 }

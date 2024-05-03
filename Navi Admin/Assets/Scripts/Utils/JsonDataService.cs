@@ -1,9 +1,16 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using System.IO;
 
 public static class JsonDataService
 {
+    public static string ToJson<T>(T data)
+    {   // Convert the data to a JSON string
+        return JsonConvert.SerializeObject(data, Formatting.Indented,
+            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+    }
+
     public static bool SaveData<T>(string path, T data)
     {   // Save the data to a JSON file
 

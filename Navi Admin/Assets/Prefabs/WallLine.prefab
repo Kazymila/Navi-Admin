@@ -49,13 +49,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29941effcf0de534e867b9287a4b2fab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entrancesList: []
-  isDrawing: 0
+  entrances: []
+  rooms: []
   length: 0
-  startDot: {fileID: 0}
-  endDot: {fileID: 0}
+  width: 0.15
+  isDrawing: 0
+  startNode: {fileID: 0}
+  endNode: {fileID: 0}
   _dotPrefab: {fileID: 861134584662478616, guid: 07951ab49c3df4f4aa2749a6966e4947, type: 3}
-  _dotsParent: {fileID: 0}
   _renderPrefab: {fileID: 1181623390597465360, guid: 6e599d3fb571c0e428bc68b21f1a07a6, type: 3}
 --- !u!120 &2168909941902409299
 LineRenderer:
@@ -104,7 +105,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.15
+    widthMultiplier: 0.1
     widthCurve:
       serializedVersion: 2
       m_Curve:

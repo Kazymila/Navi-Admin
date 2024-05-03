@@ -49,6 +49,7 @@ MonoBehaviour:
   shapeName: 
   shapeHeight: 0.5
   _polygonColor: {r: 0.26, g: 0, b: 0.68, a: 0.5}
+  shapePoints: []
   _shapeDotPrefab: {fileID: 5725097497548738734, guid: 12e049cabb54f1b4295dd1b76e245bcd, type: 3}
   shapeDotsOffset: {x: 0, y: 0, z: -0.5}
   _shapePolygonPrefab: {fileID: 7687923158063359077, guid: f09599fbc9a9fe646a746b26497abbaa, type: 3}
@@ -100,7 +101,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.1
+    widthMultiplier: 0.05
     widthCurve:
       serializedVersion: 2
       m_Curve:

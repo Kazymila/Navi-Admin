@@ -84,8 +84,8 @@ public class EntrancesController : MonoBehaviour
     {   // Set the line renderer positions and width
         _lineRenderer.SetPosition(0, _startPosition + new Vector3(0, 0, -0.25f));
         _lineRenderer.SetPosition(1, _endPosition + new Vector3(0, 0, -0.25f));
-        _lineRenderer.startWidth = entranceWall.width;
-        _lineRenderer.endWidth = entranceWall.width;
+        _lineRenderer.startWidth = entranceWall.width + 0.05f;
+        _lineRenderer.endWidth = entranceWall.width + 0.05f;
     }
 
     public void SetEntrancePosition(Vector3 _position, Vector3 _direction)

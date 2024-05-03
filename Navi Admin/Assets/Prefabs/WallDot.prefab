@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 861134584662478616}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.03, y: 0.03, z: 0.03}
+  m_LocalScale: {x: 0.025, y: 0.025, z: 0.025}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -48,13 +48,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9632ba365a6d7504d832461cdec3000b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  neighborsDots: []
-  polygons: []
-  lines: []
+  neighborsNodes: []
+  rooms: []
+  walls: []
   linesType: 
-  linesCount: 0
-  dotIndex: 0
-  position: {x: 0, y: 0, z: 0}
   isOnEntranceDot: 0
   dotCollider: {fileID: 6574078785052881124}
 --- !u!33 &4581746749741957229

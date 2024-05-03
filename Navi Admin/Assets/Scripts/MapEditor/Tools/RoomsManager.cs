@@ -31,11 +31,17 @@ public class RoomsManager : MonoBehaviour
         rooms.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
+    private void Update()
+    {
+        rooms.RemoveAll(room => room == null);
+    }
+
     #region --- Generate Rooms/Polygons ---
     public void GenerateRooms()
     {   // Generate the rooms from the graph
+        if (_nodesParent.transform.childCount < 3) return; // If there are no nodes, return
         List<List<int>> _graphFaces = GetGraphFaces();
-        PrintGraphFaces(_graphFaces);
+        //PrintGraphFaces(_graphFaces);
 
         if (rooms.Count == 0) // If there are no rooms, create them
             foreach (List<int> _face in _graphFaces) CreatePolygon(_face);

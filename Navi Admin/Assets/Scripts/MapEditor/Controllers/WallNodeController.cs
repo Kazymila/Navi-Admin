@@ -32,6 +32,7 @@ public class WallNodeController : MonoBehaviour
     private void LateUpdate()
     {   // Delete the dot if it has no lines
         if (walls.Count == 0) DeleteNode();
+        rooms.RemoveAll(room => room == null);
     }
 
     public void PlaySelectAnimation() => _dotAnimator.Play("Selected", 0, 0);

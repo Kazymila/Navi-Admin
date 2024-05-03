@@ -4,15 +4,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MapDataModel;
+using Firebase.Firestore;
+using Firebase.Extensions;
 using SFB;
-using System.IO;
 
 public class SaveLoadMapSystem : MonoBehaviour
 {
     #region --- Variables ---
     [Header("UI")]
     [SerializeField] private EditorLayoutController _editorLayoutController;
-    [SerializeField] private GameObject _NonePlaceholder;
+    [SerializeField] private GameObject _SaveLoadPanel;
     [Header("Managers")]
     [SerializeField] private RoomsManager _roomsManager;
     [SerializeField] private QRCodesManager _qrCodesManager;
@@ -31,6 +32,13 @@ public class SaveLoadMapSystem : MonoBehaviour
     [SerializeField] private GameObject _shapePrefab;
     #endregion
 
+    private FirebaseFirestore _databaseRef;
+
+    private void Awake()
+    {   // Initialize the database reference
+        _databaseRef = FirebaseFirestore.DefaultInstance;
+    }
+
     ExtensionFilter[] _extensionList = new[] {
         new ExtensionFilter("JSON Files", "json"),
         new ExtensionFilter("All Files", "*" )
@@ -43,6 +51,7 @@ public class SaveLoadMapSystem : MonoBehaviour
         if (_path == "") return; // If the path is empty, return
 
         JsonDataService.SaveData(_path, _mapData);
+        _SaveLoadPanel.SetActive(false); // Close the save/load panel
     }
 
     public void LoadMapData()
@@ -51,7 +60,7 @@ public class SaveLoadMapSystem : MonoBehaviour
         // TODO: Pop-up message to save or discard the current map
 
         // Disable all the features and tools and clear the map
-        _editorLayoutController.ActivateFeature(_NonePlaceholder);
+        _editorLayoutController.DisableSelectedButton();
         ClearMapData();
 
         string[] _paths = StandaloneFileBrowser.OpenFilePanel("Load Map", "", _extensionList, false);
@@ -60,6 +69,28 @@ public class SaveLoadMapSystem : MonoBehaviour
 
         MapData _mapData = JsonDataService.LoadData<MapData>(_path);
         LoadFloorData(_mapData, 0); // Load the first floor map
+
+        _SaveLoadPanel.SetActive(false); // Close the save/load panel
+    }
+
+    public void SaveMapToDatabase()
+    {   // Save the map data to the database in server
+        MapData _mapData = GetMapData();
+        string _mapDataJson = JsonDataService.ToJson(_mapData);
+
+        Dictionary<string, object> _mapDataDict = new Dictionary<string, object>
+        {
+            { "MapData", _mapDataJson }
+        };
+
+        DocumentReference _docRef = _databaseRef.Collection("MapData").Document("ExampleMap");
+        _docRef.SetAsync(_mapDataDict).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompleted)
+                Debug.Log("Map data saved to the database");
+            else
+                Debug.LogError("Error saving map data to the database");
+        });
     }
 
     public void ClearMapData()
@@ -208,7 +239,7 @@ public class SaveLoadMapSystem : MonoBehaviour
         {
             NodeData _nodeData = _nodesData[i];
             GameObject _node = Instantiate(_nodePrefab, _nodesParent);
-            _node.transform.position = _nodeData.nodePosition.GetVector3;
+            _node.transform.position = _nodeData.nodePosition.GetVector3 + new Vector3(0, 0, -0.5f);
             _node.name = "Node_" + _nodeData.nodeID;
         };
     }
