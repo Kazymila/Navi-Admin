@@ -18,12 +18,14 @@ public class QRCodesManager : MonoBehaviour
     [SerializeField] private NavMeshManager _navMeshManager;
 
     [Header("QR Code Settings")]
+    [SerializeField] private Texture2D _onCodeLogoImage;
     [SerializeField] private GameObject _QRCodePrefab;
     [SerializeField] private GameObject _QRCodeSettingsPanel;
     [SerializeField] private TMP_InputField _QRCodeLabelInput;
     [SerializeField] private TMP_InputField _QRCodeXPosInput;
     [SerializeField] private TMP_InputField _QRCodeYPosInput;
     [SerializeField] private RawImage _QRCodeDisplayImage;
+    [SerializeField] private int _logoSize = 60;
     #endregion
 
     #region --- Private Variables ---
@@ -133,7 +135,7 @@ public class QRCodesManager : MonoBehaviour
             _isRotating = false;
             _isMoving = false;
             _QRCodeLabelInput.text = _currentQRCode.qrCodeName;
-            _currentQRCode.GenerateQRCode(_QRCodeDisplayImage);
+            _currentQRCode.GenerateQRCode(_QRCodeDisplayImage, _onCodeLogoImage, _logoSize);
             _QRCodeSettingsPanel.SetActive(true);
         }
         else
@@ -243,7 +245,7 @@ public class QRCodesManager : MonoBehaviour
             _QRCodeLabelInput.text = _initialQRCodeLabel;
             _QRCodeXPosInput.text = _initialQRCodePosition.x.ToString();
             _QRCodeYPosInput.text = _initialQRCodePosition.y.ToString();
-            _currentQRCode.GenerateQRCode(_QRCodeDisplayImage);
+            _currentQRCode.GenerateQRCode(_QRCodeDisplayImage, _onCodeLogoImage, _logoSize);
             _initialQRCodeLabel = null;
         }
     }
@@ -277,7 +279,7 @@ public class QRCodesManager : MonoBehaviour
     public void UpdateQRCode()
     {   // Update the current QR code
         if (_currentQRCode == null) return;
-        _currentQRCode.GenerateQRCode(_QRCodeDisplayImage);
+        _currentQRCode.GenerateQRCode(_QRCodeDisplayImage, _onCodeLogoImage, _logoSize);
     }
 
     public void SaveQRCode()

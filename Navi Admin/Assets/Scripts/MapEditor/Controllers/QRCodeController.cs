@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using ZXing.QrCode;
 using ZXing;
+using ZXing.QrCode.Internal;
 
 public class QRCodeController : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public class QRCodeController : MonoBehaviour
     private Texture2D _encodedTexture;
     private Animator _markerAnimator;
     private float _markerHeight = 0.6f;
+
+    // Logo on the QR code
+    private Texture2D _onCodeLogoImage;
+    private int _logoImageSize;
 
     void Start()
     {
@@ -23,11 +28,14 @@ public class QRCodeController : MonoBehaviour
 
     public Texture2D GetQRCodeTexture() => _encodedTexture;
 
-    public void GenerateQRCode(RawImage _rawImage)
+    public void GenerateQRCode(RawImage _rawImage, Texture2D _onCodeLogo, int _logoSize)
     {   // Generate a QR code from marker position and direction
-        Vector3 _QRDirection = CalculateQRCodeDirection();
+        Vector3 _QRRotation = CalculateQRCodeDirection();
         Vector3 _position3D = CalculateQRCodePosition();
-        string _textForEncoding = $"{qrCodeName} :pos: {_position3D} :dir: {_QRDirection}";
+        string _textForEncoding = $"{_position3D}pos:rot{_QRRotation}";
+        _onCodeLogoImage = _onCodeLogo;
+        _logoImageSize = _logoSize;
+
         GenerateQRCodeFromText(_textForEncoding, _rawImage);
     }
 
@@ -47,15 +55,6 @@ public class QRCodeController : MonoBehaviour
 
     private void GenerateQRCodeFromText(string _textForEncoding, RawImage _rawImage)
     {   // Generate a QR code from the given text
-        Color32[] _pixels = EncodeQRCode(_textForEncoding);
-        _encodedTexture.SetPixels32(_pixels);
-        _encodedTexture.Apply();
-
-        _rawImage.texture = _encodedTexture;
-    }
-
-    private Color32[] EncodeQRCode(string _textForEncoding)
-    {   // Encode the given text into a QR code
         BarcodeWriter _qrCodeWriter = new BarcodeWriter
         {
             Format = BarcodeFormat.QR_CODE,
@@ -65,7 +64,21 @@ public class QRCodeController : MonoBehaviour
                 Width = _encodedTexture.width
             }
         };
-        return _qrCodeWriter.Write(_textForEncoding);
+        _qrCodeWriter.Options.Hints.Add(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+        Color32[] _bitmap = _qrCodeWriter.Write(_textForEncoding);
+
+        // add a logo to the center of the QR code
+        int _logoStart = (_encodedTexture.width - _logoImageSize) / 2;
+
+        for (int i = 0; i < _logoImageSize; i++)
+            for (int j = 0; j < _logoImageSize; j++)
+                _bitmap[(_logoStart + i) + (_logoStart + j) * _encodedTexture.width] = _onCodeLogoImage.GetPixel(i, j);
+
+        // Apply the QR code to the raw image
+        _encodedTexture.SetPixels32(_bitmap);
+        _encodedTexture.Apply();
+
+        _rawImage.texture = _encodedTexture;
     }
 
     public void RotateMarkerUp()
