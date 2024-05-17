@@ -48,9 +48,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5350a8d3879b3a64b978c71859ccbc53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  polygonLabel: 
+  roomName: 
+  roomType: Room
   nodes: []
-  _polygonPoints2D: []
+  walls: []
   colorMaterial: {fileID: 2100000, guid: 2b51e65e1855282478b3e7a92df5d3b8, type: 2}
 --- !u!33 &7619371669937802832
 MeshFilter:
@@ -151,7 +152,7 @@ PolygonCollider2D:
       - {x: -0.5877852, y: -0.80901706}
       - {x: 0.58778536, y: -0.80901694}
       - {x: 0.9510565, y: 0.30901712}
-  m_UseDelaunayMesh: 0
+  m_UseDelaunayMesh: 1
 --- !u!50 &5293338484555012315
 Rigidbody2D:
   serializedVersion: 4

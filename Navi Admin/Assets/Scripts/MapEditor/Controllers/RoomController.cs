@@ -1,8 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Utils.Triangulation;
-using Game.Utils.Math;
+using Habrador_Computational_Geometry;
 using UnityEngine;
 using MapDataModel;
 using System.Linq;
@@ -18,6 +17,8 @@ public class RoomController : MonoBehaviour
     private RoomsManager _roomsManager;
     private PolygonCollider2D _polygonCollider;
     private MeshFilter _meshFilter;
+
+    private List<RoomController> _intersectPolygons = new List<RoomController>();
 
     private void Awake()
     {
@@ -71,69 +72,121 @@ public class RoomController : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    #region --- Polygon Operations ---
     private void OnTriggerEnter2D(Collider2D _collision)
     {   // Check if the polygon is colliding with another polygon
         if (_collision.gameObject.tag == "Polygon")
         {   // If the polygon is bigger than the collided polygon, destroy it
             RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
-            if (GetPolygonArea() > _polygon.GetPolygonArea())
-            {
-                // TODO: Manage the overlapping polygons and the holes
 
-                DestroyRoom();
+            if (GetPolygonArea() > _polygon.GetPolygonArea() && !_intersectPolygons.Contains(_polygon))
+            {   // Manage the overlapping polygons and the holes
+                _intersectPolygons.Add(_polygon);
+                nodes.AddRange(_polygon.nodes);
+
+                // Get the hole polygons points
+                List<Vector2[]> _holesPoints = new List<Vector2[]>();
+                foreach (RoomController polygon in _intersectPolygons)
+                    _holesPoints.Add(polygon.GetPoints2D().ToArray());
+
+                CreatePolygonMesh(_holesPoints);
+
+                // TODO: Delete overlapping polygons
+                //DestroyRoom();
             }
         }
     }
 
-    #region --- Polygon Operations ---
     public void SetPolygonCollider()
     {   // Set the polygon collider points
         Vector2[] _points = GetPoints2D().ToArray();
-        Vector2 _centroid = GetPolygonCentroid();
-
-        for (int i = 0; i < _points.Length; i++)
-        {   // reduce the area of the collider to avoid overlapping
-            _points[i] = Vector2.Lerp(_points[i], _centroid, 0.015f);
+        if (_meshFilter != null)
+        {   // Reduce the area of the collider to avoid overlapping
+            Vector2 _centroid = GetPolygonCenter();
+            for (int i = 0; i < _points.Length; i++)
+                _points[i] = Vector2.Lerp(_points[i], _centroid, 0.015f);
         }
         if (_polygonCollider == null)
             _polygonCollider = this.GetComponent<PolygonCollider2D>();
         _polygonCollider.points = _points;
     }
 
-    public void CreatePolygonMesh()
-    {   // Create a polygon mesh from connected points
-        List<Vector2> _points2D = GetPoints2D();
-        List<Triangle2D> _outputTriangles = new List<Triangle2D>();
-        List<List<Vector2>> _constrainedPoints = new List<List<Vector2>> { _points2D };
-        if (_meshFilter == null) _meshFilter = this.GetComponent<MeshFilter>();
+    public void CreatePolygonMesh(List<Vector2[]> _holePoints = null)
+    {   // Create the room polygon mesh
+        Mesh _outerArea = GenerateTriangulateMesh(_holePoints, true);
+        Vector2[] _outerPoints = _outerArea.vertices.ToList().ConvertAll(v => new Vector2(v.x, v.y)).ToArray();
 
-        DelaunayTriangulation _triangulation = new DelaunayTriangulation();
-        _triangulation.Triangulate(_points2D, 0.0f, _constrainedPoints);
-        _triangulation.GetTrianglesDiscardingHoles(_outputTriangles);
-        _meshFilter.mesh = CreateMeshFromTriangles(_outputTriangles);
+        if (_outerPoints.Length > 0)
+        {
+            if (_holePoints == null) _holePoints = new List<Vector2[]> { _outerPoints };
+            else _holePoints.Add(_outerPoints);
+        }
+        else if (_holePoints == null) _holePoints = new List<Vector2[]> { };
+
+        Mesh _mesh = GenerateTriangulateMesh(_holePoints);
+        _meshFilter.mesh = _mesh;
         SetPolygonCollider();
     }
 
-    private Mesh CreateMeshFromTriangles(List<Triangle2D> triangles)
-    {   // Create a mesh from a list of triangles
-        List<Vector3> vertices = new List<Vector3>(triangles.Count * 3);
-        List<int> indices = new List<int>(triangles.Count * 3);
+    public Mesh GenerateTriangulateMesh(List<Vector2[]> _holePoints = null, bool _getOuterArea = false)
+    {   // Create a polygon mesh using Constrained Delaunay triangulation
+        HashSet<MyVector2> points = GetPoints2D().Select(v => new MyVector2(v.x, v.y)).ToHashSet();
 
-        for (int i = 0; i < triangles.Count; ++i)
+        // Hull points
+        List<MyVector2> hullPoints_2d = _ConvexHull.JarvisMarch_2D(points);
+
+        // Holes points
+        if (_holePoints == null) _holePoints = new List<Vector2[]> { };
+        HashSet<List<MyVector2>> allHolePoints_2d = new HashSet<List<MyVector2>>();
+        foreach (Vector2[] hole in _holePoints)
         {
-            vertices.Add(triangles[i].p0);
-            vertices.Add(triangles[i].p1);
-            vertices.Add(triangles[i].p2);
-            indices.Add(i * 3 + 2); // Changes order
-            indices.Add(i * 3 + 1);
-            indices.Add(i * 3);
+            List<MyVector2> holePoints = hole.Select(v => new MyVector2(v.x, v.y)).ToList();
+            allHolePoints_2d.Add(holePoints);
+        }
+        if (_getOuterArea) allHolePoints_2d.Add(points.ToList());
+
+        // Normalize to range 0-1
+        List<MyVector2> allPoints = new List<MyVector2>();
+        allPoints.AddRange(hullPoints_2d);
+        allPoints.AddRange(points);
+        foreach (List<MyVector2> hole in allHolePoints_2d) allPoints.AddRange(hole);
+
+        Normalizer2 normalizer = new Normalizer2(allPoints);
+        List<MyVector2> hullPoints_2d_normalized = normalizer.Normalize(hullPoints_2d);
+        HashSet<List<MyVector2>> holePoints_2d_normalized = new HashSet<List<MyVector2>>();
+        HashSet<MyVector2> points_normalized = normalizer.Normalize(points);
+
+        foreach (List<MyVector2> hole in allHolePoints_2d)
+        {   // Normalize the hole points
+            List<MyVector2> hole_normalized = normalizer.Normalize(hole);
+            holePoints_2d_normalized.Add(hole_normalized);
         }
 
-        Mesh mesh = new Mesh();
-        mesh.subMeshCount = 1;
-        mesh.SetVertices(vertices);
-        mesh.SetIndices(indices, MeshTopology.Triangles, 0);
-        return mesh;
+        // Generate the triangulation
+        HalfEdgeData2 triangleData_normalized = _Delaunay.ConstrainedBySloan(
+            points_normalized, hullPoints_2d_normalized, holePoints_2d_normalized,
+            shouldRemoveTriangles: true, new HalfEdgeData2());
+
+        // UnNormalize and get the triangles
+        HalfEdgeData2 triangleData = normalizer.UnNormalize(triangleData_normalized);
+        HashSet<Triangle2> triangles_2d = _TransformBetweenDataStructures.HalfEdge2ToTriangle2(triangleData);
+
+        // Make sure the triangles have the correct orientation
+        triangles_2d = HelpMethods.OrientTrianglesClockwise(triangles_2d);
+
+        // Create the mesh
+        _meshFilter = this.GetComponent<MeshFilter>();
+        Mesh _mesh = _TransformBetweenDataStructures.Triangles2ToMesh(triangles_2d, true);
+
+        // Rotate mesh points
+        Vector3[] vertices = _mesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+            vertices[i] = Quaternion.Euler(-90, 0, 0) * vertices[i];
+        _mesh.vertices = vertices;
+
+        //_meshFilter.mesh = _mesh;
+        //SetPolygonCollider();
+        return _mesh;
     }
 
     public float GetPolygonArea()
@@ -148,14 +201,14 @@ public class RoomController : MonoBehaviour
         }
         return Mathf.Abs(_area / 2);
     }
-    public Vector3 GetPolygonCentroid(bool _3Dpolygon = false)
-    {   // If the polygon has less than 4 points, use the mesh center
+    public Vector3 GetPolygonCenter(bool _3Dpolygon = false)
+    {   // Get the center of the polygon (2D or 3D)
         Vector3 _centroid = _meshFilter.mesh.bounds.center;
         if (_3Dpolygon) return Quaternion.Euler(90, 0, 0) * _centroid;
         else return _centroid;
     }
 
-    public Vector3 GetPolygonCentroid2(bool _3Dpolygon = false)
+    public Vector3 GetPolygonCentroid(bool _3Dpolygon = false)
     {   // Get the centroid of the polygon
         List<Vector2> _points2D = GetPoints2D();
         if (_points2D.Count <= 4)

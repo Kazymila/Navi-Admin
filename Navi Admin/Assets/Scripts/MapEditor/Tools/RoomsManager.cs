@@ -168,7 +168,7 @@ public class RoomsManager : MonoBehaviour
         foreach (RoomController _polygon in rooms)
         {
             GameObject _label = Instantiate(_textlabelPrefab, Vector3.zero, Quaternion.identity, _labelsParent);
-            _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCentroid());
+            _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCenter());
             _label.GetComponent<TextMeshProUGUI>().text = _polygon.roomName;
         }
     }
@@ -178,7 +178,7 @@ public class RoomsManager : MonoBehaviour
         {
             if (i >= rooms.Count) break;
             Transform _label = _labelsParent.GetChild(i);
-            _label.position = Camera.main.WorldToScreenPoint(rooms[i].GetPolygonCentroid());
+            _label.position = Camera.main.WorldToScreenPoint(rooms[i].GetPolygonCenter());
         }
     }
     public void RemoveRoomsLabels()

@@ -129,7 +129,7 @@ public class NavMeshManager : MonoBehaviour
         // TOOD: Fix the destination point when are more than one door in the path
 
         if (_navToDoor) _destinationPoint = _room.GetClosestDoor(_navAgent.transform.position);
-        if (!_navToDoor || _destinationPoint == Vector3.zero) _destinationPoint = _room.GetPolygonCentroid(true);
+        if (!_navToDoor || _destinationPoint == Vector3.zero) _destinationPoint = _room.GetPolygonCenter(true);
         _destinationPoint.y = 0.4f;
 
         // Calculate the path to the destination point and show it

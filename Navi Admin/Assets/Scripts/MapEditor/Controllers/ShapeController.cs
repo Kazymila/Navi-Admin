@@ -5,6 +5,7 @@ using UnityEngine;
 using MapDataModel;
 using Game.Utils.Math;
 using Game.Utils.Triangulation;
+using Habrador_Computational_Geometry;
 
 public class ShapeController : MonoBehaviour
 {
@@ -178,7 +179,7 @@ public class ShapeController : MonoBehaviour
         _collider.points = shapePoints.ConvertAll(point => new Vector2(point.position.x, point.position.y)).ToArray();
     }
 
-    public void GenerateShapePolygon()
+    public void GenerateShapePolygon1()
     {   // Create a mesh from shape points
         List<Vector2> _points2D = shapePoints.ConvertAll(
             point => new Vector2(point.position.x, point.position.y));
@@ -191,6 +192,43 @@ public class ShapeController : MonoBehaviour
 
         CreateShapePolygon();
         _shapePolygonMesh.mesh = CreateMeshFromTriangles(_outputTriangles);
+    }
+
+    public void GenerateShapePolygon()
+    {   // Create a polygon mesh from connected points
+        HashSet<MyVector2> points = shapePoints.Select(v => new MyVector2(v.position.x, v.position.y)).ToHashSet();
+
+        // Hull points
+        List<MyVector2> hullPoints_2d = _ConvexHull.JarvisMarch_2D(points);
+        HashSet<List<MyVector2>> holePoints_2d = new HashSet<List<MyVector2>>();
+
+        // Normalize to range 0-1
+        Normalizer2 normalizer = new Normalizer2(hullPoints_2d);
+        List<MyVector2> hullPoints_2d_normalized = normalizer.Normalize(hullPoints_2d);
+
+        // Generate the triangulation
+        HalfEdgeData2 triangleData_normalized = _Delaunay.ConstrainedBySloan(
+            points, hullPoints_2d_normalized, holePoints_2d,
+            shouldRemoveTriangles: true, new HalfEdgeData2());
+
+        // UnNormalize and get the triangles
+        HalfEdgeData2 triangleData = normalizer.UnNormalize(triangleData_normalized);
+        HashSet<Triangle2> triangles_2d = _TransformBetweenDataStructures.HalfEdge2ToTriangle2(triangleData);
+
+        // Make sure the triangles have the correct orientation
+        triangles_2d = HelpMethods.OrientTrianglesClockwise(triangles_2d);
+
+        // Create the mesh
+        Mesh _mesh = _TransformBetweenDataStructures.Triangles2ToMesh(triangles_2d, true);
+
+        // Rotate mesh points
+        Vector3[] vertices = _mesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+            vertices[i] = Quaternion.Euler(-90, 0, 0) * vertices[i];
+        _mesh.vertices = vertices;
+
+        CreateShapePolygon();
+        _shapePolygonMesh.mesh = _mesh;
     }
 
     private void CreateShapePolygon()

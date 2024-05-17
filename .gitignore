@@ -1,5 +1,31 @@
+# Standard Unity Gitignore: https://github.com/github/gitignore/blob/main/Unity.gitignore
+
+# Unity folders
+/Navi Admin/[Ll]ibrary/
+/Navi Admin/[Tt]emp/
+/Navi Admin/[Oo]bj/
+/Navi Admin/[Bb]uild/
+/Navi Admin/[Bb]uilds/
+/Navi Admin/[Ll]ogs/
+/Navi Admin/[Uu]ser[Ss]ettings/
+
+# Memory Captures can get excessive in size
+/Navi Admin/[Mm]emoryCaptures/
+
+# Recordings can get excessive in size
+/Navi Admin/[Rr]ecordings/
+
+# Visual Studio cache directory
+.vscode/
+
+# Gradle cache directory
+.gradle/
+
 # iOS system files
 .DS_Store
+
+# Dist
+.dist
 
 # Credential files
 **/GoogleService-Info*.plist*
@@ -28,3 +54,7 @@
 # External dependency manager
 /Navi Admin/Assets/ExternalDependencyManager/
 /Navi Admin/Assets/ExternalDependencyManager*
+
+# Generated Local
+/Navi Admin/Assets/GeneratedLocalRepo.meta
+/Navi Admin/Assets/GeneratedLocalRepo/
