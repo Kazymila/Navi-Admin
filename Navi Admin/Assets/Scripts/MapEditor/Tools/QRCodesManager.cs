@@ -128,8 +128,6 @@ public class QRCodesManager : MonoBehaviour
         if (_UIEditorController.IsCursorOverEditorUI(_QRCodePanelRect)) return;
         if (!Camera.main.orthographic && _UIRenderController.IsCursorOverRenderUI(_QRCodePanelRect)) return;
 
-        if (_isRotating) _currentQRCode.CalculateQRCodeDirection();
-
         if (_isRotating || _isMoving)
         {   // If the QR code is rotating, stop rotating it
             _isRotating = false;

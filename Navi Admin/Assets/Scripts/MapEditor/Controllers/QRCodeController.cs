@@ -12,7 +12,6 @@ public class QRCodeController : MonoBehaviour
     public string qrCodeName;
     private Texture2D _encodedTexture;
     private Animator _markerAnimator;
-    private float _markerHeight = 0.6f;
 
     // Logo on the QR code
     private Texture2D _onCodeLogoImage;
@@ -30,9 +29,10 @@ public class QRCodeController : MonoBehaviour
 
     public void GenerateQRCode(RawImage _rawImage, Texture2D _onCodeLogo, int _logoSize)
     {   // Generate a QR code from marker position and direction
-        Vector3 _QRRotation = CalculateQRCodeDirection();
+        Vector3 _direction3D = CalculateQRCodeDirection();
         Vector3 _position3D = CalculateQRCodePosition();
-        string _textForEncoding = $"{_position3D}pos:rot{_QRRotation}";
+
+        string _textForEncoding = $"{_position3D}pos:dir{_direction3D}";
         _onCodeLogoImage = _onCodeLogo;
         _logoImageSize = _logoSize;
 
@@ -49,7 +49,7 @@ public class QRCodeController : MonoBehaviour
     private Vector3 CalculateQRCodePosition()
     {   // Calculate the 3D position from the 2D position
         if (Camera.main.orthographic)
-            return new Vector3(transform.position.x, _markerHeight, transform.position.y);
+            return new Vector3(transform.position.x, 0, transform.position.y);
         else return transform.position;
     }
 
