@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using MapDataModel;
+using UnityEngine.UI;
 
 public class SelectTool : MonoBehaviour
 {
@@ -16,11 +18,13 @@ public class SelectTool : MonoBehaviour
     [SerializeField] private GameObject _entranceSettingsPanel;
     [SerializeField] private GameObject _polygonSettingsPanel;
     [SerializeField] private GameObject _wallSettingsPanel;
+    [SerializeField] private GameObject _roomTypePanel;
 
     private TMP_InputField _wallSizeInput;
     private TMP_InputField _entranceSizeInput;
     private TMP_InputField _entranceLabelInput;
     private TMP_InputField _polygonLabelInput;
+    private TMP_Dropdown _polygonTypeDropdown;
 
     [Header("Color Picker")]
     [SerializeField] private FlexibleColorPicker _colorPicker;
@@ -90,6 +94,7 @@ public class SelectTool : MonoBehaviour
         _entranceSizeInput = _entranceSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();
         _entranceLabelInput = _entranceSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
         _polygonLabelInput = _polygonSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
+        _polygonTypeDropdown = _polygonSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_Dropdown>();
     }
 
     private Vector3 GetCursorPosition(bool _considerSnap = true)
@@ -406,7 +411,9 @@ public class SelectTool : MonoBehaviour
         _colorPicker.UpdateCustomMaterial(_selectedPolygon.colorMaterial, true);
         _colorPicker.UpdateCustomMaterial(_colorOpaquePreview, false);
         _colorPicker.UpdateCustomMaterial(_colorAlphaPreview, true);
+        _roomTypePanel.SetActive(false);
     }
+
     public void SetPolygonSettings()
     {   // Set the polygon changes on confirmation
         if (_polygonLabelInput.text != "") // Set label
@@ -420,6 +427,65 @@ public class SelectTool : MonoBehaviour
         _selectedPolygon.colorMaterial.SetColor("_Color1", _oldPolygonColor);
         _colorPicker.gameObject.SetActive(false);
         _polygonSettingsPanel.SetActive(false);
+    }
+
+    public void ChangePolygonType()
+    {   // Change the selected polygon type from dropdown
+        if (_selectedPolygon == null) return;
+
+        if (_polygonTypeDropdown.value == _polygonTypeDropdown.options.Count - 1)
+        {   // Show the input field to enter a new type
+            _roomTypePanel.SetActive(true);
+            _colorPicker.gameObject.SetActive(false);
+            _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text = "";
+            _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text = "";
+            _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text = "";
+            _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value = 0;
+        }
+        else
+        {   // Set the selected type and show the fields to edit the type
+            int _index = _polygonTypeDropdown.value;
+            _colorPicker.gameObject.SetActive(false);
+
+            if (_index == 0) // With unique type, hide the input fields
+                _roomTypePanel.SetActive(false);
+            else
+            {   // Show the input fields to edit the type if is not unique
+                _roomTypePanel.SetActive(true);
+                _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text =
+                    _polygonTypeDropdown.options[_index].text;
+                _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text =
+                    _polygonsManager.roomsTypesData[_index].typeNameTranslation.EnglishTranslation;
+                _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text =
+                    _polygonsManager.roomsTypesData[_index].typeNameTranslation.SpanishTranslation;
+                _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value =
+                    _polygonsManager.roomsTypesData[_index].searchNearestMode ? 1 : 0;
+            }
+            _selectedPolygon.roomType = _polygonTypeDropdown.options[_index].text;
+        }
+    }
+
+    public void ConfirmTypeChange()
+    {   // Confirm the type change
+        if (_selectedPolygon == null) return;
+        if (_roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text == "")
+        {   // Show an error message if the type name is empty
+            _errorMessageBox.ShowMessage("EnterSomeValue");
+            return;
+        }
+        _polygonsManager.AddRoomType(
+            _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text,
+            _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text,
+            _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text,
+            _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value == 1 ? true : false
+            );
+        _errorMessageBox.HideMessage();
+        _roomTypePanel.SetActive(false);
+    }
+
+    public void CancelTypeChange()
+    {   // Cancel the type change
+        _roomTypePanel.SetActive(false);
     }
     #endregion
 

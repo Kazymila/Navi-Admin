@@ -9,7 +9,7 @@ using System.Linq;
 public class RoomController : MonoBehaviour
 {
     public string roomName;
-    public string roomType = "Room";
+    public string roomType = "";
     public List<WallNodeController> nodes = new List<WallNodeController>();
     public List<WallLineController> walls = new List<WallLineController>();
     public Material colorMaterial;

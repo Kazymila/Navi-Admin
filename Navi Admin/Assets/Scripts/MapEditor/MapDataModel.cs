@@ -13,6 +13,7 @@ namespace MapDataModel
         public string mapName;
         public string buildingName;
         public FloorData[] floors;
+        public RoomTypeData[] roomTypes;
     }
     [Serializable]
     public class FloorData
@@ -63,12 +64,21 @@ namespace MapDataModel
     {
         public int roomID;
         public string roomName;
-        public string roomType;
+        public int roomType;
         public int[] nodes;
         public int[] walls;
         public PolygonData polygonData;
         public MeshData renderData;
     }
+    [Serializable]
+    public class RoomTypeData
+    {
+        public int typeID;
+        public string typeName;
+        public bool searchNearestMode;
+        public TranslatedText typeNameTranslation;
+    }
+
     [Serializable]
     public class ShapeData
     {
@@ -112,14 +122,22 @@ namespace MapDataModel
     public class EventData
     {
         public string eventName;
-        public string eventDescription;
-        public string[] eventDialogues;
+        public TranslatedText eventDescription;
+        public TranslatedText[] eventDialogues;
         public SerializableVector3 eventPosition;
         public SerializableQuaternionEuler eventRotation;
     }
     #endregion
 
-    #region --- Serializable Unity Types ---
+    #region --- Serializable Types ---
+    [Serializable]
+    public class TranslatedText
+    {
+        public string key;
+        public string EnglishTranslation;
+        public string SpanishTranslation;
+    }
+
     [Serializable]
     public class SerializableVector3
     {

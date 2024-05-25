@@ -229,7 +229,7 @@ public class SaveLoadMapSystem : MonoBehaviour
         LoadNodesData(_floorData.nodes);
         LoadShapesData(_floorData.shapes);
 
-        _roomsManager.LoadRoomsData(_floorData.rooms);
+        _roomsManager.LoadRoomsData(_floorData.rooms, _mapData.roomTypes);
         _qrCodesManager.LoadQRCodesData(_floorData.qrCodes);
     }
 

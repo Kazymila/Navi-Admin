@@ -9,7 +9,8 @@ public class RoomsManager : MonoBehaviour
 {
     #region --- Variables ---
     public List<RoomController> rooms = new List<RoomController>();
-    public List<string> roomsTypes = new List<string>();
+    public List<string> roomsTypesList = new List<string>();
+    public List<RoomTypeData> roomsTypesData = new List<RoomTypeData>();
 
     [Header("Polygons Elements")]
     [SerializeField] private Transform _2DPolygonsParent;
@@ -22,18 +23,78 @@ public class RoomsManager : MonoBehaviour
     [SerializeField] private GameObject _wallsParent;
 
     [Header("UI Elements")]
+    [SerializeField] private TMP_Dropdown _roomsTypesDropdown;
     [SerializeField] private GameObject _textlabelPrefab;
     [SerializeField] private Transform _labelsParent;
     #endregion
+
+    private void Awake()
+    {   // Setup the rooms types dropdown
+        roomsTypesList.Add("Unique");
+        roomsTypesData.Add(new RoomTypeData
+        {
+            typeID = 0,
+            typeName = "Unique",
+            searchNearestMode = false,
+            typeNameTranslation = new TranslatedText
+            {
+                EnglishTranslation = "Unique",
+                SpanishTranslation = "Único"
+            }
+        });
+        _roomsTypesDropdown.ClearOptions();
+        _roomsTypesDropdown.AddOptions(roomsTypesList);
+        _roomsTypesDropdown.options.Add(new TMP_Dropdown.OptionData("+ New type"));
+    }
+
+    private void Update()
+    {   // Remove the null rooms
+        rooms.RemoveAll(room => room == null);
+    }
 
     public void UpdatePolygons()
     {   // Update the polygons meshes and colliders
         rooms.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
-    private void Update()
-    {
-        rooms.RemoveAll(room => room == null);
+    public void AddRoomType(string _roomType, string _eng, string _esp, bool _nearestMode)
+    {   // Add a new room type or update a existing one
+        if (roomsTypesList.Contains(_roomType))
+        {   // Update the room type data
+            RoomTypeData _typeData = new RoomTypeData
+            {
+                typeID = roomsTypesList.Count - 1,
+                typeName = _roomType,
+                searchNearestMode = _nearestMode,
+                typeNameTranslation = new TranslatedText
+                {
+                    EnglishTranslation = _eng,
+                    SpanishTranslation = _esp
+                }
+            };
+            roomsTypesData[roomsTypesList.IndexOf(_roomType)] = _typeData;
+        }
+        else
+        {   // Add the new room type
+            roomsTypesList.Add(_roomType);
+
+            RoomTypeData _typeData = new RoomTypeData
+            {
+                typeID = roomsTypesList.Count - 1,
+                typeName = _roomType,
+                searchNearestMode = _nearestMode,
+                typeNameTranslation = new TranslatedText
+                {
+                    EnglishTranslation = _eng,
+                    SpanishTranslation = _esp
+                }
+            };
+            roomsTypesData.Add(_typeData);
+            _roomsTypesDropdown.ClearOptions();
+            _roomsTypesDropdown.AddOptions(roomsTypesList);
+            _roomsTypesDropdown.options.Add(new TMP_Dropdown.OptionData("+ New type"));
+            _roomsTypesDropdown.value = roomsTypesList.Count - 1;
+        }
     }
 
     #region --- Generate Rooms/Polygons ---
@@ -199,7 +260,7 @@ public class RoomsManager : MonoBehaviour
             {
                 roomID = i,
                 roomName = rooms[i].roomName,
-                roomType = rooms[i].roomType,
+                roomType = roomsTypesList.IndexOf(rooms[i].roomType),
                 nodes = rooms[i].nodes.ConvertAll(node => node.transform.GetSiblingIndex()).ToArray(),
                 walls = rooms[i].walls.ConvertAll(wall => wall.transform.GetSiblingIndex()).ToArray(),
                 polygonData = rooms[i].GetPolygonData(),
@@ -210,15 +271,21 @@ public class RoomsManager : MonoBehaviour
         return _roomsData;
     }
 
-    public void LoadRoomsData(RoomData[] _roomsData)
+    public void LoadRoomsData(RoomData[] _roomsData, RoomTypeData[] _roomsTypes)
     {   // Load the rooms data to the map
+        roomsTypesData = new List<RoomTypeData>(_roomsTypes);
+        roomsTypesList.Clear();
+
+        foreach (RoomTypeData _type in _roomsTypes)
+            roomsTypesList.Add(_type.typeName);
+
         foreach (RoomData _roomData in _roomsData)
         {   // Create the room from the data
             GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
             RoomController _polygonController = _polygon.GetComponent<RoomController>();
 
             _polygonController.roomName = _roomData.roomName;
-            _polygonController.roomType = _roomData.roomType;
+            _polygonController.roomType = roomsTypesList[_roomData.roomType];
 
             foreach (int _nodeIndex in _roomData.nodes)
             {   // Add the nodes to the polygon and the polygon to the nodes
@@ -241,7 +308,7 @@ public class RoomsManager : MonoBehaviour
     {   // Clear the rooms data
         foreach (RoomController _room in rooms)
             Destroy(_room.gameObject);
-        roomsTypes.Clear();
+        roomsTypesList.Clear();
         rooms.Clear();
     }
     #endregion
