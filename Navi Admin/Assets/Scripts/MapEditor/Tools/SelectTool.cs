@@ -246,10 +246,9 @@ public class SelectTool : MonoBehaviour
                 RemoveSegmentsSizeLabel();
 
                 _selectedEntrance = _hit.collider.GetComponent<EntrancesController>();
+                ShowWallSegmentsSize(_selectedEntrance.entranceWall);
                 InitializeEntranceEditing();
                 _movingEntrance = true;
-
-                ShowWallSegmentsSize(_selectedEntrance.entranceWall);
             }
             else if (_hit.collider.CompareTag("Wall"))
             {   // Select a wall and edit it
@@ -277,16 +276,7 @@ public class SelectTool : MonoBehaviour
                 RemoveSegmentsSizeLabel();
 
                 _selectedPolygon = _hit.collider.GetComponent<RoomController>();
-                _oldPolygonColor = _selectedPolygon.colorMaterial.GetColor("_Color1");
-                _colorOpaquePreview.SetColor("_Color1", _oldPolygonColor);
-                _colorOpaquePreview.SetColor("_Color2", _oldPolygonColor);
-                _colorAlphaPreview.SetColor("_Color1", _oldPolygonColor);
-                _colorAlphaPreview.SetColor("_Color2", _oldPolygonColor);
-                _colorPicker.color = _oldPolygonColor;
-
-                _selectedPolygon.nodes.ForEach(node => node.PlaySelectAnimation());
-                _polygonLabelInput.text = _selectedPolygon.roomName;
-                _polygonSettingsPanel.SetActive(true);
+                InitializePolygonSettingsPanel();
             }
         }
         else if (_editingWall) CancelWallEdit();
@@ -405,6 +395,23 @@ public class SelectTool : MonoBehaviour
     #endregion
 
     #region --- Polygon Settings ---
+    public void InitializePolygonSettingsPanel()
+    {   // Initialize the polygon settings panel
+        _oldPolygonColor = _selectedPolygon.colorMaterial.GetColor("_Color1");
+        _colorOpaquePreview.SetColor("_Color1", _oldPolygonColor);
+        _colorOpaquePreview.SetColor("_Color2", _oldPolygonColor);
+        _colorAlphaPreview.SetColor("_Color1", _oldPolygonColor);
+        _colorAlphaPreview.SetColor("_Color2", _oldPolygonColor);
+        _colorPicker.color = _oldPolygonColor;
+
+        if (_selectedPolygon.roomType == "") _polygonTypeDropdown.value = 0;
+        else _polygonTypeDropdown.value = _polygonsManager.roomsTypesList.IndexOf(_selectedPolygon.roomType);
+
+        _selectedPolygon.nodes.ForEach(node => node.PlaySelectAnimation());
+        _polygonLabelInput.text = _selectedPolygon.roomName;
+        _polygonSettingsPanel.SetActive(true);
+    }
+
     public void ChangePolygonColor()
     {   // Change the selected polygon color with the color picker value
         if (_selectedPolygon == null) return;
@@ -418,9 +425,11 @@ public class SelectTool : MonoBehaviour
     {   // Set the polygon changes on confirmation
         if (_polygonLabelInput.text != "") // Set label
             _selectedPolygon.roomName = _polygonLabelInput.text;
+        _selectedPolygon.roomType = _polygonTypeDropdown.options[_polygonTypeDropdown.value].text;
 
         _colorPicker.gameObject.SetActive(false);
         _polygonSettingsPanel.SetActive(false);
+        _roomTypePanel.SetActive(false);
     }
     public void CancelPolygonEdit()
     {   // Cancel the polygon edit and reset the polygon

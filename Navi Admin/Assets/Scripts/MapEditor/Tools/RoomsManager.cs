@@ -4,6 +4,7 @@ using GraphPlanarityTesting.PlanarityTesting.BoyerMyrvold;
 using MapDataModel;
 using UnityEngine;
 using TMPro;
+using System.Linq;
 
 public class RoomsManager : MonoBehaviour
 {
@@ -28,6 +29,17 @@ public class RoomsManager : MonoBehaviour
     [SerializeField] private Transform _labelsParent;
     #endregion
 
+    private void Update()
+    {   // Remove the null rooms
+        rooms.RemoveAll(room => room == null);
+    }
+
+    public void UpdatePolygons()
+    {   // Update the polygons meshes and colliders
+        rooms.ForEach(polygon => polygon.CreatePolygonMesh());
+    }
+
+    #region --- Rooms Types Dropdown ---
     private void Awake()
     {   // Setup the rooms types dropdown
         roomsTypesList.Add("Unique");
@@ -42,19 +54,14 @@ public class RoomsManager : MonoBehaviour
                 SpanishTranslation = "Único"
             }
         });
+        SetRoomsTypesDropdown();
+    }
+
+    public void SetRoomsTypesDropdown()
+    {   // Set the dropdown to the rooms types dropdown
         _roomsTypesDropdown.ClearOptions();
         _roomsTypesDropdown.AddOptions(roomsTypesList);
         _roomsTypesDropdown.options.Add(new TMP_Dropdown.OptionData("+ New type"));
-    }
-
-    private void Update()
-    {   // Remove the null rooms
-        rooms.RemoveAll(room => room == null);
-    }
-
-    public void UpdatePolygons()
-    {   // Update the polygons meshes and colliders
-        rooms.ForEach(polygon => polygon.CreatePolygonMesh());
     }
 
     public void AddRoomType(string _roomType, string _eng, string _esp, bool _nearestMode)
@@ -77,7 +84,6 @@ public class RoomsManager : MonoBehaviour
         else
         {   // Add the new room type
             roomsTypesList.Add(_roomType);
-
             RoomTypeData _typeData = new RoomTypeData
             {
                 typeID = roomsTypesList.Count - 1,
@@ -89,13 +95,12 @@ public class RoomsManager : MonoBehaviour
                     SpanishTranslation = _esp
                 }
             };
+            SetRoomsTypesDropdown();
             roomsTypesData.Add(_typeData);
-            _roomsTypesDropdown.ClearOptions();
-            _roomsTypesDropdown.AddOptions(roomsTypesList);
-            _roomsTypesDropdown.options.Add(new TMP_Dropdown.OptionData("+ New type"));
             _roomsTypesDropdown.value = roomsTypesList.Count - 1;
         }
     }
+    #endregion
 
     #region --- Generate Rooms/Polygons ---
     public void GenerateRooms()
@@ -273,11 +278,13 @@ public class RoomsManager : MonoBehaviour
 
     public void LoadRoomsData(RoomData[] _roomsData, RoomTypeData[] _roomsTypes)
     {   // Load the rooms data to the map
-        roomsTypesData = new List<RoomTypeData>(_roomsTypes);
-        roomsTypesList.Clear();
+        ClearRooms();
+        roomsTypesData = _roomsTypes.ToList();
 
         foreach (RoomTypeData _type in _roomsTypes)
             roomsTypesList.Add(_type.typeName);
+
+        SetRoomsTypesDropdown();
 
         foreach (RoomData _roomData in _roomsData)
         {   // Create the room from the data
@@ -309,6 +316,7 @@ public class RoomsManager : MonoBehaviour
         foreach (RoomController _room in rooms)
             Destroy(_room.gameObject);
         roomsTypesList.Clear();
+        roomsTypesData.Clear();
         rooms.Clear();
     }
     #endregion

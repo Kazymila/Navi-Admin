@@ -201,6 +201,7 @@ public class RoomController : MonoBehaviour
         }
         return Mathf.Abs(_area / 2);
     }
+
     public Vector3 GetPolygonCenter(bool _3Dpolygon = false)
     {   // Get the center of the polygon (2D or 3D)
         Vector3 _centroid = _meshFilter.mesh.bounds.center;
@@ -232,6 +233,19 @@ public class RoomController : MonoBehaviour
         centroid.y /= (6.0f * signedArea);
         if (_3Dpolygon) centroid = Quaternion.Euler(90, 0, 0) * centroid;
         return centroid;
+    }
+
+    public bool CheckWallBelongsToRoom(WallLineController wallData)
+    {   // Check if wall belongs to the room
+        int nodeCount = 0;
+        foreach (WallNodeController node in nodes)
+        {   // Check if wall has start and end node in the room
+            if (node == wallData.startNode) nodeCount++;
+            if (node == wallData.endNode) nodeCount++;
+        }
+        // Wall does not belong to the room, if both nodes are not in the room
+        if (nodeCount < 2) return false;
+        return true;
     }
     #endregion
 

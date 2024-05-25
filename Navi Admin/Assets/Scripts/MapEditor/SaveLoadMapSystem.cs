@@ -106,9 +106,9 @@ public class SaveLoadMapSystem : MonoBehaviour
         _qrCodesManager.ClearQRCodes();
     }
 
-    #region --- Generate Map Data ---
+    #region --- Get Map Data ---
     // -------------------------------------------
-    // ------------ Generate Map Data ------------
+    // -------------- Get Map Data ---------------
     // -------------------------------------------
     public MapData GetMapData()
     {   // Get the map data from the map editor
@@ -117,6 +117,7 @@ public class SaveLoadMapSystem : MonoBehaviour
         {
             mapName = "ExampleMap",           // Default map name
             buildingName = "ExampleBuilding", // Default building name
+            roomTypes = _roomsManager.roomsTypesData.ToArray(),
             floors = new FloorData[] {
                 new FloorData
                 {

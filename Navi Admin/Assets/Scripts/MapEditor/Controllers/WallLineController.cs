@@ -124,7 +124,10 @@ public class WallLineController : MonoBehaviour
         {   // Check if the line is colliding with a polygon and add it to the list
             RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
             if (!rooms.Contains(_polygon)) rooms.Add(_polygon);
-            if (!_polygon.walls.Contains(this)) _polygon.walls.Add(this);
+            if (!_polygon.walls.Contains(this) && _polygon.CheckWallBelongsToRoom(this))
+            {   // Check if the wall belongs to the room and add it to the list
+                _polygon.walls.Add(this);
+            }
         }
     }
 
