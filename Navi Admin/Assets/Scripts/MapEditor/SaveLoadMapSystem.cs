@@ -11,6 +11,9 @@ using SFB;
 public class SaveLoadMapSystem : MonoBehaviour
 {
     #region --- Variables ---
+    [Header("Map Data")]
+    [SerializeField] private string _mapName;
+    [SerializeField] private string _buildingName;
     [Header("UI")]
     [SerializeField] private EditorLayoutController _editorLayoutController;
     [SerializeField] private GameObject _SaveLoadPanel;
@@ -115,8 +118,8 @@ public class SaveLoadMapSystem : MonoBehaviour
         _render3DManager.ShowRenderElements(false); // Disable the 3D render
         MapData _mapData = new MapData
         {
-            mapName = "ExampleMap",           // Default map name
-            buildingName = "ExampleBuilding", // Default building name
+            mapName = _mapName,
+            buildingName = _buildingName,
             roomTypes = _roomsManager.roomsTypesData.ToArray(),
             floors = new FloorData[] {
                 new FloorData
