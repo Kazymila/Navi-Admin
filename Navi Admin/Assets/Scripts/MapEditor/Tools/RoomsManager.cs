@@ -46,13 +46,13 @@ public class RoomsManager : MonoBehaviour
         roomsTypesData.Add(new RoomTypeData
         {
             typeID = 0,
-            typeName = "Unique",
             searchNearestMode = false,
-            typeNameTranslation = new TranslatedText
+            typeName = new TranslatedText
             {
-                EnglishTranslation = "Unique",
-                SpanishTranslation = "Único"
-            }
+                key = "Unique",
+                englishTranslation = "Unique",
+                spanishTranslation = "Único"
+            },
         });
         SetRoomsTypesDropdown();
     }
@@ -71,12 +71,12 @@ public class RoomsManager : MonoBehaviour
             RoomTypeData _typeData = new RoomTypeData
             {
                 typeID = roomsTypesList.Count - 1,
-                typeName = _roomType,
                 searchNearestMode = _nearestMode,
-                typeNameTranslation = new TranslatedText
+                typeName = new TranslatedText
                 {
-                    EnglishTranslation = _eng,
-                    SpanishTranslation = _esp
+                    key = _roomType,
+                    englishTranslation = _eng,
+                    spanishTranslation = _esp
                 }
             };
             roomsTypesData[roomsTypesList.IndexOf(_roomType)] = _typeData;
@@ -87,12 +87,12 @@ public class RoomsManager : MonoBehaviour
             RoomTypeData _typeData = new RoomTypeData
             {
                 typeID = roomsTypesList.Count - 1,
-                typeName = _roomType,
                 searchNearestMode = _nearestMode,
-                typeNameTranslation = new TranslatedText
+                typeName = new TranslatedText
                 {
-                    EnglishTranslation = _eng,
-                    SpanishTranslation = _esp
+                    key = _roomType,
+                    englishTranslation = _eng,
+                    spanishTranslation = _esp
                 }
             };
             SetRoomsTypesDropdown();
@@ -163,7 +163,7 @@ public class RoomsManager : MonoBehaviour
             _polygonController.nodes.Add(_dot);
         });
         _polygon.name = "Room_" + (rooms.Count > 0 ? (rooms.Count - 1) : 0);
-        _polygonController.roomName = _polygon.name;
+        _polygonController.roomName.key = _polygon.name;
         _polygonController.CreatePolygonMesh();
         rooms.Add(_polygonController);
     }
@@ -235,7 +235,7 @@ public class RoomsManager : MonoBehaviour
         {
             GameObject _label = Instantiate(_textlabelPrefab, Vector3.zero, Quaternion.identity, _labelsParent);
             _label.transform.position = Camera.main.WorldToScreenPoint(_polygon.GetPolygonCenter());
-            _label.GetComponent<TextMeshProUGUI>().text = _polygon.roomName;
+            _label.GetComponent<TextMeshProUGUI>().text = _polygon.roomName.key;
         }
     }
     public void UpdateLabelsPosition()
@@ -282,7 +282,7 @@ public class RoomsManager : MonoBehaviour
         roomsTypesData = _roomsTypes.ToList();
 
         foreach (RoomTypeData _type in _roomsTypes)
-            roomsTypesList.Add(_type.typeName);
+            roomsTypesList.Add(_type.typeName.key);
 
         SetRoomsTypesDropdown();
 

@@ -8,7 +8,7 @@ using System.Linq;
 
 public class RoomController : MonoBehaviour
 {
-    public string roomName;
+    public TranslatedText roomName;
     public string roomType = "";
     public List<WallNodeController> nodes = new List<WallNodeController>();
     public List<WallLineController> walls = new List<WallLineController>();

@@ -24,7 +24,11 @@ public class SelectTool : MonoBehaviour
     private TMP_InputField _entranceSizeInput;
     private TMP_InputField _entranceLabelInput;
     private TMP_InputField _polygonLabelInput;
+    private TMP_InputField _polygonTypeInput;
+    private TMP_InputField[] _polygonTranslatedLabelInput;
+    private TMP_InputField[] _polygonTranslatedTypeInput;
     private TMP_Dropdown _polygonTypeDropdown;
+    private Slider _polygonTypeModeSlider;
 
     [Header("Color Picker")]
     [SerializeField] private FlexibleColorPicker _colorPicker;
@@ -74,7 +78,7 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
 
         // Enable the polygons manager
-        _polygonsManager.GenerateRooms();
+        //_polygonsManager.GenerateRooms();
         _polygonsParent.SetActive(true);
     }
     private void OnDisable()
@@ -89,12 +93,23 @@ public class SelectTool : MonoBehaviour
     }
 
     private void Awake()
-    {
+    {   // Get the components references
         _wallSizeInput = _wallSettingsPanel.GetComponentInChildren<TMP_InputField>();
         _entranceSizeInput = _entranceSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();
         _entranceLabelInput = _entranceSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
         _polygonLabelInput = _polygonSettingsPanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
-        _polygonTypeDropdown = _polygonSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_Dropdown>();
+        _polygonTypeDropdown = _polygonSettingsPanel.transform.GetChild(4).GetComponentInChildren<TMP_Dropdown>();
+        _polygonTypeInput = _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>();
+
+        _polygonTranslatedLabelInput = new TMP_InputField[2];
+        _polygonTranslatedLabelInput[0] = _polygonSettingsPanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();
+        _polygonTranslatedLabelInput[1] = _polygonSettingsPanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>();
+
+        _polygonTranslatedTypeInput = new TMP_InputField[2];
+        _polygonTranslatedTypeInput[0] = _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>();
+        _polygonTranslatedTypeInput[1] = _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>();
+
+        _polygonTypeModeSlider = _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>();
     }
 
     private Vector3 GetCursorPosition(bool _considerSnap = true)
@@ -397,6 +412,9 @@ public class SelectTool : MonoBehaviour
     #region --- Polygon Settings ---
     public void InitializePolygonSettingsPanel()
     {   // Initialize the polygon settings panel
+        _polygonTranslatedLabelInput[0].text = _selectedPolygon.roomName.englishTranslation;
+        _polygonTranslatedLabelInput[1].text = _selectedPolygon.roomName.spanishTranslation;
+
         _oldPolygonColor = _selectedPolygon.colorMaterial.GetColor("_Color1");
         _colorOpaquePreview.SetColor("_Color1", _oldPolygonColor);
         _colorOpaquePreview.SetColor("_Color2", _oldPolygonColor);
@@ -408,7 +426,7 @@ public class SelectTool : MonoBehaviour
         else _polygonTypeDropdown.value = _polygonsManager.roomsTypesList.IndexOf(_selectedPolygon.roomType);
 
         _selectedPolygon.nodes.ForEach(node => node.PlaySelectAnimation());
-        _polygonLabelInput.text = _selectedPolygon.roomName;
+        _polygonLabelInput.text = _selectedPolygon.roomName.key;
         _polygonSettingsPanel.SetActive(true);
     }
 
@@ -424,7 +442,10 @@ public class SelectTool : MonoBehaviour
     public void SetPolygonSettings()
     {   // Set the polygon changes on confirmation
         if (_polygonLabelInput.text != "") // Set label
-            _selectedPolygon.roomName = _polygonLabelInput.text;
+            _selectedPolygon.roomName.key = _polygonLabelInput.text;
+
+        _selectedPolygon.roomName.englishTranslation = _polygonTranslatedLabelInput[0].text;
+        _selectedPolygon.roomName.spanishTranslation = _polygonTranslatedLabelInput[1].text;
         _selectedPolygon.roomType = _polygonTypeDropdown.options[_polygonTypeDropdown.value].text;
 
         _colorPicker.gameObject.SetActive(false);
@@ -446,10 +467,10 @@ public class SelectTool : MonoBehaviour
         {   // Show the input field to enter a new type
             _roomTypePanel.SetActive(true);
             _colorPicker.gameObject.SetActive(false);
-            _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text = "";
-            _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text = "";
-            _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text = "";
-            _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value = 0;
+            _polygonTypeInput.text = "";
+            _polygonTranslatedTypeInput[0].text = "";
+            _polygonTranslatedTypeInput[1].text = "";
+            _polygonTypeModeSlider.value = 0;
         }
         else
         {   // Set the selected type and show the fields to edit the type
@@ -461,14 +482,10 @@ public class SelectTool : MonoBehaviour
             else
             {   // Show the input fields to edit the type if is not unique
                 _roomTypePanel.SetActive(true);
-                _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text =
-                    _polygonTypeDropdown.options[_index].text;
-                _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text =
-                    _polygonsManager.roomsTypesData[_index].typeNameTranslation.EnglishTranslation;
-                _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text =
-                    _polygonsManager.roomsTypesData[_index].typeNameTranslation.SpanishTranslation;
-                _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value =
-                    _polygonsManager.roomsTypesData[_index].searchNearestMode ? 1 : 0;
+                _polygonTypeInput.text = _polygonTypeDropdown.options[_index].text;
+                _polygonTranslatedTypeInput[0].text = _polygonsManager.roomsTypesData[_index].typeName.englishTranslation;
+                _polygonTranslatedTypeInput[1].text = _polygonsManager.roomsTypesData[_index].typeName.spanishTranslation;
+                _polygonTypeModeSlider.value = _polygonsManager.roomsTypesData[_index].searchNearestMode ? 1 : 0;
             }
             _selectedPolygon.roomType = _polygonTypeDropdown.options[_index].text;
         }
@@ -477,16 +494,16 @@ public class SelectTool : MonoBehaviour
     public void ConfirmTypeChange()
     {   // Confirm the type change
         if (_selectedPolygon == null) return;
-        if (_roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text == "")
+        if (_polygonTypeInput.text == "")
         {   // Show an error message if the type name is empty
             _errorMessageBox.ShowMessage("EnterSomeValue");
             return;
         }
         _polygonsManager.AddRoomType(
-            _roomTypePanel.transform.GetChild(1).GetComponentInChildren<TMP_InputField>().text,
-            _roomTypePanel.transform.GetChild(2).GetComponentInChildren<TMP_InputField>().text,
-            _roomTypePanel.transform.GetChild(3).GetComponentInChildren<TMP_InputField>().text,
-            _roomTypePanel.transform.GetChild(4).GetComponentInChildren<Slider>().value == 1 ? true : false
+            _polygonTypeInput.text,
+            _polygonTranslatedTypeInput[0].text,
+            _polygonTranslatedTypeInput[1].text,
+            _polygonTypeModeSlider.value == 1 ? true : false
             );
         _errorMessageBox.HideMessage();
         _roomTypePanel.SetActive(false);

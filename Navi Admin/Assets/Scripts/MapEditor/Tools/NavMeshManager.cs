@@ -66,7 +66,7 @@ public class NavMeshManager : MonoBehaviour
     public void SetDropdownOptions()
     {   // Set the dropdown options
         List<string> _rooms = new List<string> { "Select a room" };
-        _polygonsManager.rooms.ForEach(polygon => _rooms.Add(polygon.roomName));
+        _polygonsManager.rooms.ForEach(polygon => _rooms.Add(polygon.roomName.key));
 
         _roomsDropdown.ClearOptions();
         _roomsDropdown.AddOptions(_rooms);
@@ -120,7 +120,7 @@ public class NavMeshManager : MonoBehaviour
 
         // Get the destination point of the selected room
         string _roomName = _roomsDropdown.options[_roomsDropdown.value].text;
-        RoomController _room = _polygonsManager.rooms.Find(polygon => polygon.roomName == _roomName);
+        RoomController _room = _polygonsManager.rooms.Find(polygon => polygon.roomName.key == _roomName);
         Vector3 _destinationPoint = Vector3.zero;
 
         if (inAgentRoom == _roomName) _navToDoor = false;

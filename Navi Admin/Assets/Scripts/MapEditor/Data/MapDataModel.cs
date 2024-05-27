@@ -63,7 +63,7 @@ namespace MapDataModel
     public class RoomData
     {
         public int roomID;
-        public string roomName;
+        public TranslatedText roomName;
         public int roomType;
         public int[] nodes;
         public int[] walls;
@@ -74,9 +74,8 @@ namespace MapDataModel
     public class RoomTypeData
     {
         public int typeID;
-        public string typeName;
+        public TranslatedText typeName;
         public bool searchNearestMode;
-        public TranslatedText typeNameTranslation;
     }
 
     [Serializable]
@@ -134,8 +133,15 @@ namespace MapDataModel
     public class TranslatedText
     {
         public string key;
-        public string EnglishTranslation;
-        public string SpanishTranslation;
+        public string englishTranslation;
+        public string spanishTranslation;
+
+        public string GetTranslationByCode(string _code)
+        {
+            if (_code == "en") return englishTranslation;
+            else if (_code == "es") return spanishTranslation;
+            return "";
+        }
     }
 
     [Serializable]
