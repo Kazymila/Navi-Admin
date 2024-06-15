@@ -51,6 +51,7 @@ public class SelectTool : MonoBehaviour
     private WallNodeController _selectedDot;
     private GameObject _selectedEntranceDot;
     private RoomController _selectedPolygon;
+    private ShapeController _selectedObstacle;
 
     // Remember the old values
     private Vector3 _oldEntranceDotPos;
@@ -58,8 +59,10 @@ public class SelectTool : MonoBehaviour
     private float _oldEntranceSize;
     private float _oldWallSize;
     private Color _oldPolygonColor;
+    private Vector3 _oldObstaclePos;
 
     // States variables
+    private bool _movingObstacle = false;
     private bool _movingEntranceDot = false;
     private bool _editingEntrance = false;
     private bool _movingEntrance = false;
@@ -151,6 +154,10 @@ public class SelectTool : MonoBehaviour
         {   // Update the position of the wall segments size labels
             ShowWallSegmentsSize(_selectedEntrance.entranceWall);
         }
+        if (_movingObstacle && !_UIEditorController.IsCursorOverEditorUI())
+        {   // Move the selected obstacle to the cursor position
+            _selectedObstacle.MoveShape(GetCursorPosition());
+        }
     }
 
     private void OnSelectClick()
@@ -182,6 +189,11 @@ public class SelectTool : MonoBehaviour
             _selectedEntranceDot = null;
             _movingEntranceDot = false;
         }
+        else if (_movingObstacle)
+        {   // Set the obstacle position and stop moving it
+            _selectedObstacle.MoveShape(GetCursorPosition());
+            _movingObstacle = false;
+        }
         else
         {
             if (!_editingWall) _wallSizeLabel.SetActive(false);
@@ -212,6 +224,14 @@ public class SelectTool : MonoBehaviour
             _selectedEntranceDot = null;
             _movingEntranceDot = false;
         }
+        else if (_movingObstacle)
+        {   // Cancel the obstacle movement
+            _selectedObstacle.MoveShape(_oldObstaclePos);
+            _movingObstacle = false;
+        }
+        else if (_editingWall) CancelWallEdit(true);
+        else if (_editingEntrance) CancelEntranceEdit(true);
+        else if (_selectedPolygon != null) CancelPolygonEdit();
     }
 
     private void RaycastToSelect()
@@ -282,6 +302,19 @@ public class SelectTool : MonoBehaviour
                 ShowWallSize();
 
                 _polygonsManager.gameObject.SetActive(false);
+            }
+            else if (_hit.collider.CompareTag("ShapeMesh"))
+            {   // Select an obstacle and edit it
+                _polygonSettingsPanel.SetActive(false);
+                _colorPicker.gameObject.SetActive(false);
+                if (_editingEntrance) CancelEntranceEdit();
+                if (_editingWall) CancelWallEdit();
+                _wallSizeLabel.SetActive(false);
+                RemoveSegmentsSizeLabel();
+
+                _selectedObstacle = _hit.collider.GetComponentInParent<ShapeController>();
+                _oldObstaclePos = _selectedObstacle.transform.position;
+                _movingObstacle = true;
             }
             else if (_hit.collider.CompareTag("Polygon"))
             {   // Select a polygon and edit it

@@ -162,7 +162,7 @@ public class RoomsManager : MonoBehaviour
             _dot.rooms.Add(_polygonController);
             _polygonController.nodes.Add(_dot);
         });
-        _polygon.name = "Room_" + (rooms.Count > 0 ? (rooms.Count - 1) : 0);
+        _polygon.name = "Room_" + rooms.Count;
         _polygonController.roomName.key = _polygon.name;
         _polygonController.CreatePolygonMesh();
         rooms.Add(_polygonController);
@@ -260,9 +260,13 @@ public class RoomsManager : MonoBehaviour
         RoomData[] _roomsData = new RoomData[rooms.Count];
 
         for (int i = 0; i < rooms.Count; i++)
-        {   // Get the data of each room
+        {   // Get the walls of the room
+            List<WallLineController> _walls = new List<WallLineController>();
+            foreach (WallLineController _wall in rooms[i].walls)
+                if (_wall != null && _wall.CheckWallBelongsToRoom(rooms[i])) _walls.Add(_wall);
+
             RoomData _data = new RoomData
-            {
+            {   // Save the room data
                 roomID = i,
                 roomName = rooms[i].roomName,
                 roomType = roomsTypesList.IndexOf(rooms[i].roomType),
@@ -290,6 +294,7 @@ public class RoomsManager : MonoBehaviour
         {   // Create the room from the data
             GameObject _polygon = Instantiate(_2DPolygonPrefab, Vector3.zero, Quaternion.identity, _2DPolygonsParent);
             RoomController _polygonController = _polygon.GetComponent<RoomController>();
+            _polygon.name = "Room_" + (_2DPolygonsParent.childCount - 1);
 
             _polygonController.roomName = _roomData.roomName;
             _polygonController.roomType = roomsTypesList[_roomData.roomType];

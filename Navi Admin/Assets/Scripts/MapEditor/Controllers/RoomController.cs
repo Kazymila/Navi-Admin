@@ -8,6 +8,8 @@ using System.Linq;
 
 public class RoomController : MonoBehaviour
 {
+    public bool destroyRoom;
+    public bool isLocked;
     public TranslatedText roomName;
     public string roomType = "";
     public List<WallNodeController> nodes = new List<WallNodeController>();
@@ -31,6 +33,12 @@ public class RoomController : MonoBehaviour
         colorMaterial.SetColor("_Color1", new Color(0.5f, 0.5f, 0.5f, 0.5f));
         transform.position = new Vector3(0, 0, 0.1f);
     }
+
+    private void Update()
+    {   // Destroy room on editor
+        if (destroyRoom) DestroyRoom();
+    }
+
     public List<Vector2> GetPoints2D()
     {   // Get the 2D points of the polygon
         List<Vector2> _points = new List<Vector2>();
@@ -75,21 +83,18 @@ public class RoomController : MonoBehaviour
     #region --- Polygon Operations ---
     private void OnTriggerEnter2D(Collider2D _collision)
     {   // Check if the polygon is colliding with another polygon
-        if (_collision.gameObject.tag == "Polygon")
+        if (_collision.gameObject.tag == "Polygon" && !isLocked)
         {   // If the polygon is bigger than the collided polygon, destroy it
             RoomController _polygon = _collision.gameObject.GetComponent<RoomController>();
 
             if (GetPolygonArea() > _polygon.GetPolygonArea() && !_intersectPolygons.Contains(_polygon))
             {   // Manage the overlapping polygons and the holes
-                _intersectPolygons.Add(_polygon);
-                nodes.AddRange(_polygon.nodes);
 
-                // Get the hole polygons points
-                List<Vector2[]> _holesPoints = new List<Vector2[]>();
-                foreach (RoomController polygon in _intersectPolygons)
-                    _holesPoints.Add(polygon.GetPoints2D().ToArray());
+                // Move the smaller polygon above, to avoid overlapping
+                _polygon.transform.localPosition = new Vector3(
+                    _polygon.transform.localPosition.x, _polygon.transform.localPosition.y, -0.05f);
 
-                CreatePolygonMesh(_holesPoints);
+                //GeneratePolygonHoles();
 
                 // TODO: Delete overlapping polygons
                 //DestroyRoom();
@@ -104,15 +109,35 @@ public class RoomController : MonoBehaviour
         {   // Reduce the area of the collider to avoid overlapping
             Vector2 _centroid = GetPolygonCenter();
             for (int i = 0; i < _points.Length; i++)
-                _points[i] = Vector2.Lerp(_points[i], _centroid, 0.015f);
+                _points[i] = Vector2.Lerp(_points[i], _centroid, 0.005f);
         }
         if (_polygonCollider == null)
             _polygonCollider = this.GetComponent<PolygonCollider2D>();
         _polygonCollider.points = _points;
     }
 
+    public void GeneratePolygonHoles()
+    {   // Generate the holes of the polygon
+        List<Vector2[]> _holesPoints = new List<Vector2[]>();
+        foreach (RoomController polygon in _intersectPolygons)
+            _holesPoints.Add(polygon.GetPoints2D().ToArray());
+        CreatePolygonMesh(_holesPoints);
+
+        // Discard the nodes that are not part of the polygon
+        foreach (WallNodeController node in nodes)
+        {   // Check if the node is inside the polygon
+            Vector3 _nodePos = node.transform.position + new Vector3(0, 0, 0.5f);
+            if (!_meshFilter.mesh.bounds.Contains(_nodePos))
+            {   // Remove the node from the room
+                node.rooms.Remove(this);
+                nodes.Remove(node);
+            }
+        }
+    }
+
     public void CreatePolygonMesh(List<Vector2[]> _holePoints = null)
     {   // Create the room polygon mesh
+        if (isLocked) return;
         Mesh _outerArea = GenerateTriangulateMesh(_holePoints, true);
         Vector2[] _outerPoints = _outerArea.vertices.ToList().ConvertAll(v => new Vector2(v.x, v.y)).ToArray();
 
@@ -125,6 +150,11 @@ public class RoomController : MonoBehaviour
 
         Mesh _mesh = GenerateTriangulateMesh(_holePoints);
         _meshFilter.mesh = _mesh;
+
+        // If a void polygon is created, destroy it
+        if (_meshFilter.mesh.vertices.Length == 0)
+            Destroy(this.gameObject);
+
         SetPolygonCollider();
     }
 
@@ -276,8 +306,8 @@ public class RoomController : MonoBehaviour
         Mesh _mesh = new Mesh();
         _mesh.vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);
         _mesh.triangles = _polygonData.triangles;
-        _mesh.RecalculateNormals();
-        _mesh.RecalculateBounds();
+        //_mesh.RecalculateNormals();
+        //_mesh.RecalculateBounds();
         _meshFilter.mesh = _mesh;
         SetPolygonCollider();
     }

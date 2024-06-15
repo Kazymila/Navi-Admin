@@ -20,12 +20,12 @@ public class WallDrawer : MonoBehaviour
     [Header("Line settings")]
     [SerializeField] private GameObject _linePrefab;
     [SerializeField] private Transform _linesParent;
+    [SerializeField] private float _wallWidth = 0.15f;
     #endregion
     private GameObject _lineObject;
     private WallLineController _lineController;
     private WallNodeController _startWallNode;
     private WallNodeController _endWallNode;
-    private float _wallWidth = 0.10f;
     private bool _isDrawing;
 
     private InputMap _input;

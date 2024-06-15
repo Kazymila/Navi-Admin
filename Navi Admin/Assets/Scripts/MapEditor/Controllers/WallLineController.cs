@@ -61,11 +61,6 @@ public class WallLineController : MonoBehaviour
         _meshFilter = _renderWall.GetComponent<MeshFilter>();
     }
 
-    private void Update()
-    {
-        rooms.RemoveAll(room => room == null);
-    }
-
     public float CalculateLength()
     {   // Calculate the line lenght
         length = Vector3.Distance(startNode.GetNodePosition(), endNode.GetNodePosition());
@@ -116,6 +111,19 @@ public class WallLineController : MonoBehaviour
         _polygonCollider.SetPath(0,
             _colliderPoints.ConvertAll(
                 p => (Vector2)transform.InverseTransformPoint(p)));
+    }
+
+    public bool CheckWallBelongsToRoom(RoomController _room)
+    {   // Check if the wall belongs to the room and add it to the list
+        int nodeCount = 0;
+        foreach (WallNodeController node in _room.nodes)
+        {   // Check if wall has start and end node in the room
+            if (node == startNode) nodeCount++;
+            if (node == endNode) nodeCount++;
+        }
+        // Wall does not belong to the room, if both nodes are not in the room
+        if (nodeCount < 2) return false;
+        return true;
     }
 
     private void OnTriggerEnter2D(Collider2D _collision)

@@ -23,7 +23,6 @@ public class ShapeController : MonoBehaviour
     [Header("Shape Mesh")]
     [SerializeField] private GameObject _shapePolygonPrefab;
     [SerializeField] private Material _shapeRenderMaterial;
-    private Transform _shapePolygonParent;
     private Transform _shapeRenderParent;
     private MeshFilter _shapePolygonMesh;
     private MeshFilter _shapeRenderMesh;
@@ -33,7 +32,6 @@ public class ShapeController : MonoBehaviour
 
     private void Awake()
     {
-        _shapePolygonParent = GameObject.Find("ShapesPolygons").transform;
         _shapeRenderParent = GameObject.Find("ShapesRender").transform;
         _linePolygonCollider = GetComponent<PolygonCollider2D>();
         _lineRenderer = GetComponent<LineRenderer>();
@@ -72,6 +70,13 @@ public class ShapeController : MonoBehaviour
             _lineRenderer.SetPosition(shapePoints.Count - 1, _position);
             shapePoints[shapePoints.Count - 1].position = _position + shapeDotsOffset;
         }
+    }
+
+    public void MoveShape(Vector3 _position)
+    {   // Move the shape to a new position
+        this.transform.position = _position;
+        foreach (Transform point in shapePoints)
+            _lineRenderer.SetPosition(shapePoints.IndexOf(point), point.position);
     }
 
     public void EndShape()
@@ -234,7 +239,8 @@ public class ShapeController : MonoBehaviour
     private void CreateShapePolygon()
     {   // Create the shape polygon object
         GameObject _shapeMesh = Instantiate(_shapePolygonPrefab, Vector3.zero
-            + new Vector3(0, 0, -0.1f), Quaternion.identity, _shapePolygonParent);
+            + new Vector3(0, 0, -0.1f), Quaternion.identity, this.transform);
+        _shapeMesh.transform.SetSiblingIndex(0);
 
         _shapeMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonColor);
         _shapeMesh.name = "ShapePolygon_" + _shapeMesh.transform.GetSiblingIndex();

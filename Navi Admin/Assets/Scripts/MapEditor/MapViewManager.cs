@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MapViewManager : MonoBehaviour
 {
-    [SerializeField] private RoomsManager _polygonRender;
+    [SerializeField] private RoomsManager _polygonManager;
     [SerializeField] private GameObject _selectTool;
     private GameObject _wallDots;
     private GameObject _entrances;
@@ -22,21 +22,21 @@ public class MapViewManager : MonoBehaviour
 
     void Update()
     {
-        if (isMapViewActive) _polygonRender.UpdateLabelsPosition();
+        if (isMapViewActive) _polygonManager.UpdateLabelsPosition();
     }
 
     public void ShowMapView(bool _showPolygons = true)
     {   // Show the map view
         if (!isMapViewActive)
         {
-            //_polygonRender.GenerateRooms();
-            _polygonRender.ShowRoomsLabels();
+            _polygonManager.GenerateRooms();
+            _polygonManager.ShowRoomsLabels();
             _polygons.SetActive(_showPolygons);
             isMapViewActive = true;
         }
         else
         {   // Hide the map view
-            _polygonRender.RemoveRoomsLabels();
+            _polygonManager.RemoveRoomsLabels();
             if (!_selectTool.activeSelf) _polygons.SetActive(false);
             isMapViewActive = false;
         }

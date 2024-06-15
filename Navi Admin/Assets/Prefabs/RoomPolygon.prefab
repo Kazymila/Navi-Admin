@@ -48,7 +48,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5350a8d3879b3a64b978c71859ccbc53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomName: 
+  destroyRoom: 0
+  roomName:
+    key: 
+    englishTranslation: 
+    spanishTranslation: 
   roomType: Room
   nodes: []
   walls: []
@@ -152,7 +156,7 @@ PolygonCollider2D:
       - {x: -0.5877852, y: -0.80901706}
       - {x: 0.58778536, y: -0.80901694}
       - {x: 0.9510565, y: 0.30901712}
-  m_UseDelaunayMesh: 1
+  m_UseDelaunayMesh: 0
 --- !u!50 &5293338484555012315
 Rigidbody2D:
   serializedVersion: 4

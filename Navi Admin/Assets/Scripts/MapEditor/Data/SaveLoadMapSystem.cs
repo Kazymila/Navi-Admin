@@ -163,15 +163,21 @@ public class SaveLoadMapSystem : MonoBehaviour
         for (int i = 0; i < _wallsParent.childCount; i++)
         {
             WallLineController _wall = _wallsParent.GetChild(i).GetComponent<WallLineController>();
+
+            // Get the rooms from the wall
+            List<RoomController> _rooms = new List<RoomController>();
+            foreach (RoomController _room in _wall.rooms)
+                if (_room != null && _wall.CheckWallBelongsToRoom(_room)) _rooms.Add(_room);
+
             WallData _wallData = new WallData
-            {
+            {   // Generate the wall data
                 wallID = i,
                 wallLenght = _wall.length,
                 wallWidth = _wall.width,
                 startNode = _wall.startNode.transform.GetSiblingIndex(),
                 endNode = _wall.endNode.transform.GetSiblingIndex(),
                 wallPosition = new SerializableVector3(_wall.transform.position),
-                rooms = _wall.rooms.ConvertAll(room => room.transform.GetSiblingIndex()).ToArray(),
+                rooms = _rooms.ConvertAll(room => room.transform.GetSiblingIndex()).ToArray(),
                 entrances = GetEntrancesData(_wall.entrances),
                 renderData = _wall.GetWallRenderData()
             };
