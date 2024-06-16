@@ -14,11 +14,12 @@ public class ShapeController : MonoBehaviour
     public string shapeName;
     public float shapeHeight = 0.5f;
     [SerializeField] private Color _polygonColor = new Color(0.26f, 0, 0.68f, 0.5f);
+    [SerializeField] private bool _changingColor = false;
     public List<Transform> shapePoints;
 
     [Header("Dots settings")]
     [SerializeField] private GameObject _shapeDotPrefab;
-    public Vector3 shapeDotsOffset = new Vector3(0, 0, -0.5f);
+    public Vector3 shapeDotsOffset = new Vector3(0, 0, -0.75f);
 
     [Header("Shape Mesh")]
     [SerializeField] private GameObject _shapePolygonPrefab;
@@ -45,6 +46,14 @@ public class ShapeController : MonoBehaviour
             Destroy(point.gameObject);
     }
 
+    private void Update()
+    {
+        if (_changingColor)
+        {   // Change the color of the shape polygon on editor
+            _shapePolygonMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonColor);
+        }
+    }
+
     #region --- Shape Operations ---
     public int GetPointsCount() => _lineRenderer.positionCount;
 
@@ -60,7 +69,7 @@ public class ShapeController : MonoBehaviour
     {   // Add a new point to the line
         shapePoints.Add(point);
         _lineRenderer.positionCount++;
-        _lineRenderer.SetPosition(shapePoints.Count - 1, point.position);
+        _lineRenderer.SetPosition(shapePoints.Count - 1, point.position - shapeDotsOffset);
     }
 
     public void UpdateLastPoint(Vector3 _position)
@@ -76,7 +85,7 @@ public class ShapeController : MonoBehaviour
     {   // Move the shape to a new position
         this.transform.position = _position;
         foreach (Transform point in shapePoints)
-            _lineRenderer.SetPosition(shapePoints.IndexOf(point), point.position);
+            _lineRenderer.SetPosition(shapePoints.IndexOf(point), point.position - shapeDotsOffset);
     }
 
     public void EndShape()
@@ -238,8 +247,12 @@ public class ShapeController : MonoBehaviour
 
     private void CreateShapePolygon()
     {   // Create the shape polygon object
-        GameObject _shapeMesh = Instantiate(_shapePolygonPrefab, Vector3.zero
-            + new Vector3(0, 0, -0.1f), Quaternion.identity, this.transform);
+        GameObject _shapeMesh = Instantiate(
+            _shapePolygonPrefab,
+            Vector3.zero + new Vector3(0, 0, -0.5f), // Offset to avoid z-fighting (same as shape dots offset
+            Quaternion.identity,
+            this.transform
+            );
         _shapeMesh.transform.SetSiblingIndex(0);
 
         _shapeMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonColor);
@@ -275,11 +288,12 @@ public class ShapeController : MonoBehaviour
     #region --- Shape Mesh 3D Render ---
     public void GenerateShapeMesh()
     {   // Create a 3D mesh from shape points
+        if (_shapeRenderMesh != null) Destroy(_shapeRenderMesh.gameObject);
         GameObject _shape3D = Instantiate(_shapePolygonMesh.gameObject,
             Vector3.zero, Quaternion.identity, _shapeRenderParent);
 
         _shape3D.name = _shape3D.name.Replace("(Clone)", "").Replace("Polygon", "Render");
-        _shape3D.GetComponent<MeshRenderer>().material = _shapeRenderMaterial;
+        _shape3D.GetComponent<MeshRenderer>().material = _shapePolygonMesh.GetComponent<MeshRenderer>().material;
         _shape3D.layer = LayerMask.NameToLayer("Obstacle");
         Destroy(_shape3D.GetComponent<PolygonCollider2D>());
 

@@ -12,9 +12,9 @@ public class ShapeTool : MonoBehaviour
     [SerializeField] private MapEditorGridManager _gridManager;
     [SerializeField] private GameObject _sizeLabel;
 
-    [Header("Line settings")]
+    [Header("Shapes settings")]
     [SerializeField] private GameObject _linePrefab;
-    [SerializeField] private Transform _linesParent;
+    [SerializeField] private Transform _shapeParent;
 
     #endregion
     private ShapeController _currentShape;
@@ -34,7 +34,7 @@ public class ShapeTool : MonoBehaviour
     private Vector3 GetCursorPosition(bool _considerSnap = true)
     {   // Get the cursor position in the world
         Vector3 _cursorPosition = Camera.main.ScreenToWorldPoint(_input.MapEditor.Position.ReadValue<Vector2>());
-        _cursorPosition.z = -0.2f;
+        _cursorPosition.z = _shapeParent.position.z;
 
         if (_gridManager.snapToGrid && _considerSnap)
         {
@@ -63,9 +63,9 @@ public class ShapeTool : MonoBehaviour
 
         if (_currentShape == null)
         {   // Create a new shape
-            GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _linesParent);
+            GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _shapeParent);
             _currentShape = _newShape.GetComponent<ShapeController>();
-            _newShape.name = "Shape_" + (_linesParent.childCount > 0 ? (_linesParent.childCount - 1) : 0);
+            _newShape.name = "Shape_" + (_shapeParent.childCount > 0 ? (_shapeParent.childCount - 1) : 0);
             _currentShape.InstantiateDot(_cursorPosition);
         }
         _currentShape.InstantiateDot(_cursorPosition);
