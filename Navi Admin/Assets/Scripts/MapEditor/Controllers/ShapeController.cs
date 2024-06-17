@@ -10,7 +10,7 @@ public class ShapeController : MonoBehaviour
     #region --- Shape Variables ---
     [Header("Shape Settings")]
     public string shapeName;
-    public float shapeHeight = 0.5f;
+    public float shapeHeight = 1.5f;
     [SerializeField] private Color _polygonColor = new Color(0.26f, 0, 0.68f, 0.5f);
     [SerializeField] private bool _changingColor = false;
     public List<Transform> shapePoints;
@@ -81,7 +81,9 @@ public class ShapeController : MonoBehaviour
 
     public void MoveShape(Vector3 _position)
     {   // Move the shape to a new position
-        this.transform.position = _position;
+        this.transform.position = _position + (this.transform.position - shapePoints[0].position);
+        this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, 0);
+
         foreach (Transform point in shapePoints)
             _lineRenderer.SetPosition(shapePoints.IndexOf(point), point.position - shapeDotsOffset);
     }
@@ -232,7 +234,7 @@ public class ShapeController : MonoBehaviour
     {   // Create the shape polygon object
         GameObject _shapeMesh = Instantiate(
             _shapePolygonPrefab,
-            Vector3.zero + new Vector3(0, 0, -0.5f), // Offset to avoid z-fighting (same as shape dots offset
+            Vector3.zero + new Vector3(0, 0, -0.25f), // Offset to avoid z-fighting (same as shape dots offset
             Quaternion.identity,
             this.transform
             );
@@ -260,6 +262,7 @@ public class ShapeController : MonoBehaviour
 
         // Generate the shape faces and combine them into one mesh
         Mesh _polygonMesh = _shape3D.GetComponent<MeshFilter>().mesh;
+        _polygonMesh.vertices = _polygonMesh.vertices.Select(v => v + this.transform.position).ToArray();
         _polygonMesh.vertices = _polygonMesh.vertices.Select(v => new Vector3(v.x, shapeHeight, v.y)).ToArray();
 
         Mesh[] _shapeFaces = new Mesh[] { _polygonMesh };
@@ -344,9 +347,11 @@ public class ShapeController : MonoBehaviour
 
         CreateShapePolygon();
         PolygonData _polygonData = _shapeData.polygonData;
-        _shapePolygonMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonData.materialColor.GetColor);
+        _polygonColor = _polygonData.materialColor.GetColor;
+        _shapePolygonMesh.GetComponent<MeshRenderer>().material.SetColor("_Color1", _polygonColor);
         _shapePolygonMesh.mesh.vertices = SerializableVector3.GetVector3Array(_polygonData.vertices);
         _shapePolygonMesh.mesh.triangles = _polygonData.triangles;
+        _shapePolygonMesh.transform.localPosition = new Vector3(0, 0, -0.25f);
     }
     #endregion
 }
