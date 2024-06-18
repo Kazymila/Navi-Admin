@@ -63,7 +63,7 @@ public class ShapeTool : MonoBehaviour
 
         if (_currentShape == null)
         {   // Create a new shape
-            GameObject _newShape = Instantiate(_linePrefab, Vector3.zero, Quaternion.identity, _shapeParent);
+            GameObject _newShape = Instantiate(_linePrefab, _cursorPosition, Quaternion.identity, _shapeParent);
             _currentShape = _newShape.GetComponent<ShapeController>();
             _newShape.name = "Shape_" + (_shapeParent.childCount > 0 ? (_shapeParent.childCount - 1) : 0);
             _currentShape.InstantiateDot(_cursorPosition);
@@ -79,7 +79,7 @@ public class ShapeTool : MonoBehaviour
         _currentShape.EndShape();
 
         // Create the mesh (polygon) of the shape
-        _currentShape.GenerateShapePolygon();
+        _currentShape.CreateShapePolygon();
         _currentShape = null;
         _isDrawing = false;
     }
