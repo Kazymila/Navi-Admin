@@ -81,7 +81,7 @@ public class SelectTool : MonoBehaviour
         _input.MapEditor.EndDraw.started += ctx => CancelAction();
 
         // Enable the polygons manager
-        //_polygonsManager.GenerateRooms();
+        _polygonsManager.GenerateRooms();
         _polygonsParent.SetActive(true);
     }
     private void OnDisable()
